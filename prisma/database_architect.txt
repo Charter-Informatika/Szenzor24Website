@@ -1,0 +1,16 @@
+[Felhasználó böngészője]
+         │
+         ▼
+ [Next.js App (API route)]
+         │
+         ▼
+     Prisma ORM
+         │
+         ▼
+  [Adatbázis VM-ben: PostgreSQL/MySQL]
+         │
+         ▼
+    (Proxmox VM vagy konténer)
+        │
+        ▼
+[Admin panel: kezelőfelület]

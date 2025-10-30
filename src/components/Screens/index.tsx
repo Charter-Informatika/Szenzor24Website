@@ -21,193 +21,32 @@ const Screens = () => {
     <>
       <section id="screens" className="relative z-20 pt-[110px]">
         <div className="container">
-          <div
-            className="wow fadeInUp mx-auto mb-10 max-w-[690px] text-center"
-            data-wow-delay=".2s"
-          >
+          <div className="wow fadeInUp mx-auto mb-10 max-w-[690px] text-center" data-wow-delay=".2s">
             <h2 className="mb-4 text-3xl font-bold text-black sm:text-4xl md:text-[44px] md:leading-tight dark:text-white">
-              Szoftver képernyőképek
+              Térkép
             </h2>
             <p className="text-body text-base">
-              Tekintsd meg a modern és felhasználóbarát felületet, amely
-              megkönnyíti a mindennapi levelezési feladatokat.
+              <h2>Itt található a cégünk: Pécs, Kertváros u. 2</h2>
+              Hétfő – péntek: 8:00 – 16:00
             </p>
           </div>
         </div>
-
         <div className="container">
-          <div
-            className="wow fadeInUp mx-auto max-w-[900px] mb-12"
-            data-wow-delay=".2s"
-          >
-            <Swiper
-              className="swiper mySwiper relative z-20"
-              modules={[Navigation]}
-              navigation={{
-                nextEl: ".swiper-button-next",
-                prevEl: ".swiper-button-prev",
-              }}
-              loop={true}
-              slidesPerView={1}
-              spaceBetween={40}
-              autoHeight={true}
-              breakpoints={{
-                640: {
-                  slidesPerView: 1,
-                },
-                1024: {
-                  slidesPerView: 1,
-                  spaceBetween: 40,
-                },
-              }}
-              onSwiper={(swiper) => {
-                swiperRef.current = swiper;
-              }}
-            >
-       
-
-
-              {/* Slide 1: level_szerkeztes */}
-              <SwiperSlide>
-                <div className="xs:max-w-[1800px] mx-auto w-full max-w-[900px] mb-0">
-                  <Image
-                    width={900}
-                    height={1800}
-                    src={"/images/screens/fooldal_dark.png"}
-                    alt="screenshot 2"
-                    className="mx-auto w-full rounded-2xl block dark:hidden mb-0"
-                    onLoad={handleImageLoad}
-                  />
-                  <Image
-                    width={900}
-                    height={1800}
-                    src={"/images/screens/fooldal_light.png"}
-                    alt="screenshot 2 dark"
-                    className="mx-auto w-full rounded-2xl hidden dark:block mb-0"
-                    onLoad={handleImageLoad}
-                  />
-                </div>
-              </SwiperSlide>
-
-              {/* Slide 2: fooldal */}
-              <SwiperSlide>
-                <div className="xs:max-w-[1800px] mx-auto w-full max-w-[900px] mb-0">
-                  <Image
-                    width={900}
-                    height={1800}
-                    src={"/images/screens/level_szerkesztes_dark.png"}
-                    alt="screenshot 1"
-                    className="mx-auto w-full rounded-2xl block dark:hidden mb-0"
-                    onLoad={handleImageLoad}
-                  />
-                  <Image
-                    width={900}
-                    height={1800}
-                    src={"/images/screens/level_szerkeztes_light.png"}
-                    alt="screenshot 1 dark"
-                    className="mx-auto w-full rounded-2xl hidden dark:block mb-0"
-                    onLoad={handleImageLoad}
-                  />
-                </div>
-              </SwiperSlide>
-              
-              {/* Slide 3: level_szerkezet */}
-              <SwiperSlide>
-                <div className="xs:max-w-[1800px] mx-auto w-full max-w-[900px] mb-0">
-                  <Image
-                    width={900}
-                    height={1800}
-                    src={"/images/screens/level_szerkezet_dark.png"}
-                    alt="screenshot 3"
-                    className="mx-auto w-full rounded-2xl block dark:hidden mb-0"
-                    onLoad={handleImageLoad}
-                  />
-                  <Image
-                    width={900}
-                    height={1800}
-                    src={"/images/screens/level_szerkezet_light.png"}
-                    alt="screenshot 3 dark"
-                    className="mx-auto w-full rounded-2xl hidden dark:block mb-0"
-                    onLoad={handleImageLoad}
-                  />
-                </div>
-              </SwiperSlide>
-
-              {/* Slide 4: level_be */}
-              <SwiperSlide>
-                <div className="xs:max-w-[1800px] mx-auto w-full max-w-[900px] mb-0">
-                  <Image
-                    width={900}
-                    height={1800}
-                    src={"/images/screens/level_be_dark.png"}
-                    alt="screenshot 4"
-                    className="mx-auto w-full rounded-2xl block dark:hidden mb-0"
-                    onLoad={handleImageLoad}
-                  />
-                  <Image
-                    width={900}
-                    height={1800}
-                    src={"/images/screens/level_be_light.png"}
-                    alt="screenshot 4 dark"
-                    className="mx-auto w-full rounded-2xl hidden dark:block mb-0"
-                    onLoad={handleImageLoad}
-                  />
-                </div>
-              </SwiperSlide>
-
-              <div className="flex items-center justify-center gap-x-4 pt-10">
-                <button className="swiper-button-prev">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <g clipPath="url(#clip0_46_342)">
-                      <path
-                        d="M6.52334 10.8334L10.9933 15.3034L9.81501 16.4817L3.33334 10L9.815 3.51836L10.9933 4.69669L6.52334 9.16669L16.6667 9.16669L16.6667 10.8334L6.52334 10.8334Z"
-                        fill="currentColor"
-                      />
-                    </g>
-                    <defs>
-                      <clipPath id="clip0_46_342">
-                        <rect
-                          width="20"
-                          height="20"
-                          fill="white"
-                          transform="translate(20 20) rotate(180)"
-                        />
-                      </clipPath>
-                    </defs>
-                  </svg>
-                </button>
-                <button className="swiper-button-next">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <g clipPath="url(#clip0_46_337)">
-                      <path
-                        d="M13.4767 9.16664L9.00667 4.69664L10.185 3.51831L16.6667 9.99998L10.185 16.4816L9.00667 15.3033L13.4767 10.8333H3.33334V9.16664H13.4767Z"
-                        fill="currentColor"
-                      />
-                    </g>
-                    <defs>
-                      <clipPath id="clip0_46_337">
-                        <rect width="20" height="20" fill="white" />
-                      </clipPath>
-                    </defs>
-                  </svg>
-                </button>
-              </div>
-            </Swiper>
+          <div className="wow fadeInUp mx-auto max-w-[900px] mb-12" data-wow-delay=".2s">
+            <div className="w-full rounded-2xl overflow-hidden border border-blue-300 shadow-lg">
+              <iframe
+                title="Cégünk térképen"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2736.393964624624!2d18.21785731560609!3d46.07207397911209!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4742b1e2e2e2e2e3%3A0x2e2e2e2e2e2e2e2e!2sP%C3%A9cs%2C%20Kertv%C3%A1ros%20u.%202%2C%207632!5e0!3m2!1shu!2shu!4v1697555555555!5m2!1shu!2shu"
+                width="100%"
+                height="450"
+                style={{ border: 0 }}
+                allowFullScreen={true}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
           </div>
         </div>
-
         {/*Graphics*/}
         <Graphics />
       </section>

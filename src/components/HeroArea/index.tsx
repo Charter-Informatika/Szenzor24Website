@@ -60,18 +60,23 @@ const HeroArea = () => {
                 className="wow fadeInUp mb-12 lg:mb-0 lg:max-w-[570px]"
                 data-wow-delay=".3s"
               >
-                <span className="mb-5 block text-lg leading-tight font-medium text-black sm:text-[22px] xl:text-[22px] dark:text-white">
-                  Okos szenzorok, melyek leegyszerűsítik az életed!
-                </span>
-                <h1 className="mb-6 text-3xl leading-tight font-bold text-black sm:text-[40px] md:text-[50px] lg:text-[42px] xl:text-[50px] dark:text-white">
-                  <span className="bg-clip-text font-bold text-transparent bg-gradient-to-r from-green-400 to-blue-500">
-                  Szenzor24{" "}
-                  </span>
-                  - A szenzorok királya, a királyok szenzora!
-                </h1>
-                <p className="text-body mb-10 max-w-[475px] text-base leading-relaxed">
-                 Fizess elő most és élvezd egyből a hatékonyságot és a kényelmet!
-                </p>
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-black dark:text-white text-center mb-2">
+                    A BIZTONSÁGOS ÉLELMISZER TÁROLÁS
+                  </h1>
+                  <h2 className="text-lg sm:text-xl font-medium text-black dark:text-white text-center mb-4">
+                    HACCP kompatibilis hőmérséklet figyelés egyszerűen
+                  </h2>
+                  <ul className="mb-6 text-base sm:text-lg leading-relaxed text-left max-w-md mx-auto list-none">
+                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>Leolvadás elleni védelem</li>
+                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>Nyitott ajtó visszajelzés</li>
+                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>Áramszünet visszajelzés</li>
+                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>Műszaki meghibásodás előrejelzés</li>
+                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>Illetéktelen hozzáférés elleni védelem</li>
+                  </ul>
+                  <p className="text-body mb-6 text-base sm:text-lg leading-relaxed text-center max-w-xl">
+                    <span className="font-bold text-black dark:text-white">A HűtőMonitor</span> egy innovatív megoldás, amely teljesen automatizálja a hűtők és a fagyasztók hőmérsékletének naplózását, így Önnek többé nem kell manuálisan rögzítenie az adatokat.<br />
+                    A rendszer folyamatosan figyeli a hőmérsékleti értékeket, és automatikusan naplózza azokat a HACCP követelményeinek megfelelően.
+                  </p>
                 <p className="flex flex-wrap gap-4">
                 </p>
                

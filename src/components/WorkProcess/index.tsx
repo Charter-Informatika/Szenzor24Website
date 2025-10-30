@@ -25,9 +25,9 @@ const workProcessData: Feature[] = [
         </defs>
       </svg>
     ),
-    title: "Telepítsd a szoftvert",
+    title: "Nincs többé kézi adatnaplózás",
     description:
-      "Próbáld ki az ingyenes verziót, és később frissíthetsz a számodra legkedvezőbb csomagra.",
+      "A rendszer automatikusan rögzíti a hőmérsékleti értékeket.",
   },
   {
     icon: (
@@ -51,9 +51,9 @@ const workProcessData: Feature[] = [
         </defs>
       </svg>
     ),
-    title: "Állítsd be a fiókodat",
+    title: "Teljes ellenőrzés ",
     description:
-      "Állítsd be azt az email fiókot, amelyről az automata levelezést szeretnéd végezni.",
+      "Bárhol és bármikor hozzáférhetsz a hűtőid adataihoz egy online felületen keresztül.",
   },
   {
     icon: (
@@ -77,9 +77,9 @@ const workProcessData: Feature[] = [
         </defs>
       </svg>
     ),
-    title: "Élvezd a kényelmet!",
+    title: "Biztonság és megbízhatóság",
     description:
-      "Hagyd, hogy az AI foglalkozzon a levelezéssel, miközben te arra koncetrálsz ami igazán számít!",
+      "Azonnali értesítéseket kapsz, ha a hőmérséklet eltér az ideálistól.",
   },
 ];
 
@@ -93,11 +93,10 @@ const WorkProcess = () => {
             data-wow-delay=".2s"
           >
             <h2 className="mb-4 text-3xl font-bold text-black dark:text-white sm:text-4xl md:text-[44px] md:leading-tight">
-              Útmutató a telepítéshez
+             Beüzemelés 
             </h2>
             <p className="text-base text-body">
-              Tedd egyszerűbbé az életed azáltal, hogy az AI-ra bízod a
-              levelezést! Kövesd az egyszerű lépéseket, és élvezd a kényelmet!
+             csupán 5 perc alatt!
             </p>
           </div>
         </div>

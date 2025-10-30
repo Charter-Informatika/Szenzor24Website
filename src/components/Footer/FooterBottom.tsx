@@ -17,12 +17,12 @@ const FooterBottom = () => {
               <div className="mb-4 flex items-center justify-center md:mb-0 lg:justify-center">
                 {/* compact contact row: email - facebook - phone (facebook centered) */}
                 <div className="flex items-center space-x-6">
-                  <a href="mailto:info@okosmail.hu" className="flex items-center space-x-2 text-base text-white whitespace-nowrap">
+                  <a href="mailto:info@okoshuto.hu" className="flex items-center space-x-2 text-base text-white whitespace-nowrap">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M3 6.5C3 5.67157 3.67157 5 4.5 5H19.5C20.3284 5 21 5.67157 21 6.5V17.5C21 18.3284 20.3284 19 19.5 19H4.5C3.67157 19 3 18.3284 3 17.5V6.5Z" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
                       <path d="M21 6.5L12 12.5L3 6.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                    <span className="whitespace-nowrap">info@okosmail.hu</span>
+                    <span className="whitespace-nowrap">info@okoshuto.hu</span>
                   </a>
 
                   <Link
@@ -53,11 +53,11 @@ const FooterBottom = () => {
                     </svg>
                   </Link>
 
-                  <a href="tel:+36702200015" className="flex items-center space-x-2 text-base text-white whitespace-nowrap">
+                  <a href="tel:+36705939167" className="flex items-center space-x-2 text-base text-white whitespace-nowrap">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M22 16.92V20.5C22 21.3284 21.3284 22 20.5 22C10.3876 22 2 13.6124 2 3.5C2 2.67157 2.67157 2 3.5 2H7.08C7.53043 2 7.93914 2.21071 8.17678 2.58579L10.3 6.2C10.5 6.5 10.45 6.9 10.17 7.15L8.54 8.54C9.84 11.11 12.89 14.16 15.46 15.46L16.85 13.83C17.1 13.55 17.5 13.5 17.8 13.7L21.42 15.82C21.796 16.058 22 16.466 22 16.92Z" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                    <span className="whitespace-nowrap">+36 70 220 0015</span>
+                    <span className="whitespace-nowrap">+36 70 593 9167</span>
                   </a>
                 </div>
                 {/*

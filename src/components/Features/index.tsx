@@ -25,9 +25,9 @@ const featuresData: Feature[] = [
         </defs>
       </svg>
     ),
-    title: "Automata válaszküldés",
+    title: "HACCP hőmérséklet naplózása",
     description:
-      "Tanítható AI válaszol helyetted a leveleidre, így időt és energiát spórolhatsz meg.",
+      "A hőmérsékleti adatok táblázatos tárolása. Nincs többé szükség a papír alapon történő rögzítésre.",
   },
   {
     icon: (
@@ -55,9 +55,9 @@ const featuresData: Feature[] = [
         </defs>
       </svg>
     ),
-    title: "Saját adatbázis",
+    title: "Leolvadás elleni védelem",
     description:
-      "Könnyedén beemelheted már meglévő adatbázisodat, ezzel tanítva az AI-t a számodra fontos információkra.",
+      "Biztosítja a normál üzemi hőmérséklet fenntartását és a fagyasztott áruk védelmét, egy riasztási/visszajelzési rendszer segítségével.",
   },
   {
     icon: (
@@ -85,9 +85,9 @@ const featuresData: Feature[] = [
         </defs>
       </svg>
     ),
-    title: "Könnyen használható",
+    title: "Nyitott ajtó visszajelzés",
     description:
-      "A szoftver egyszerű felépítése miatt, bárki könnyedén használhatja, függetlenül a technikai tudásától.",
+      "Biztosítja az ajtó nyitva felejtésének az elkerülését, ill. figyelmeztet az ajtó nyitvatartás nem megfelelő használatára egy statisztikai alapokon működő rendszer segítségével.",
   },
   {
     icon: (
@@ -115,9 +115,9 @@ const featuresData: Feature[] = [
         </defs>
       </svg>
     ),
-    title: "Gyors és egyszerű",
+    title: "Műszaki meghibásodás előrejelző rendszer",
     description:
-      "Az AI másodpercek alatt elkészíti a választ a beérkezett levelekre, és küldi el automatikusan.",
+      "Előre figyelmeztet egy műszaki problémából adódó esetleges meghibásodásra.",
   },
   {
     icon: (
@@ -141,9 +141,9 @@ const featuresData: Feature[] = [
         </defs>
       </svg>
     ),
-    title: "Személyre szabható",
+    title: "Áramszünet visszajelző rendszer",
     description:
-      "Állítsd be a számodra megfelelőbb, stílust, megszólítást, szövegezést, üdvözlést a levelezésedhez.",
+      "Biztosítja az áramkimaradásból származó károk elkerülését egy riasztási/visszajelzési rendszer segítségével",
   },
   {
     icon: (
@@ -171,9 +171,9 @@ const featuresData: Feature[] = [
         </defs>
       </svg>
     ),
-    title: "Folyamatos fejlesztés",
+    title: "Élettartam garancia",
     description:
-      "Ha már egyszer letöltötted, mindig elérhetőek lesznek számodra a csomagod legújabb frissítései.",
+      "Teljes körű élettartam garanciát biztosítunk.",
   },
 ];
 
@@ -182,17 +182,28 @@ const Features = () => {
     <>
       <section id="features" className="relative z-10 pt-[110px]">
         <div className="container">
+          {/* Images moved from Pricing: show above the features heading */}
+          <div className="mb-6 flex justify-center">
+            {/* Stack on mobile, row on sm+ */}
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full max-w-[900px] px-4">
+              <img src="/images/hero/szenzorkep1.png" alt="Left" className="w-full sm:w-1/2 h-auto max-h-[300px] md:max-h-[400px] object-contain" />
+              <img src="/images/hero/szenzorkep2.png" alt="Right" className="w-full sm:w-1/2 h-auto max-h-[300px] md:max-h-[400px] object-contain" />
+            </div>
+          </div>
+
           <div
             className="wow fadeInUp mx-auto mb-14 max-w-[690px] text-center lg:mb-[70px]"
             data-wow-delay=".2s"
           >
             <h2 className="mt-12 mb-4 text-3xl font-bold text-black dark:text-white sm:text-4xl md:text-[44px] md:leading-tight">
-              AI-vezérelt funkciók, melyek megkönnyítik a levelezésedet
+              A HűtőMonitorral egyszerűbbé és biztonságosabbá teheti vállalkozása működését.
             </h2>
-            <p className="text-base text-body">
-              Vess véget a monoton levelezési feladatoknak, fedezd fel, és használd ki a
-              AI-vezérelt levelezező rendszerünk előnyeit, funkcióit.
-            </p>
+           <ul className="mb-6 text-base sm:text-lg leading-relaxed text-left max-w-md mx-auto list-none">
+                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>Automatikus adatnaplózás – Megszabadulhat a napi kézi mérésektől és adminisztrációtól.</li>
+                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>HACCP megfelelőség – Biztos lehet benne, hogy adatai mindig pontosak és visszakövethetők.</li>
+                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>ÁRiasztások és értesítések – Azonnali figyelmeztetés hőmérsékleti eltérések esetén, így elkerülheti az áruk károsodását.</li>
+                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>Távoli elérés – Bárhol és bármikor ellenőrizheti a hőmérsékleti adatokat egy online felületen keresztül.</li>
+                  </ul>
           </div>
         </div>
 
