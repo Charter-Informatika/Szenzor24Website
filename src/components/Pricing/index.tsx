@@ -20,6 +20,7 @@ const Pricing = () => {
     { name: "Fehér", value: "feher" },
     { name: "Szürke", value: "szurke" },
     { name: "Fekete", value: "fekete" },
+    { name: "Piros", value: "piros" }
   ];
   const [boxColor, setBoxColor] = useState("zold");
   const [topColor, setTopColor] = useState("feher");
