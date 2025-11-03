@@ -9,54 +9,91 @@ import toast from "react-hot-toast";
 import { get } from "http";
 
 const Pricing = () => {
-  // Színválasztók: doboz (hátsó rész) és tető (előlapi rész)
+  // Színválasztók: doboz és tető színek
   const boxColors = [
     { name: "Zöld", value: "zold" },
     { name: "Piros", value: "piros" },
     { name: "Kék", value: "kek" },
     { name: "Fekete", value: "fekete" },
   ];
+  
   const topColors = [
     { name: "Fehér", value: "feher" },
-    { name: "Szürke", value: "szurke" },
+    { name: "Piros", value: "piros" },
     { name: "Fekete", value: "fekete" },
     { name: "Piros", value: "piros" }
   ];
+
+  // Állapotkezelés
   const [boxColor, setBoxColor] = useState("zold");
   const [topColor, setTopColor] = useState("feher");
+  const [isLoading, setIsLoading] = useState(false);
   const { data: session } = useSession();
-  // A GLB fájlok elnevezése: /images/hero/{box}_{top}.glb
-  const getModelPath = (box: string, top: string) => `/images/hero/${box}_${top}.glb`;
-  const [modelSrc, setModelSrc] = useState<string>(getModelPath(boxColor, topColor));
+  
+  // 3D modell útvonal generálása és betöltése
   const modelViewerRef = useRef<HTMLDivElement>(null);
+   const getModelPath = (box: string, top: string) => `/images/hero/${box}/${box}_${top}.glb`;
+  const [modelSrc, setModelSrc] = useState<string>(getModelPath(boxColor, topColor));
+
+  // Model-viewer komponens betöltése
   useEffect(() => {
     import("@google/model-viewer");
   }, []);
+
+  // Modell frissítése színváltozáskor — aszinkron feloldással a létező fájlokhoz
   useEffect(() => {
+    setIsLoading(true);
     setModelSrc(getModelPath(boxColor, topColor));
   }, [boxColor, topColor]);
+
+  // Model-viewer eseménykezelők
   useEffect(() => {
     const container = modelViewerRef.current;
     if (!container) return;
+
     const mv = container.querySelector("model-viewer");
     if (!mv) return;
+
     const onError = (ev: Event) => {
-      console.warn("model-viewer failed to load model:", ev);
-      const parent = mv.parentElement;
-      if (parent) {
-        parent.innerHTML = `<img src="/images/hero/hero-light.png" alt="Model not available" style="width:100%;height:400px;object-fit:contain"/>`;
+      console.warn("Hiba a modell betöltése során:", ev);
+      setIsLoading(false);
+      
+      // Hiba esetén visszaállás az alapértelmezett kombinációra
+      if (boxColor !== 'zold' || topColor !== 'feher') {
+        setBoxColor('zold');
+        setTopColor('feher');
       }
     };
+
     const onLoad = () => {
-      console.debug("model-viewer loaded model successfully");
+      console.debug("Modell sikeresen betöltve");
+      setIsLoading(false);
+      
+      // Kamera pozíció visszaállítása
+      if (mv.getAttribute('camera-orbit')) {
+        mv.setAttribute('camera-orbit', '0deg 75deg 105%');
+        mv.setAttribute('min-camera-orbit', 'auto auto 50%');
+        mv.setAttribute('max-camera-orbit', 'auto auto 150%');
+      }
     };
+
+    const onProgress = (ev: any) => {
+      const progress = ev.detail.totalProgress;
+      if (progress === 1) {
+        setTimeout(() => setIsLoading(false), 300);
+      }
+    };
+
     mv.addEventListener("error", onError as EventListener);
     mv.addEventListener("load", onLoad as EventListener);
+    mv.addEventListener("progress", onProgress as EventListener);
+
     return () => {
       mv.removeEventListener("error", onError as EventListener);
       mv.removeEventListener("load", onLoad as EventListener);
+      mv.removeEventListener("progress", onProgress as EventListener);
     };
-  }, [modelSrc]);
+  }, [modelSrc, boxColor, topColor]);
 
 
   return (
@@ -71,58 +108,82 @@ const Pricing = () => {
               Itt választhatsz, milyen színben szeretnéd!
             </h2>
             <p className="text-base text-body">
-            Próbáld ki kockázatmentesen és tapasztald meg, hogyan könnyíti meg munkádat a HűtőMonitor! 🛡️❄
-            iztosítunk neked egy terméket próbahasználatra, te pedig győződj meg róla, hogy a HűtőMonitor valóban leegyszerűsíti a napi hőmérséklet-ellenőrzést és megfelel a HACCP előírásoknak
+            Próbáld ki kockázatmentesen és tapasztald meg, hogyan könnyíti meg munkádat a Szenzor24-el! 🛡️❄
+            iztosítunk neked egy terméket próbahasználatra, te pedig győződj meg róla, hogy a Szenzor24 valóban leegyszerűsíti a napi hőmérséklet-ellenőrzést és megfelel a HACCP előírásoknak
             </p>
           </div>
         </div>
 
         <div className="container max-w-[1120px] overflow-hidden">
 
-          {/* Doboz színválasztó */}
-          <div className="mb-4 flex flex-col items-center gap-2">
-            <span className="font-medium text-black dark:text-white mb-1">Doboz színe:</span>
-            <div className="flex gap-2 flex-wrap justify-center">
-              {boxColors.map((color) => (
-                <button
-                  key={color.value}
-                  className={`px-4 py-2 rounded-full border-2 text-sm font-semibold transition-all ${boxColor === color.value ? 'bg-primary text-white border-primary' : 'bg-white text-black border-gray-300 dark:bg-dark dark:text-white'}`}
-                  onClick={() => setBoxColor(color.value)}
-                >
-                  {color.name}
-                </button>
-              ))}
+          {/* Színválasztó és 3D modell konténer */}
+          <div className="max-w-3xl mx-auto mb-12">
+            {/* Doboz színválasztó */}
+            <div className="mb-4 flex flex-col items-center gap-2">
+              <span className="font-medium text-black dark:text-white mb-1">Doboz színe:</span>
+              <div className="flex gap-2 flex-wrap justify-center">
+                {boxColors.map((color) => (
+                  <button
+                    key={color.value}
+                    onClick={() => setBoxColor(color.value)}
+                    className={`px-4 py-2 rounded-full border-2 text-sm font-semibold transition-all 
+                      ${boxColor === color.value 
+                        ? 'bg-primary text-white border-primary' 
+                        : 'bg-white text-black border-gray-300 dark:bg-dark dark:text-white hover:border-primary'}`}
+                  >
+                    {color.name}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-          {/* Tető színválasztó */}
-          <div className="mb-6 flex flex-col items-center gap-2">
-            <span className="font-medium text-black dark:text-white mb-1">Tető színe:</span>
-            <div className="flex gap-2 flex-wrap justify-center">
-              {topColors.map((color) => (
-                <button
-                  key={color.value}
-                  className={`px-4 py-2 rounded-full border-2 text-sm font-semibold transition-all ${topColor === color.value ? 'bg-primary text-white border-primary' : 'bg-white text-black border-gray-300 dark:bg-dark dark:text-white'}`}
-                  onClick={() => setTopColor(color.value)}
-                >
-                  {color.name}
-                </button>
-              ))}
-            </div>
-          </div>
 
-         <div
-                  ref={modelViewerRef}
-                  dangerouslySetInnerHTML={{
-                    __html: `<model-viewer
-                      src="${modelSrc ?? getModelPath(boxColor, topColor)}"
-                      alt="3D model"
-                      auto-rotate
-                      camera-controls
-                      crossorigin="anonymous"
-                      style="width: 100%; height: 400px;">
-                    </model-viewer>`,
-                  }}
-                />
+            {/* Tető színválasztó */}
+            <div className="mb-6 flex flex-col items-center gap-2">
+              <span className="font-medium text-black dark:text-white mb-1">Tető színe:</span>
+              <div className="flex gap-2 flex-wrap justify-center">
+                {topColors.map((color) => (
+                  <button
+                    key={color.value}
+                    onClick={() => setTopColor(color.value)}
+                    className={`px-4 py-2 rounded-full border-2 text-sm font-semibold transition-all
+                      ${topColor === color.value 
+                        ? 'bg-primary text-white border-primary' 
+                        : 'bg-white text-black border-gray-300 dark:bg-dark dark:text-white hover:border-primary'}`}
+                  >
+                    {color.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 3D Model Viewer */}
+            <div className="relative">
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-900/30 backdrop-blur-sm z-10 rounded-xl">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                </div>
+              )}
+              <div
+                ref={modelViewerRef}
+                className="transition-all duration-300 rounded-xl overflow-hidden"
+                style={{ opacity: isLoading ? 0.5 : 1 }}
+                dangerouslySetInnerHTML={{
+                  __html: `<model-viewer
+                    src="${modelSrc}"
+                    alt="3D modell"
+                    auto-rotate
+                    camera-controls
+                    camera-orbit="0deg 75deg 105%"
+                    min-camera-orbit="auto auto 50%"
+                    max-camera-orbit="auto auto 150%"
+                    camera-target="0 0 0"
+                    crossorigin="anonymous"
+                    style="width: 100%; height: 400px; background: transparent;">
+                  </model-viewer>`,
+                }}
+              />
+            </div>
+          </div>
 
           {/* Heading above the pricing table (matches screenshot) */}
           <div className="mt-8 text-center">
@@ -143,7 +204,6 @@ const Pricing = () => {
                 <li>✅ <span className="font-medium">Webes hozzáférés</span></li>
                 <li>✅ <span className="font-medium">30 napos adatmegőrzés</span></li>
                 <li className="mt-3 text-rose-600 dark:text-rose-400">❌ HACCP hőmérséklet naplózás</li>
-                <li className="text-rose-600 dark:text-rose-400">❌ Nyitott ajtó visszajelzés</li>
                 <li className="text-rose-600 dark:text-rose-400">❌ Illetéktelen hozzáférés elleni védelem</li>
               </ul>
               <hr className="border-t border-slate-300 dark:border-slate-700 mb-4" />
@@ -160,7 +220,6 @@ const Pricing = () => {
                 <li>✅ <span className="font-medium">Webes hozzáférés</span></li>
                 <li>✅ <span className="font-medium">90 napos adatmegőrzés</span></li>
                 <li className="mt-3 text-slate-800 dark:text-slate-200">✅ HACCP hőmérséklet naplózás</li>
-                <li className="text-slate-800 dark:text-slate-200">✅ Nyitott ajtó visszajelzés</li>
                 <li className="text-slate-800 dark:text-slate-200">✅ Illetéktelen hozzáférés elleni védelem</li>
               </ul>
               <hr className="border-t border-slate-300 dark:border-slate-700 mb-4" />
@@ -177,7 +236,6 @@ const Pricing = () => {
                 <li>✅ <span className="font-medium">Webes hozzáférés</span></li>
                 <li>✅ <span className="font-medium">90 napos adatmegőrzés</span></li>
                 <li className="mt-3 text-slate-800 dark:text-slate-200">✅ HACCP hőmérséklet naplózás</li>
-                <li className="text-slate-800 dark:text-slate-200">✅ Nyitott ajtó visszajelzés</li>
                 <li className="text-slate-800 dark:text-slate-200">✅ Illetéktelen hozzáférés elleni védelem</li>
               </ul>
               <hr className="border-t border-slate-300 dark:border-slate-700 mb-4" />

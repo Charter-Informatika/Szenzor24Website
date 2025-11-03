@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 const menuData: Menu[] = [
   {
     label: "Eszközeink",
-    route: "/#features",
+    route: "/#hero",
   },
   {
     label: "Beüzemelés",
@@ -104,7 +104,7 @@ const Header = () => {
                   priority
                   className="hidden dark:block"
                 />
-                <span className="ml-2 text-xl font-bold text-black dark:text-white select-none">Okoshűtő</span>
+                <span className="ml-2 text-xl font-bold text-black dark:text-white select-none">Szenzor24</span>
               </Link>
             </div>
 

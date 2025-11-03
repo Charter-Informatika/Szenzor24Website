@@ -8,8 +8,7 @@ import { useState, useEffect, useRef } from "react";
 const HeroArea = () => {
   const [toggler, setToggler] = useState(false);
   const modelViewerRef = useRef<HTMLDivElement>(null);
-
-  // Load model from local images/hero directory (no remote logic)
+    // Load model from local images/hero directory (no remote logic)
   const localModelPath = "/images/hero/zold_feher.glb";
   const [modelSrc, setModelSrc] = useState<string>(localModelPath);
 
@@ -50,45 +49,83 @@ const HeroArea = () => {
     };
   }, [modelSrc]);
 
+
+  // Overview sensors for the hero (simple data shape used for cards)
+  const sensors = [
+    { id: 'temp', title: 'Hőmérséklet', subtitle: 'Pontosság ±0.2°C' },
+    { id: 'hum', title: 'Páratartalom', subtitle: 'Stabil adatgyűjtés' },
+    { id: 'vib', title: 'Rezgés', subtitle: 'Prediktív karbantartás' },
+    { id: 'power', title: 'Energia', subtitle: 'Fogyasztás & oltalom' },
+    { id: 'air', title: 'Levegőminőség', subtitle: 'CO₂ & VOC' },
+  ];
+
+  const scrollToPricing = (ev?: React.MouseEvent) => {
+    ev?.preventDefault();
+    const el = document.getElementById('pricing');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  const scrollToScreen = (ev?: React.MouseEvent) => {
+    ev?.preventDefault();
+    const el = document.getElementById('screens');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <>
-      <section id="home" className="pt-[165px]">
-        <div className="container lg:max-w-[1305px] lg:px-10">
+      <section id="home" className="pt-28 pb-10">
+        <div className="container lg:max-w-[1200px] lg:px-10">
           <div className="-mx-4 flex flex-wrap items-center">
             <div className="w-full px-4 lg:w-6/12">
-              <div
-                className="wow fadeInUp mb-12 lg:mb-0 lg:max-w-[570px]"
-                data-wow-delay=".3s"
-              >
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-black dark:text-white text-center mb-2">
-                    A BIZTONSÁGOS ÉLELMISZER TÁROLÁS
-                  </h1>
-                  <h2 className="text-lg sm:text-xl font-medium text-black dark:text-white text-center mb-4">
-                    HACCP kompatibilis hőmérséklet figyelés egyszerűen
-                  </h2>
-                  <ul className="mb-6 text-base sm:text-lg leading-relaxed text-left max-w-md mx-auto list-none">
-                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>Leolvadás elleni védelem</li>
-                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>Nyitott ajtó visszajelzés</li>
-                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>Áramszünet visszajelzés</li>
-                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>Műszaki meghibásodás előrejelzés</li>
-                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>Illetéktelen hozzáférés elleni védelem</li>
-                  </ul>
-                  <p className="text-body mb-6 text-base sm:text-lg leading-relaxed text-center max-w-xl">
-                    <span className="font-bold text-black dark:text-white">A HűtőMonitor</span> egy innovatív megoldás, amely teljesen automatizálja a hűtők és a fagyasztók hőmérsékletének naplózását, így Önnek többé nem kell manuálisan rögzítenie az adatokat.<br />
-                    A rendszer folyamatosan figyeli a hőmérsékleti értékeket, és automatikusan naplózza azokat a HACCP követelményeinek megfelelően.
-                  </p>
-                <p className="flex flex-wrap gap-4">
+              <div className="mb-8 lg:mb-0 lg:max-w-[570px]">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-black dark:text-white mb-4">
+                  Szenzor24 - Könnyű ipari és kereskedelmi szenzor megoldások
+                </h1>
+                <p className="text-body mb-6 text-base sm:text-lg leading-relaxed max-w-xl">
+                  Cégünk integrált, ipari és kereskedelmi felhasználásra tervezett okos szenzor megoldásokat kínál — valós idejű adatgyűjtés, megbízható hálózati integráció és prediktív analitika az üzemi hatékonyságért.
                 </p>
-               
+
+                <div className="flex items-center gap-4 flex-wrap">
+                  <a
+                    href="#pricing"
+                    onClick={scrollToPricing}
+                    className="inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] transition-all duration-200"
+                  >
+                    Fedezd fel eszközeinket
+                  </a>
+                  <a
+                    href="#screens"
+                    onClick={scrollToScreen}
+                    className="inline-flex items-center justify-center rounded-lg bg-blue-400/10 border-2 border-blue-400/30 px-5 py-3 text-sm text-blue-300 hover:bg-blue-500 hover:text-white hover:border-transparent hover:scale-[1.02] transition-all duration-200"
+                  >
+                    Kapcsolatfelvétel
+                  </a>
+                </div>
+
+                {/* small overview of 5 sensors */}
+                <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 max-w-xl mx-auto">
+                  {sensors.map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => {
+                        const el = document.getElementById('features');
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className="group flex flex-col items-center gap-2 rounded-lg border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm p-4 text-center shadow-md shadow-blue-500/5 hover:shadow-lg hover:shadow-blue-500/20 hover:scale-105 hover:border-blue-500/30 transition-all duration-200"
+                      aria-label={s.title}
+                    >
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10 text-blue-300 group-hover:bg-blue-500/20 group-hover:text-blue-200 transition-colors">
+                        <span className="font-semibold text-base">{s.title.charAt(0)}</span>
+                      </div>
+                      <div className="text-xs font-medium text-slate-200 group-hover:text-white">{s.title}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
             <div className="w-full px-4 lg:w-6/12">
-              <div
-                className="wow fadeInUp relative z-10 mx-auto w-full max-w-[790px]"
-                data-wow-delay=".3s"
-              >
- <div
+              <div className="relative z-10 mx-auto w-full max-w-[700px]">
+<div
                   ref={modelViewerRef}
                   dangerouslySetInnerHTML={{
                     __html: `<model-viewer
@@ -99,8 +136,9 @@ const HeroArea = () => {
                       crossorigin="anonymous"
                       style="width: 100%; height: 400px;">
                     </model-viewer>`,
-                  }}
-                />
+                  }}                
+                  >
+                  </div>
               </div>
             </div>
           </div>

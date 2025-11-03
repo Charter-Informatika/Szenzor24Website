@@ -25,10 +25,10 @@ const Screens = () => {
             <h2 className="mb-4 text-3xl font-bold text-black sm:text-4xl md:text-[44px] md:leading-tight dark:text-white">
               Térkép
             </h2>
-            <p className="text-body text-base">
+            <div className="text-body text-base">
               <h2>Itt található a cégünk: Pécs, Kertváros u. 2</h2>
               Hétfő – péntek: 8:00 – 16:00
-            </p>
+            </div>
           </div>
         </div>
         <div className="container">
