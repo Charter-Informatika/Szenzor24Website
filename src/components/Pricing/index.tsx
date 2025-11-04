@@ -20,7 +20,7 @@ const Pricing = () => {
   const topColors = [
     { name: "Fehér", value: "feher" },
     { name: "Piros", value: "piros" },
-    { name: "Fekete", value: "fekete" },
+    { name: "Fekete", value: "fekete" }
   ];
 
   // Állapotkezelés
