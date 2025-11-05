@@ -86,24 +86,24 @@ const Header = () => {
       >
         <div className="relative container max-w-[1400px] font">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 py-4 lg:py-0">
+             <div className="flex items-center gap-4 py-4 lg:py-0">
               <Link href="/" className="flex items-center gap-2">
-                <Image
-                  width={115}
-                  height={35}
-                  src={"/images/icon.ico"}
-                  alt="Logo"
-                  priority
-                  className="block dark:hidden"
-                />
-                <Image
-                  width={115}
-                  height={35}
-                  src={"/images/hutpopajzs_logo.png"}
-                  alt="Logo"
-                  priority
-                  className="hidden dark:block"
-                />
+                <span className="relative block w-[115px] h-[35px] flex-shrink-0">
+                  <Image
+                    src={'/images/icon.ico'}
+                    alt="Logo"
+                    priority
+                    fill
+                    className="object-contain block dark:hidden"
+                  />
+                  <Image
+                    src={'/images/hutpopajzs_logo.png'}
+                    alt="Logo"
+                    priority
+                    fill
+                    className="object-contain hidden dark:block"
+                  />
+                </span>
                 <span className="ml-2 text-xl font-bold text-black dark:text-white select-none">Szenzor24</span>
               </Link>
             </div>
@@ -187,6 +187,38 @@ const Header = () => {
                     ),
                   )}
                 </ul>
+                {/* mobile auth actions: visible only on small screens inside the mobile nav */}
+                <div className="mt-6 lg:hidden">
+                  {session ? (
+                    <div className="flex flex-col items-center gap-3">
+                      <p className="text-base text-black dark:text-white">{session?.user?.name}</p>
+                      <button
+                        onClick={() => { signOut(); setNavbarOpen(false); }}
+                        className="w-[200px] bg-primary hover:bg-primary/90 rounded-md px-6 py-3 text-base font-medium text-white"
+                      >
+                        Kijelentkezés
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-3">
+                      <Link
+                        href="/auth/signin"
+                        onClick={() => setNavbarOpen(false)}
+                        className="w-[200px] text-center hover:text-primary dark:hover:text-primary px-6 py-3 text-base font-medium text-black dark:text-white"
+                      >
+                        Bejelentkezés
+                      </Link>
+
+                      <Link
+                        href="/auth/signup"
+                        onClick={() => setNavbarOpen(false)}
+                        className="w-[200px] text-center bg-black hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90 rounded-md px-6 py-3 text-base font-medium text-white"
+                      >
+                        Regisztráció
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </nav>
             </div>
 
