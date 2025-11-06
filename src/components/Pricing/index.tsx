@@ -12,6 +12,8 @@ const Pricing = () => {
   // Színválasztók: doboz és tető színek
   const boxColors = [
     { name: "Zöld", value: "zold" },
+    { name: "Fehér", value: "feher" },
+    { name: "Sárga", value: "sarga" },
     { name: "Piros", value: "piros" },
     { name: "Kék", value: "kek" },
     { name: "Fekete", value: "fekete" },
@@ -19,6 +21,9 @@ const Pricing = () => {
   
   const topColors = [
     { name: "Fehér", value: "feher" },
+    { name: "Sárga", value: "sarga" },
+    { name: "Kék", value: "kek" },
+    { name: "Zöld", value: "zold" },
     { name: "Piros", value: "piros" },
     { name: "Fekete", value: "fekete" }
   ];

@@ -24,15 +24,14 @@ const workProcessData: Feature[] = [
     description: 'Adat-tisztítás és aggregálás.',
   },
   {
-    icon: (
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 3v18" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-        <path d="M3 8h18" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-      </svg>
-    ),
-    title: 'Elemzés',
-    description: 'Prediktív modellek és riasztások.',
-  },
+  icon: (
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" >
+      <path d="M4 20V10M10 20V4M16 20V14M3 20H21" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  title: 'Elemzés',
+  description: 'Prediktív modellek és riasztások.',
+},
   {
     icon: (
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

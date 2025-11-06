@@ -72,7 +72,7 @@ const HeroArea = () => {
 
   return (
     <>
-      <section id="home" className="pt-28 pb-10">
+      <section id="home" className="pt-36 sm:pt-28 pb-10">
         <div className="container lg:max-w-[1200px] lg:px-10">
           <div className="-mx-4 flex flex-wrap items-center">
             <div className="w-full px-4 lg:w-6/12">
@@ -110,13 +110,13 @@ const HeroArea = () => {
                         const el = document.getElementById('features');
                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className="group flex flex-col items-center gap-2 rounded-lg border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm p-4 text-center shadow-md shadow-blue-500/5 hover:shadow-lg hover:shadow-blue-500/20 hover:scale-105 hover:border-blue-500/30 transition-all duration-200"
+                      className="group flex flex-col items-center gap-2 rounded-lg border border-slate-200 bg-white p-4 text-center shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200 dark:bg-slate-800/60 dark:border-slate-700"
                       aria-label={s.title}
                     >
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10 text-blue-300 group-hover:bg-blue-500/20 group-hover:text-blue-200 transition-colors">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600 group-hover:bg-blue-500/20 group-hover:text-blue-200 transition-colors dark:bg-blue-900/20 dark:text-blue-300">
                         <span className="font-semibold text-base">{s.title.charAt(0)}</span>
                       </div>
-                      <div className="text-xs font-medium text-slate-200 group-hover:text-white">{s.title}</div>
+                      <div className="text-xs font-medium text-slate-700 group-hover:text-slate-900 dark:text-slate-200">{s.title}</div>
                     </button>
                   ))}
                 </div>
