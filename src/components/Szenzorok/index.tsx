@@ -12,33 +12,13 @@ interface Szenzor {
 const szenzorData: Szenzor[] = [
   {
     id: 1,
-    name: "Hőmérséklet szenzor",
-    imageUrl: "/images/hero/szenzorkep1.png", // Placeholder
+    name: "HTU21D hőmérséklet- és páratartalom szenzor",
+    imageUrl: "/images/szenzorok/htu21.png",
   },
   {
     id: 2,
-    name: "Páratartalom szenzor",
-    imageUrl: "/images/hero/szenzorkep2.png", // Placeholder
-  },
-  {
-    id: 3,
-    name: "Rezgés szenzor",
-    imageUrl: "/images/hero/szenzorkep1.png", // Placeholder
-  },
-  {
-    id: 4,
-    name: "Energia szenzor",
-    imageUrl: "/images/hero/szenzorkep2.png", // Placeholder
-  },
-  {
-    id: 5,
-    name: "Levegőminőség szenzor",
-    imageUrl: "/images/hero/szenzorkep1.png", // Placeholder
-  },
-  {
-    id: 6,
-    name: "CO2 szenzor",
-    imageUrl: "/images/hero/szenzorkep2.png", // Placeholder
+    name: "MPU-6050 giroszkóp és hőmérséklet szenzor",
+    imageUrl: "/images/szenzorok/mpu6050.png",
   },
 ];
 
@@ -70,17 +50,17 @@ const Szenzorok = () => {
 
         <div className="container max-w-[1390px]">
           <div className="rounded-2xl bg-white px-5 pb-14 pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-10 lg:pb-14 lg:pt-20 xl:px-10">
-            <div className="-mx-4 flex flex-wrap justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center max-w-[800px] mx-auto">
               {szenzorData.map((szenzor) => {
                 const isSelected = selectedSzenzors.includes(szenzor.id);
                 return (
                   <div
                     key={szenzor.id}
-                    className="w-full px-4 sm:w-1/2 lg:w-1/3 xl:w-1/4"
+                    className="w-full max-w-[310px]"
                   >
                     <div
                       onClick={() => toggleSzenzor(szenzor.id)}
-                      className={`wow fadeInUp group mx-auto mb-[40px] max-w-[310px] cursor-pointer rounded-xl border-2 p-6 text-center transition-all duration-300 hover:shadow-lg ${
+                      className={`wow fadeInUp group h-full flex flex-col cursor-pointer rounded-xl border-2 p-6 text-center transition-all duration-300 hover:shadow-lg select-none ${
                         isSelected
                           ? "border-primary bg-primary/5 shadow-lg dark:bg-primary/10"
                           : "border-gray-200 bg-gray-50 dark:border-[#2A2E44] dark:bg-[#1A1D2E]"
@@ -117,12 +97,13 @@ const Szenzorok = () => {
                       </div>
 
                       {/* Szenzor kép */}
-                      <div className="relative mx-auto mb-6 h-[180px] w-full overflow-hidden rounded-lg">
+                      <div className="relative mx-auto mb-6 h-[180px] w-full overflow-hidden rounded-lg pointer-events-none select-none">
                         <Image
                           src={szenzor.imageUrl}
                           alt={szenzor.name}
                           fill
-                          className="object-cover"
+                          className="object-cover select-none pointer-events-none"
+                          draggable={false}
                         />
                       </div>
 
