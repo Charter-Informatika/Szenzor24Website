@@ -67,35 +67,6 @@ const Szenzorok = () => {
                       }`}
                       data-wow-delay=".2s"
                     >
-                      {/* Checkbox indikátor */}
-                      <div className="mb-4 flex justify-end">
-                        <div
-                          className={`flex h-6 w-6 items-center justify-center rounded-md border-2 transition-all ${
-                            isSelected
-                              ? "border-primary bg-primary"
-                              : "border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800"
-                          }`}
-                        >
-                          {isSelected && (
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 16 16"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M13.3334 4L6.00002 11.3333L2.66669 8"
-                                stroke="white"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                      </div>
-
                       {/* Szenzor kép */}
                       <div className="relative mx-auto mb-6 h-[180px] w-full overflow-hidden rounded-lg pointer-events-none select-none">
                         <Image
