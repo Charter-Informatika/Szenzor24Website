@@ -13,6 +13,10 @@ const menuData: Menu[] = [
     route: "/#hero",
   },
   {
+    label: "Szenzorok",
+    route: "/#szenzorok",
+  },
+  {
     label: "Beüzemelés",
     route: "/#work-process",
   },

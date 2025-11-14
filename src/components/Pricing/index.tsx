@@ -31,13 +31,17 @@ const Pricing = () => {
   // Állapotkezelés
   const [boxColor, setBoxColor] = useState("zold");
   const [topColor, setTopColor] = useState("feher");
-  const [isLoading, setIsLoading] = useState(false);
+  // JAVÍTÁS 1. rész: Alapértelmezetten 'true'-ra állítjuk
+  const [isLoading, setIsLoading] = useState(true);
   const { data: session } = useSession();
   
   // 3D modell útvonal generálása és betöltése
   const modelViewerRef = useRef<HTMLDivElement>(null);
    const getModelPath = (box: string, top: string) => `/images/hero/${box}/${box}_${top}.glb`;
   const [modelSrc, setModelSrc] = useState<string>(getModelPath(boxColor, topColor));
+
+  // JAVÍTÁS 2. rész: Ref az első renderelés detektálásához
+  const isInitialMount = useRef(true);
 
   // Model-viewer komponens betöltése
   useEffect(() => {
@@ -46,6 +50,11 @@ const Pricing = () => {
 
   // Modell frissítése színváltozáskor — aszinkron feloldással a létező fájlokhoz
   useEffect(() => {
+    // JAVÍTÁS 2. rész: Kihagyjuk az effektet az első rendereléskor
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     setIsLoading(true);
     setModelSrc(getModelPath(boxColor, topColor));
   }, [boxColor, topColor]);
