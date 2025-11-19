@@ -88,6 +88,15 @@ const Szenzorok = () => {
                       >
                         {szenzor.name}
                       </h3>
+
+                      {/* Kiválasztva jelző */}
+                      {isSelected && (
+                        <div className="mt-4 pt-4 border-t border-primary/30">
+                          <span className="inline-block px-4 py-2 bg-primary text-white font-bold text-sm rounded-full animate-pulse">
+                            ✓ KIVÁLASZTVA
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
