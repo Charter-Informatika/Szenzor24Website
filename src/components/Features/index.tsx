@@ -178,8 +178,10 @@ const Features = () => {
               <img src="/images/hero/szenzorkep3.png" alt="Szenzor 3" className="w-full h-auto max-h-[400px] object-contain rounded-lg" />
               <img src="/images/hero/szenzorkep4.png" alt="Szenzor 4" className="w-full h-auto max-h-[400px] object-contain rounded-lg" />
             </div>
-            {/* Large image below */}
-            <img src="/images/hero/szenzorkep5.png" alt="Szenzor 5" className="w-full max-w-[1000px] h-auto max-h-[700px] object-contain rounded-lg px-4" />
+            {/* Large image below - same width as 4 image grid */}
+            <div className="w-full max-w-[1200px] px-4">
+              <img src="/images/hero/szenzorkep5.png" alt="Szenzor 5" className="w-full h-auto max-h-[800px] object-contain rounded-lg" />
+            </div>
           </div>
 
           <div
@@ -189,10 +191,10 @@ const Features = () => {
             <h2 className="mt-12 mb-4 text-3xl font-bold text-black dark:text-white sm:text-4xl md:text-[44px] md:leading-tight">
               A szenzoraink előnyei és fő jellemzői
             </h2>
-           <ul className="mb-6 text-base sm:text-lg leading-relaxed text-left max-w-md mx-auto list-none">
-                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>Automatikus adatnaplózás – Megszabadulhat a napi kézi mérésektől és adminisztrációtól.</li>
-                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>– Biztos lehet benne, hogy adatai mindig pontosak és visszakövethetők.</li>
-                    <li className="flex items-center mb-1"><span className="text-primary font-bold mr-2">✓</span>Távoli elérés – Bárhol és bármikor ellenőrizheti a hőmérsékleti adatokat egy online felületen keresztül.</li>
+            <ul className="mb-6 text-base sm:text-lg leading-relaxed text-left max-w-2xl mx-auto list-none">
+                    <li className="flex items-center mb-4"><span className="text-primary font-bold mr-2">✓</span>Automatikus adatnaplózás – Megszabadulhat a napi kézi mérésektől és adminisztrációtól.</li>
+                    <li className="flex items-center mb-4"><span className="text-primary font-bold mr-2">✓</span>– Biztos lehet benne, hogy adatai mindig pontosak és visszakövethetők.</li>
+                    <li className="flex items-center mb-4"><span className="text-primary font-bold mr-2">✓</span>Távoli elérés – Bárhol és bármikor ellenőrizheti a hőmérsékleti adatokat egy online felületen keresztül.</li>
                   </ul>
           </div>
         </div>
