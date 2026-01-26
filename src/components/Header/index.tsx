@@ -16,10 +16,10 @@ const menuData: Menu[] = [
     label: "Szenzorok",
     route: "/#szenzorok",
   },
-  {
+/* {
     label: "Beüzemelés",
     route: "/#work-process",
-  },
+  },*/
   {
     label: "Árak",
     route: "/#pricing",
