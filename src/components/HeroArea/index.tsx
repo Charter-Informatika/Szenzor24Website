@@ -58,6 +58,7 @@ const HeroArea = () => {
     { id: 'power', title: 'Energia', subtitle: 'Fogyasztás & oltalom' },
     { id: 'air', title: 'Levegőminőség', subtitle: 'CO₂ & VOC' },
     { id: 'nedv', title: 'Nedvesség', subtitle: 'Nedvesség' },
+    { id: 'légnyomás', title: 'Légnyomás', subtitle: 'Légnyomás' },
     { id: 'noise', title: 'Zajszint',       subtitle: 'dB alapú mérés' },
     { id: 'light', title: 'Fényerő',        subtitle: 'Lux szint figyelés' },
     { id: 'door',  title: 'Ajtó nyitás',    subtitle: 'Nyitás/zárás érzékelés' },
@@ -73,6 +74,7 @@ const HeroArea = () => {
     { id: 'oxygen', title: 'Oxigén (O₂)' },
     { id: 'co', title: 'Szén-monoxid (CO)' },
     { id: 'h2s', title: 'Kén-hidrogén (H₂S)' },
+    { id: 'co2', title: 'Szén-dioxid (CO₂)' },
     { id: 'nh3', title: 'Ammónia (NH₃)' },
     { id: 'no2', title: 'Nitrogén-dioxid (NO₂)' },
     { id: 'so2', title: 'Kén-dioxid (SO₂)' },
@@ -153,7 +155,7 @@ const HeroArea = () => {
                   {/* Slide container with fixed height to prevent layout shift */}
                   <div className="min-h-[550px]">
                   {slide === 0 && (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 max-w-4xl mx-auto">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
                       {sensors.map((s) => (
                         <button
                           key={s.id}
@@ -176,7 +178,7 @@ const HeroArea = () => {
                   {/* Slide 1: gas sensors */}
                   {slide === 1 && (
                     <div>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 max-w-4xl mx-auto">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
                         {gasSensors.map((gas) => (
                           <button
                             key={gas.id}
@@ -220,6 +222,16 @@ const HeroArea = () => {
                 ), [modelSrc])}
               </div>
             </div>
+          </div>
+          
+          {/* Highlighted section below 3D model */}
+          <div className="mt-12 text-center max-w-2xl mx-auto px-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-blue-600 dark:text-blue-400 mb-4">
+              Okos hűtés. Kevesebb kockázat.
+            </h2>
+            <p className="text-body text-base sm:text-lg leading-relaxed text-black dark:text-white">
+              Automatikus felügyelet, pontos mérések és azonnali értesítések – hogy semmi ne érjen meglepetésként.
+            </p>
           </div>
         </div>
       </section>
