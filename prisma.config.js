@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   datasources: {
     db: {
       provider: "mysql",
