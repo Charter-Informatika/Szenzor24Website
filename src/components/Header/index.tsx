@@ -16,10 +16,10 @@ const menuData: Menu[] = [
     label: "Szenzorok",
     route: "/#szenzorok",
   },
-  {
+/* {
     label: "Beüzemelés",
     route: "/#work-process",
-  },
+  },*/
   {
     label: "Árak",
     route: "/#pricing",
@@ -88,7 +88,7 @@ const Header = () => {
             : "absolute"
         }`}
       >
-        <div className="relative container max-w-[1400px] font">
+        <div className="relative container max-w-[1320px] font">
           <div className="flex items-center justify-between">
              <div className="flex items-center gap-4 py-4 lg:py-0">
               <Link href="/" className="flex items-center gap-2">

@@ -52,7 +52,8 @@ export default function RootLayout({
           id="statcounter-inline"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
-            __html: `var sc_project=13168723; var sc_invisible=1; var sc_security="4634ba31";`,
+           // __html: `var sc_project=13168723; var sc_invisible=1; var sc_security="4634ba31";`,
+              __html: `var sc_project=13201558; var sc_invisible=1; var sc_security="02d6e856";`, //ez az uj amit levi fiokjaban csináltam
           }}
         />
         <Script
@@ -70,7 +71,8 @@ export default function RootLayout({
             >
               <img
                 className="statcounter"
-                src="https://c.statcounter.com/13168723/0/4634ba31/1/"
+                //src="https://c.statcounter.com/13168723/0/4634ba31/1/"
+                src="https://c.statcounter.com/13201558/0/02d6e856/1/" //ez az uj amit levi fiokjaban csináltam
                 alt="látogató számláló"
                 referrerPolicy="no-referrer-when-downgrade"
               />
