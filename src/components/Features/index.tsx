@@ -15,7 +15,7 @@ const featuresData: Feature[] = [
       </svg>
     ),
     title: 'Hőmérséklet szenzor',
-    description: 'Pontosság, gyors mintavétel és HACCP-kompatibilis naplózás – az alapvető környezeti adatgyűjtéshez.',
+    description: 'Pontosság,gyors mintavétel és naplózás – az alapvető környezeti adatgyűjtéshez.',
   },
   {
     icon: (
@@ -34,7 +34,7 @@ const featuresData: Feature[] = [
         <path d="M12 2v6M12 16v6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
-    title: 'Rezgés / állapot szenzor',
+    title: 'Rezgés\nszenzor',
     description: 'Minták elemzése.',
   },
   {
@@ -44,7 +44,7 @@ const featuresData: Feature[] = [
         <path d="M7 7h10v10H7z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
-    title: 'Energia & fogyasztás szenzor',
+    title: 'Energia\n&fogyasztás szenzor',
     description: 'Valós idejű hatékonysági riasztások.',
   },
   {
@@ -87,8 +87,8 @@ const featuresData: Feature[] = [
         <path d="M7 11l4-4M13 5l5 7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
       </svg>
     ),
-    title: 'Co2 szenzor',
-    description: 'CO₂ és szén-dioxid szint figyelése a levegőminőséghez.',
+    title: 'Co2\nszenzor',
+    description: 'Co2 és szén-dioxid szint figyelése a levegőminőséghez.',
   },
   {
     icon: (
@@ -97,7 +97,7 @@ const featuresData: Feature[] = [
         <circle cx="3" cy="12" r="2" stroke="currentColor" strokeWidth="1.6" />
       </svg>
     ),
-    title: 'zajszint szenzor',
+    title: 'Zajszint szenzor',
     description: 'Decibel alapú zajszint-mérés és monitoring.',
   },
   {
@@ -107,7 +107,7 @@ const featuresData: Feature[] = [
         <path d="M12 2v3M12 19v3M22 12h-3M5 12H2M19.08 4.92l-2.12 2.12M7.04 16.96l-2.12 2.12M19.08 19.08l-2.12-2.12M7.04 7.04L4.92 4.92" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
-    title: 'fényerő szenzor',
+    title: 'Fényerő szenzor',
     description: 'Lux szint alapú fényerősség detektálása.',
   },
   {
@@ -118,7 +118,7 @@ const featuresData: Feature[] = [
         <circle cx="12" cy="12" r="1.5" fill="currentColor" />
       </svg>
     ),
-    title: 'ajtónyitás szenzor',
+    title: 'Ajtónyitás szenzor',
     description: 'Ajtó és ablak nyitás/zárás érzékelése.',
   },
   {
@@ -131,7 +131,7 @@ const featuresData: Feature[] = [
         <path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
       </svg>
     ),
-    title: 'infravörös szenzor',
+    title: 'Infravörös szenzor',
     description: 'Mozgás- és hőérzékelés infravörös technológiával.',
   },
   {
@@ -172,14 +172,14 @@ const Features = () => {
           {/* Images moved from Pricing: show above the features heading */}
           <div className="mb-6 flex flex-col items-center justify-center gap-6">
             {/* Top row: 4 smaller images in grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-[1200px] px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-[1320px] px-4">
               <img src="/images/hero/szenzorkep1.png" alt="Szenzor 1" className="w-full h-auto max-h-[400px] object-contain rounded-lg" />
               <img src="/images/hero/szenzorkep2.png" alt="Szenzor 2" className="w-full h-auto max-h-[400px] object-contain rounded-lg" />
               <img src="/images/hero/szenzorkep3.png" alt="Szenzor 3" className="w-full h-auto max-h-[400px] object-contain rounded-lg" />
               <img src="/images/hero/szenzorkep4.png" alt="Szenzor 4" className="w-full h-auto max-h-[400px] object-contain rounded-lg" />
             </div>
             {/* Large image below - same width as 4 image grid */}
-            <div className="w-full max-w-[1200px] px-4">
+            <div className="w-full max-w-[1320px] px-4">
               <img src="/images/hero/szenzorkep5.png" alt="Szenzor 5" className="w-full h-auto max-h-[800px] object-contain rounded-lg" />
             </div>
           </div>
@@ -199,7 +199,7 @@ const Features = () => {
           </div>
         </div>
 
-        <div className="container max-w-[1390px]">
+        <div className="container max-w-[1320px]">
           <div className="rounded-2xl bg-white px-5 pb-14 pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-20 xl:px-10">
             <div className="mb-6 flex items-center justify-center gap-2">
               {Array.from({ length: totalPages }).map((_, i) => (
@@ -216,13 +216,13 @@ const Features = () => {
               {pageItems.map((item, index) => (
                 <div key={index} className="w-full px-4 sm:w-1/2 md:w-1/3 lg:w-1/6">
                   <div
-                    className="wow fadeInUp group mx-auto mb-[60px] max-w-[310px] text-center"
+                    className="wow fadeInUp group w-full h-full flex flex-col items-center text-center mb-[60px]"
                     data-wow-delay=".2s"
                   >
                     <div className="mx-auto mb-8 flex h-[90px] w-[90px] items-center justify-center rounded-3xl bg-gray-100 text-primary duration-300 group-hover:bg-primary group-hover:text-white dark:bg-[#2A2E44] dark:text-white dark:group-hover:bg-primary border border-slate-200">
                       {item.icon}
                     </div>
-                    <h3 className="mb-4 text-xl font-semibold text-black dark:text-white sm:text-[22px] xl:text-[26px]">
+                    <h3 className="mb-4 text-xl font-semibold text-black dark:text-white sm:text-[22px] xl:text-[26px] whitespace-pre-line">
                       {item.title}
                     </h3>
                     <p className="text-base text-body">{item.description}</p>
