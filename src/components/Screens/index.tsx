@@ -26,7 +26,7 @@ const Screens = () => {
               Térkép
             </h2>
             <div className="text-body text-base">
-              <h2>Itt található a cégünk: Pécs, Kertváros u. 2</h2>
+              <h2>Itt található a cégünk: Pécs, Kodolányi János u. 23-25, 7632</h2>
               Hétfő – péntek: 8:00 – 16:00
             </div>
           </div>
@@ -36,7 +36,7 @@ const Screens = () => {
             <div className="w-full rounded-2xl overflow-hidden border border-blue-300 shadow-lg">
               <iframe
                 title="Cégünk térképen"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2736.393964624624!2d18.21785731560609!3d46.07207397911209!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4742b1e2e2e2e2e3%3A0x2e2e2e2e2e2e2e2e!2sP%C3%A9cs%2C%20Kertv%C3%A1ros%20u.%202%2C%207632!5e0!3m2!1shu!2shu!4v1697555555555!5m2!1shu!2shu"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3285.2144018261065!2d18.222165676631253!3d46.040463794805056!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4742b11b76745637%3A0x8ea8c06c604560f7!2sCharter%20Informatika!5e1!3m2!1shu!2shu!4v1769501446380!5m2!1shu!2shu"
                 width="100%"
                 height="450"
                 style={{ border: 0 }}

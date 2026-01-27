@@ -10,7 +10,7 @@ import Pricing from "@/components/Pricing";
 import Screens from "@/components/Screens";
 import Szenzorok from "@/components/Szenzorok";
 import Testimonials from "@/components/Testimonials";
-import WorkProcess from "@/components/WorkProcess";
+// import WorkProcess from "@/components/WorkProcess";
 import { integrations } from "@integrations-config";
 import type { Metadata } from "next";
 
@@ -27,7 +27,7 @@ export default function Home() {
       <Features />
       {/*<About />*/}
       <Szenzorok />
-      <WorkProcess />
+      {/*<WorkProcess />*/}
       <Pricing />
       <Screens />
       {/*<Cta />

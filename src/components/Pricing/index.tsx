@@ -37,7 +37,7 @@ const Pricing = () => {
   
   // 3D modell útvonal generálása és betöltése
   const modelViewerRef = useRef<HTMLDivElement>(null);
-   const getModelPath = (box: string, top: string) => `/images/hero/${box}/${box}_${top}.glb`;
+  const getModelPath = (box: string, top: string) => `/images/hero/${box}/${box}_${top}.glb`;
   const [modelSrc, setModelSrc] = useState<string>(getModelPath(boxColor, topColor));
 
   // JAVÍTÁS 2. rész: Ref az első renderelés detektálásához
@@ -121,13 +121,12 @@ const Pricing = () => {
               Itt választhatsz, milyen színben szeretnéd!
             </h2>
             <p className="text-base text-body">
-            Próbáld ki kockázatmentesen és tapasztald meg, hogyan könnyíti meg munkádat a Szenzor24-el! 🛡️❄
-            iztosítunk neked egy terméket próbahasználatra, te pedig győződj meg róla, hogy a Szenzor24 valóban leegyszerűsíti a napi hőmérséklet-ellenőrzést és megfelel a HACCP előírásoknak
+            Próbáld ki kockázatmentesen és tapasztald meg, hogyan könnyíti meg munkádat a Szenzor24-el! 🛡️❄ biztosítunk neked egy terméket próbahasználatra, te pedig győződj meg róla, hogy a Szenzor24 valóban leegyszerűsíti a napi hőmérséklet-ellenőrzést és megfelel az előírásoknak.
             </p>
           </div>
         </div>
 
-        <div className="container max-w-[1120px] overflow-hidden">
+        <div className="container max-w-[1320px] overflow-hidden">
 
           {/* Színválasztó és 3D modell konténer */}
           <div className="max-w-3xl mx-auto mb-12">
@@ -216,7 +215,7 @@ const Pricing = () => {
                 <li>✅ <span className="font-medium">Valós idejű adatelérés</span></li>
                 <li>✅ <span className="font-medium">Webes hozzáférés</span></li>
                 <li>✅ <span className="font-medium">30 napos adatmegőrzés</span></li>
-                <li className="mt-3 text-rose-600 dark:text-rose-400">❌ HACCP hőmérséklet naplózás</li>
+                <li className="mt-3 text-rose-600 dark:text-rose-400">❌ hőmérséklet naplózás</li>
                 <li className="text-rose-600 dark:text-rose-400">❌ Illetéktelen hozzáférés elleni védelem</li>
               </ul>
               <hr className="border-t border-slate-300 dark:border-slate-700 mb-4" />
@@ -232,7 +231,7 @@ const Pricing = () => {
                 <li>✅ <span className="font-medium">Valós idejű adatelérés</span></li>
                 <li>✅ <span className="font-medium">Webes hozzáférés</span></li>
                 <li>✅ <span className="font-medium">90 napos adatmegőrzés</span></li>
-                <li className="mt-3 text-slate-800 dark:text-slate-200">✅ HACCP hőmérséklet naplózás</li>
+                <li className="mt-3 text-slate-800 dark:text-slate-200">✅ hőmérséklet naplózás</li>
                 <li className="text-slate-800 dark:text-slate-200">✅ Illetéktelen hozzáférés elleni védelem</li>
               </ul>
               <hr className="border-t border-slate-300 dark:border-slate-700 mb-4" />
@@ -248,7 +247,7 @@ const Pricing = () => {
                 <li>✅ <span className="font-medium">Valós idejű adatelérés</span></li>
                 <li>✅ <span className="font-medium">Webes hozzáférés</span></li>
                 <li>✅ <span className="font-medium">90 napos adatmegőrzés</span></li>
-                <li className="mt-3 text-slate-800 dark:text-slate-200">✅ HACCP hőmérséklet naplózás</li>
+                <li className="mt-3 text-slate-800 dark:text-slate-200">✅  hőmérséklet naplózás</li>
                 <li className="text-slate-800 dark:text-slate-200">✅ Illetéktelen hozzáférés elleni védelem</li>
               </ul>
               <hr className="border-t border-slate-300 dark:border-slate-700 mb-4" />

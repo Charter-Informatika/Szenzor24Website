@@ -1,7 +1,7 @@
 import React from "react";
 import Graphics from "@/components/WorkProcess/Graphics";
 import { Feature } from "@/types/feature";
-
+/* Büzemeléses rész kuka todo:később törlöm.
 const workProcessData: Feature[] = [
   {
     icon: (
@@ -54,7 +54,7 @@ const workProcessData: Feature[] = [
   },
 ];
 
-const WorkProcess = () => {
+/*const WorkProcess = () => {
   return (
     <>
       <section id="work-process" className="relative z-10 pt-[110px]">
@@ -72,7 +72,7 @@ const WorkProcess = () => {
           </div>
         </div>
 
-        <div className="container max-w-[1390px]">
+        <div className="container max-w-[1320px]">
           <div className="rounded-2xl bg-white px-5 pb-14 pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-20 xl:px-10">
             <div className="-mx-4 flex flex-wrap justify-center">
               {workProcessData.map((item, index) => (
@@ -95,11 +95,11 @@ const WorkProcess = () => {
           </div>
         </div>
 
-        {/*Graphics*/}
+        {/*Graphics}
         <Graphics />
       </section>
     </>
   );
 };
 
-export default WorkProcess;
+export default WorkProcess;*/

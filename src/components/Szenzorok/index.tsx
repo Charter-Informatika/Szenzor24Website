@@ -48,7 +48,7 @@ const Szenzorok = () => {
           </p>
         </div>
 
-        <div className="container max-w-[1390px]">
+        <div className="container max-w-[1320px]">
           <div className="rounded-2xl bg-white px-5 pb-14 pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-10 lg:pb-14 lg:pt-20 xl:px-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center max-w-[800px] mx-auto">
               {szenzorData.map((szenzor) => {
