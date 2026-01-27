@@ -72,7 +72,7 @@ const workProcessData: Feature[] = [
           </div>
         </div>
 
-        <div className="container max-w-[1390px]">
+        <div className="container max-w-[1320px]">
           <div className="rounded-2xl bg-white px-5 pb-14 pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-20 xl:px-10">
             <div className="-mx-4 flex flex-wrap justify-center">
               {workProcessData.map((item, index) => (

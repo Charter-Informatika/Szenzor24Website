@@ -168,33 +168,31 @@ const Features = () => {
   return (
     <>
       <section id="features" className="relative z-10 pt-[110px]">
-        <div className="container">
+        <div className="container max-w-[1320px]">
           {/* Images moved from Pricing: show above the features heading */}
-          <div className="mb-6 flex flex-col items-center justify-center gap-6">
-            {/* Top row: 4 smaller images in grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-[1320px] px-4">
-              <img src="/images/hero/szenzorkep1.png" alt="Szenzor 1" className="w-full h-auto max-h-[400px] object-contain rounded-lg" />
-              <img src="/images/hero/szenzorkep2.png" alt="Szenzor 2" className="w-full h-auto max-h-[400px] object-contain rounded-lg" />
-              <img src="/images/hero/szenzorkep3.png" alt="Szenzor 3" className="w-full h-auto max-h-[400px] object-contain rounded-lg" />
-              <img src="/images/hero/szenzorkep4.png" alt="Szenzor 4" className="w-full h-auto max-h-[400px] object-contain rounded-lg" />
+          <div className="mb-6 max-w-[1320px] mx-auto px-4">
+            {/* First 4 images: stretched on mobile, spaced apart on desktop */}
+            <div className="grid grid-cols-2 md:flex md:justify-between gap-4 mb-4">
+              <img src="/images/hero/szenzorkep1.png" alt="Szenzor 1" className="w-full md:w-auto h-auto max-h-[400px] object-contain rounded-lg" />
+              <img src="/images/hero/szenzorkep2.png" alt="Szenzor 2" className="w-full md:w-auto h-auto max-h-[400px] object-contain rounded-lg" />
+              <img src="/images/hero/szenzorkep3.png" alt="Szenzor 3" className="w-full md:w-auto h-auto max-h-[400px] object-contain rounded-lg" />
+              <img src="/images/hero/szenzorkep4.png" alt="Szenzor 4" className="w-full md:w-auto h-auto max-h-[400px] object-contain rounded-lg" />
             </div>
-            {/* Large image below - same width as 4 image grid */}
-            <div className="w-full max-w-[1320px] px-4">
-              <img src="/images/hero/szenzorkep5.png" alt="Szenzor 5" className="w-full h-auto max-h-[800px] object-contain rounded-lg" />
-            </div>
+            {/* Large image spanning full width */}
+            <img src="/images/hero/szenzorkep5.png" alt="Szenzor 5" className="w-full h-auto max-h-[800px] object-contain rounded-lg" />
           </div>
 
           <div
             className="wow fadeInUp mx-auto mb-14 max-w-[690px] text-center lg:mb-[70px]"
             data-wow-delay=".2s"
           >
-            <h2 className="mt-12 mb-4 text-3xl font-bold text-black dark:text-white sm:text-4xl md:text-[44px] md:leading-tight">
+            <h2 className="mt-12 mb-4 text-2xl font-bold text-black dark:text-white sm:text-3xl md:text-4xl md:leading-tight whitespace-nowrap">
               A szenzoraink előnyei és fő jellemzői
             </h2>
             <ul className="mb-6 text-base sm:text-lg leading-relaxed text-left max-w-2xl mx-auto list-none">
-                    <li className="flex items-center mb-4"><span className="text-primary font-bold mr-2">✓</span>Automatikus adatnaplózás – Megszabadulhat a napi kézi mérésektől és adminisztrációtól.</li>
-                    <li className="flex items-center mb-4"><span className="text-primary font-bold mr-2">✓</span>– Biztos lehet benne, hogy adatai mindig pontosak és visszakövethetők.</li>
-                    <li className="flex items-center mb-4"><span className="text-primary font-bold mr-2">✓</span>Távoli elérés – Bárhol és bármikor ellenőrizheti a hőmérsékleti adatokat egy online felületen keresztül.</li>
+                    <li className="flex items-start mb-4"><span className="text-primary font-bold mr-2 flex-shrink-0">✓</span><span>Automatikus adatnaplózás – Megszabadulhat a napi kézi mérésektől és adminisztrációtól.</span></li>
+                    <li className="flex items-start mb-4"><span className="text-primary font-bold mr-2 flex-shrink-0">✓</span><span>Biztos lehet benne, hogy adatai mindig pontosak és visszakövethetők.</span></li>
+                    <li className="flex items-start mb-4"><span className="text-primary font-bold mr-2 flex-shrink-0">✓</span><span>Távoli elérés – Bárhol és bármikor ellenőrizheti az adatokat online felületen keresztül.</span></li>
                   </ul>
           </div>
         </div>

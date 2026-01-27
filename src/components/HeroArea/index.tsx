@@ -111,7 +111,7 @@ const HeroArea = () => {
   return (
     <>
       <section id="home" className="pt-36 sm:pt-28 pb-10">
-        <div className="container lg:max-w-[1200px] lg:px-10">
+        <div className="container max-w-[1320px]">
           <div className="-mx-4 flex flex-wrap items-center">
             <div className="w-full px-4 lg:w-6/12">
               <div className="mb-8 lg:mb-0 lg:max-w-[570px]">
@@ -225,11 +225,11 @@ const HeroArea = () => {
           </div>
           
           {/* Highlighted section below 3D model */}
-          <div className="mt-12 text-center max-w-2xl mx-auto px-4">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-blue-600 dark:text-blue-400 mb-4">
+          <div className="mt-12 text-center max-w-2xl mx-auto px-4 flex flex-col items-center justify-center">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-blue-600 dark:text-blue-400 mb-4 whitespace-nowrap">
               Okos hűtés. Kevesebb kockázat.
             </h2>
-            <p className="text-body text-base sm:text-lg leading-relaxed text-black dark:text-white">
+            <p className="text-body text-lg sm:text-xl leading-relaxed text-black dark:text-white">
               Automatikus felügyelet, pontos mérések és azonnali értesítések – hogy semmi ne érjen meglepetésként.
             </p>
           </div>

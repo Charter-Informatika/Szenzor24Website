@@ -54,11 +54,6 @@
   --drop-shadow-card-dark: 0px 1px 5px rgba(16, 25, 55, 0.14);
 }
 
-@utility container {
-  margin-inline: auto;
-  padding-inline: 1rem;
-}
-
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still
@@ -125,7 +120,7 @@
 }
 
 @utility container {
-  @apply w-full sm:max-w-[540px] md:max-w-[720px] lg:max-w-[960px] xl:max-w-[1140px] 2xl:max-w-[1320px];
+  @apply w-full max-w-[1320px] mx-auto px-4;
 }
 
 @utility keep-signed {
@@ -222,6 +217,9 @@
   body {
     /* Use a soft cream background instead of pure white */
     background-color: var(--color-cream);
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    overflow-x: hidden;
   }
 
   /* Preserve dark mode background (when `.dark` class is present) */

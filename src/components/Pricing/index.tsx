@@ -126,7 +126,7 @@ const Pricing = () => {
           </div>
         </div>
 
-        <div className="container max-w-[1120px] overflow-hidden">
+        <div className="container max-w-[1320px] overflow-hidden">
 
           {/* Színválasztó és 3D modell konténer */}
           <div className="max-w-3xl mx-auto mb-12">

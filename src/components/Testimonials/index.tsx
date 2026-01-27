@@ -57,7 +57,7 @@ const Testimonials = () => {
           </div>
         </div>
 
-        <div className="container overflow-hidden lg:max-w-[1160px]">
+        <div className="container overflow-hidden max-w-[1320px]">
           <div className="-mx-6 flex flex-wrap">
             {testimonialData.map((item, index) => (
               <div key={index} className="w-full px-6 lg:w-1/2">
