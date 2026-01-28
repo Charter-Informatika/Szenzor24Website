@@ -43,6 +43,23 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
+    // Temporary: log signIn callback input for debugging
+    async signIn({ user, account, profile, email, credentials }) {
+      try {
+        console.log("[NextAuth][callback][signIn]", {
+          provider: account?.provider,
+          providerType: account?.type,
+          userId: user?.id ?? undefined,
+          email: email ?? (user as any)?.email ?? undefined,
+          profileKeys: profile ? Object.keys(profile) : undefined,
+        });
+      } catch (e) {
+        console.error("[NextAuth][callback][signIn][log error]", e);
+      }
+
+      // allow sign in by default
+      return true;
+    },
     async session({ session, token }) {
       if (session.user) {
         session.user.licence = (token as any).licence;
@@ -65,6 +82,20 @@ export const authOptions: NextAuthOptions = {
       } catch (e) {
         console.error("Failed to assign licence to new user", e);
       }
+    },
+    // Log sign-in events and NextAuth errors
+    signIn: async ({ user, account, profile }) => {
+      try {
+        console.log("[NextAuth][event][signIn]", {
+          userId: user?.id,
+          provider: account?.provider,
+        });
+      } catch (e) {
+        console.error("[NextAuth][event][signIn][log error]", e);
+      }
+    },
+    error: async ({ error }) => {
+      console.error("[NextAuth][event][error]", error);
     },
   },
 
