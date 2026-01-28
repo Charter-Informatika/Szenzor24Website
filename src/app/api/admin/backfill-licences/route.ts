@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prismaDB';
 import { generateUniqueLicence } from '@/lib/licence';
 
+export const runtime = 'nodejs';
+
 // TEMP route to backfill licences for users still having placeholder value.
 // Protect this in production (e.g., by checking an admin secret env variable)
 export async function POST() {

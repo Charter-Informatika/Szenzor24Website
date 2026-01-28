@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prismaDB";
 import { NextResponse } from "next/server";
 
+export const runtime = 'nodejs';
+
 export const POST = async (request) => {
   const body = await request.json();
   const { token } = body;

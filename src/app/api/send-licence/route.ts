@@ -4,6 +4,8 @@ import { sendEmail } from '@/lib/email';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]/route';
 
+export const runtime = 'nodejs';
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

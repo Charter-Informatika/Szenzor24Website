@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prismaDB";
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   const { email } = await request.json();
 

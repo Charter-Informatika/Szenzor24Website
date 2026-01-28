@@ -9,6 +9,8 @@ import GoogleProvider from "next-auth/providers/google";
 
 import bcrypt from "bcrypt";
 
+export const runtime = 'nodejs';
+
 export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/auth/signin",

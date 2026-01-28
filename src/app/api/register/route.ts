@@ -1,6 +1,8 @@
 import bcrypt from "bcrypt";
 import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/prismaDB";
+
+export const runtime = 'nodejs';
 // licence generation temporarily disabled while feature is developed
 // import { generateUniqueLicence } from "@/lib/licence";
 
