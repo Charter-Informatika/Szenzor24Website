@@ -201,13 +201,13 @@ const Pricing = () => {
           <div className="mt-8 text-center">
             <h3 className="text-2xl font-semibold text-black dark:text-white">Válassz csomagjaink közül!</h3>
             <p className="max-w-2xl mx-auto text-sm mt-2 text-gray-700 dark:text-gray-300">
-              Egy eszköz vételára <span className="font-bold text-black dark:text-white">16 000 Ft + ÁFA</span>, több termék vásárlása esetén további kedvezmények érhetőek el. Teszteld a rendszert 3 hónapig pénzvisszafizetési garancia. Amennyiben nem találsz megfelelőt, az eszközre pénzvisszafizetési garanciát biztosítunk.
+              Egy eszköz vételára <span className="font-bold text-black dark:text-white">32 000 Ft + ÁFA</span>, több termék vásárlása esetén további kedvezmények érhetőek el. Teszteld a rendszert 3 hónapig pénzvisszafizetési garancia. Amennyiben nem találsz megfelelőt, az eszközre pénzvisszafizetési garanciát biztosítunk.
             </p>
           </div>
 
           {/* Pricing table */}
-          <div className="mt-6 grid gap-6 grid-cols-1 md:grid-cols-3">
-            {/* Card - Havi */}
+          <div className="mt-6 grid gap-6 grid-cols-1 md:grid-cols-2">
+            <div className="mt-6 grid gap-6 grid-cols-1 md:grid-cols-2 md:max-w-3xl md:mx-auto">
             <div className="rounded-2xl bg-white px-5 pb-14 pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-20 xl:px-10">
               <h4 className="text-3xl font-bold text-center mb-4 text-slate-900 dark:text-slate-100">HAVI</h4>
               <hr className="border-t border-slate-300 dark:border-slate-700 mb-4" />
