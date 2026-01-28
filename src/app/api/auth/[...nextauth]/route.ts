@@ -39,6 +39,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
+
       if (user) {
         token.licence = (user as any).licence;
         token.trialEnded = (user as any).trialEnded;
