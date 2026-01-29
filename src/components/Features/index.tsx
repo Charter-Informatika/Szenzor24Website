@@ -234,10 +234,10 @@ const Features = () => {
           </div>
 
           <div
-            className="wow fadeInUp mx-auto mb-14 max-w-[690px] text-center lg:mb-[70px]"
+            className="wow fadeInUp mx-auto mb-14 max-w-[690px] text-center lg:mb-[70px] px-4"
             data-wow-delay=".2s"
           >
-            <h2 className="mt-12 mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-black dark:text-white leading-tight whitespace-nowrap">
+            <h2 className="mt-12 mb-4 text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold text-black dark:text-white leading-tight">
               A szenzoraink előnyei és fő jellemzői
             </h2>
             <ul className="mb-6 text-base sm:text-lg leading-relaxed text-left max-w-2xl mx-auto list-none">
@@ -249,7 +249,7 @@ const Features = () => {
         </div>
 
         <div className="container max-w-[1320px]">
-          <div className="rounded-2xl bg-white px-5 pb-14 pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-20 xl:px-10 relative overflow-hidden">
+          <div className="rounded-2xl bg-white px-4 py-6 sm:px-5 sm:pb-14 sm:pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-20 xl:px-10 relative overflow-hidden">
             {/* Progress bar */}
             <div className="absolute bottom-0 left-0 h-1 bg-primary transition-all duration-100" style={{ width: `${progress}%` }} />
 

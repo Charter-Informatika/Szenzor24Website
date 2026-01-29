@@ -133,8 +133,8 @@ const Szenzorok = () => {
 
         <div className="container max-w-[1320px] px-0">
           <div className="rounded-xl sm:rounded-2xl bg-white px-3 sm:px-5 pb-10 sm:pb-14 pt-10 sm:pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-10 lg:pb-14 lg:pt-20 xl:px-10">
-            {/* Slider dots with navigation buttons */}
-            <div className="mb-6 sm:mb-8 flex items-center justify-center gap-4">
+            {/* Slider dots - mobile/tablet only */}
+            <div className="mb-6 sm:mb-8 lg:hidden flex items-center justify-center gap-4">
               <button
                 onClick={() => setSlide((s) => (s - 1 + totalSlides) % totalSlides)}
                 className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-200 text-black hover:bg-primary hover:text-white transition-all dark:bg-[#2A2E44] dark:text-white dark:hover:bg-primary"
@@ -169,14 +169,27 @@ const Szenzorok = () => {
               </button>
             </div>
 
-            {/* Slider container */}
-            <div 
-              className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 px-2 sm:px-4 cursor-grab active:cursor-grabbing"
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-              onMouseDown={handleMouseDown}
-              onMouseUp={handleMouseUp}
-            >
+            {/* Desktop layout with side buttons */}
+            <div className="flex items-center justify-center gap-2 lg:gap-6">
+              {/* Left button - desktop only */}
+              <button
+                onClick={() => setSlide((s) => (s - 1 + totalSlides) % totalSlides)}
+                className="hidden lg:flex h-12 w-12 items-center justify-center rounded-lg bg-gray-200 text-black hover:bg-primary hover:text-white transition-all dark:bg-[#2A2E44] dark:text-white dark:hover:bg-primary flex-shrink-0"
+                aria-label="Previous slide"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+
+              {/* Slider container */}
+              <div 
+                className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 px-2 sm:px-4 cursor-grab active:cursor-grabbing flex-grow"
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                onMouseDown={handleMouseDown}
+                onMouseUp={handleMouseUp}
+              >
               {currentItems.map((szenzor) => {
                 const isSelected = selectedSzenzors.includes(szenzor.id);
                 return (
@@ -194,7 +207,7 @@ const Szenzorok = () => {
                       data-wow-delay=".2s"
                     >
                       {/* Image container - responsive */}
-                      <div className="relative w-full h-20 rounded-lg overflow-hidden bg-slate-300 dark:bg-slate-700 flex items-center justify-center shadow-inner">
+                      <div className="relative w-full h-20 sm:h-32 lg:h-40 rounded-lg overflow-hidden bg-slate-300 dark:bg-slate-700 flex items-center justify-center shadow-inner">
                         <Image
                           src={szenzor.imageUrl}
                           alt={szenzor.name}
@@ -224,6 +237,18 @@ const Szenzorok = () => {
                   </div>
                 );
               })}
+              </div>
+
+              {/* Right button - desktop only */}
+              <button
+                onClick={() => setSlide((s) => (s + 1) % totalSlides)}
+                className="hidden lg:flex h-12 w-12 items-center justify-center rounded-lg bg-gray-200 text-black hover:bg-primary hover:text-white transition-all dark:bg-[#2A2E44] dark:text-white dark:hover:bg-primary flex-shrink-0"
+                aria-label="Next slide"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
