@@ -134,7 +134,7 @@ const featuresData: Feature[] = [
     title: 'Infravörös szenzor',
     description: 'Mozgás- és hőérzékelés infravörös technológiával.',
   },
-  {
+  /*{
     icon: (
       <svg width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M5 8l2 2 2-2M5 12l2 2 2-2M5 16l2 2 2-2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -144,7 +144,7 @@ const featuresData: Feature[] = [
     ),
     title: 'Mágneses tér szenzor',
     description: 'Mágneses tér anomália és erősség detektálása.',
-  }
+  }*/
   
 
 ];
