@@ -137,7 +137,7 @@ const Header = () => {
               </button>
 
               <nav className="lg:backdrop-blur-0 fixed top-0 left-0 z-999 flex h-screen w-full items-center justify-center bg-white/95 text-center backdrop-blur-xs lg:static lg:h-auto lg:w-max lg:bg-transparent lg:backdrop-blur-none dark:bg-black/95 lg:dark:bg-transparent">
-                <ul className="items-center space-y-3 lg:flex lg:space-y-0 lg:space-x-8 xl:space-x-10">
+                <ul className="flex flex-col items-center space-y-3 lg:space-y-0 lg:flex-row lg:space-x-8 xl:space-x-10 w-full px-6">
                   {menuData.map((item, index) =>
                     item.children ? (
                       <li
