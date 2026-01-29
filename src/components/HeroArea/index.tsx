@@ -66,74 +66,6 @@ const HeroArea = () => {
     { id: 'mag',   title: 'Mágneses tér',   subtitle: 'Anomália detektálás' }
   ];
 
-  
-  const gasSensors = [
-    { id: 'methane', title: 'Metán (CH₄)' },
-    { id: 'lpg', title: 'Propán / Bután (LPG)' },
-    { id: 'hydrogen', title: 'Hidrogén (H₂)' },
-    { id: 'oxygen', title: 'Oxigén (O₂)' },
-    { id: 'co', title: 'Szén-monoxid (CO)' },
-    { id: 'h2s', title: 'Kén-hidrogén (H₂S)' },
-    { id: 'co2', title: 'Szén-dioxid (CO₂)' },
-    { id: 'nh3', title: 'Ammónia (NH₃)' },
-    { id: 'no2', title: 'Nitrogén-dioxid (NO₂)' },
-    { id: 'so2', title: 'Kén-dioxid (SO₂)' },
-  ];
-
-  // slide
-  const [slide, setSlide] = useState<number>(0);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [mouseStart, setMouseStart] = useState<number | null>(null);
-  const [mouseEnd, setMouseEnd] = useState<number | null>(null);
-  const totalSlides = 2; // 0: sensors, 1: gas categories
-  const prevSlide = () => setSlide((s) => (s - 1 + totalSlides) % totalSlides);
-  const nextSlide = () => setSlide((s) => (s + 1) % totalSlides);
-
-  // Handle swipe/drag
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    setTouchEnd(e.changedTouches[0].clientX);
-    handleSwipe(touchStart, e.changedTouches[0].clientX);
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setMouseStart(e.clientX);
-  };
-
-  const handleMouseUp = (e: React.MouseEvent) => {
-    setMouseEnd(e.clientX);
-    handleSwipe(mouseStart, e.clientX);
-  };
-
-  const handleSwipe = (start: number | null, end: number | null) => {
-    if (!start || !end) return;
-    
-    const distance = start - end;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) {
-      nextSlide();
-    } else if (isRightSwipe) {
-      prevSlide();
-    }
-  };
-
-  // Auto-slide every 5 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSlide((s) => (s + 1) % totalSlides);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [totalSlides]);
-
-
-
-
   const scrollToPricing = (ev?: React.MouseEvent) => {
     ev?.preventDefault();
     const el = document.getElementById('pricing');
@@ -175,76 +107,10 @@ const HeroArea = () => {
                     Kapcsolatfelvétel
                   </a>
                 </div>
-
-                {/* Slide navigation - Auto-slide indicator */}
-                <div className="mt-8 relative">
-                  <div className="flex items-center justify-center gap-2 mb-4">
-                    {[0, 1].map((i) => (
-                      <div
-                        key={i}
-                        className={`h-2 rounded-full transition-all ${
-                          slide === i ? 'w-8 bg-slate-400' : 'w-2 bg-slate-300'
-                        }`}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Slide container with fixed height to prevent layout shift */}
-                  <div className="min-h-[550px]">
-                  {slide === 0 && (
-                    <div 
-                      className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 max-w-4xl mx-auto cursor-grab active:cursor-grabbing user-select-none touch-action-none"
-                      onTouchStart={handleTouchStart}
-                      onTouchEnd={handleTouchEnd}
-                      onMouseDown={handleMouseDown}
-                      onMouseUp={handleMouseUp}
-                    >
-                      {sensors.map((s) => (
-                        <div
-                          key={s.id}
-                          className="group flex flex-col items-center gap-2 rounded-lg border border-slate-200 bg-white p-4 text-center shadow-sm hover:shadow-md transition-all duration-200 dark:bg-slate-800/60 dark:border-slate-700"
-                          aria-label={s.title}
-                        >
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600 group-hover:bg-blue-500/20 group-hover:text-blue-200 transition-colors dark:bg-blue-900/20 dark:text-blue-300">
-                            <span className="font-semibold text-base">{s.title.charAt(0)}</span>
-                          </div>
-                          <div className="text-xs font-medium text-slate-700 group-hover:text-slate-900 dark:text-slate-200">{s.title}</div>
-                          </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Slide 1: gas sensors */}
-                  {slide === 1 && (
-                    <div>
-                      <div 
-                        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 max-w-4xl mx-auto cursor-grab active:cursor-grabbing user-select-none touch-action-none"
-                        onTouchStart={handleTouchStart}
-                        onTouchEnd={handleTouchEnd}
-                        onMouseDown={handleMouseDown}
-                        onMouseUp={handleMouseUp}
-                      >
-                        {gasSensors.map((gas) => (
-                          <button
-                            key={gas.id}
-                            className="group flex flex-col items-center gap-2 rounded-lg border border-slate-200 bg-white p-4 text-center shadow-sm hover:shadow-md transition-all duration-200 dark:bg-slate-800/60 dark:border-slate-700"
-                            aria-label={gas.title}
-                          >
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-50 text-orange-600 group-hover:bg-orange-500/20 group-hover:text-orange-200 transition-colors dark:bg-orange-900/20 dark:text-orange-300">
-                              <span className="font-semibold text-base">{gas.title.charAt(0)}</span>
-                            </div>
-                            <div className="text-xs font-medium text-slate-700 group-hover:text-slate-900 dark:text-slate-200">{gas.title}</div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  </div>
-                </div>
               </div>
             </div>
 
-            <div className="w-full px-4 lg:w-6/12 lg:-mt-60">
+            <div className="w-full px-4 lg:w-6/12">
               <div className="relative z-10 mx-auto w-full max-w-[800px]">
                 {useMemo(() => (
                   <div
@@ -267,7 +133,7 @@ const HeroArea = () => {
           
           {/* Highlighted section below 3D model */}
           <div className="mt-12 text-center max-w-2xl mx-auto px-4 flex flex-col items-center justify-center">
-            <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-semibold text-blue-600 dark:text-blue-400 mb-4">
+            <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-semibold text-blue-600 dark:text-blue-400 mb-4 whitespace-nowrap">
               Okos hűtés. Kevesebb kockázat.
             </h2>
             <p className="text-body text-base sm:text-lg md:text-xl leading-relaxed text-black dark:text-white">
