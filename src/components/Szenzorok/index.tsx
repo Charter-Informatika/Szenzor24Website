@@ -40,7 +40,16 @@ const szenzorData: Szenzor[] = [
     name: "Hidrogén szenzor",
     imageUrl: "/images/szenzorok/hidrogensensor.png",
   },
-  
+  {
+    id: 7,
+    name: "Metán szenzor",
+    imageUrl: "/images/szenzorok/metan.png",
+  },
+  {
+    id: 8,
+    name: "SENSORION hőmérséklet szenzor",
+    imageUrl: "/images/szenzorok/levegominoseg.png",
+  },
 ];
 
 const Szenzorok = () => {
@@ -50,7 +59,7 @@ const Szenzorok = () => {
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [mouseStart, setMouseStart] = useState<number | null>(null);
   const [mouseEnd, setMouseEnd] = useState<number | null>(null);
-  const itemsPerSlide = 3;
+  const itemsPerSlide = 4;
   const totalSlides = Math.ceil(szenzorData.length / itemsPerSlide);
 
   const prevSlide = () => setSlide((s) => (s - 1 + totalSlides) % totalSlides);
@@ -89,12 +98,13 @@ const Szenzorok = () => {
     }
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSlide((s) => (s + 1) % totalSlides);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [totalSlides]);
+  // Auto-slide disabled - users can manually navigate
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setSlide((s) => (s + 1) % totalSlides);
+  //   }, 5000);
+  //   return () => clearInterval(interval);
+  // }, [totalSlides]);
 
   const toggleSzenzor = (id: number) => {
     if (selectedSzenzors.includes(id)) {
@@ -161,7 +171,7 @@ const Szenzorok = () => {
 
             {/* Slider container */}
             <div 
-              className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-3 sm:gap-6 px-2 sm:px-4 cursor-grab active:cursor-grabbing"
+              className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 px-2 sm:px-4 cursor-grab active:cursor-grabbing"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
               onMouseDown={handleMouseDown}
@@ -203,6 +213,13 @@ const Szenzorok = () => {
                       >
                         {szenzor.name}
                       </h3>
+
+                      {/* Selected badge */}
+                      {isSelected && (
+                        <span className="text-xs font-semibold text-primary dark:text-blue-400 mt-1">
+                          Kiválasztva
+                        </span>
+                      )}
                     </button>
                   </div>
                 );

@@ -151,6 +151,7 @@ const featuresData: Feature[] = [
 
 const Features = () => {
   const [slide, setSlide] = useState<number>(0);
+  const [progress, setProgress] = useState<number>(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [mouseStart, setMouseStart] = useState<number | null>(null);
@@ -194,12 +195,25 @@ const Features = () => {
     }
   };
 
-  // Auto-slide every 5 seconds
+  // Auto-slide every 5 seconds with progress bar
   useEffect(() => {
-    const interval = setInterval(() => {
+    setProgress(0);
+    const progressInterval = setInterval(() => {
+      setProgress((p) => {
+        if (p >= 100) return 100;
+        return p + 2;
+      });
+    }, 100);
+
+    const slideInterval = setInterval(() => {
       setSlide((s) => (s + 1) % totalPages);
+      setProgress(0);
     }, 5000);
-    return () => clearInterval(interval);
+
+    return () => {
+      clearInterval(progressInterval);
+      clearInterval(slideInterval);
+    };
   }, [totalPages]);
 
   return (
@@ -235,8 +249,12 @@ const Features = () => {
         </div>
 
         <div className="container max-w-[1320px]">
-          <div className="rounded-2xl bg-white px-5 pb-14 pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-20 xl:px-10">
-            <div className="mb-6 flex items-center justify-center gap-4">
+          <div className="rounded-2xl bg-white px-5 pb-14 pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-20 xl:px-10 relative overflow-hidden">
+            {/* Progress bar */}
+            <div className="absolute bottom-0 left-0 h-1 bg-primary transition-all duration-100" style={{ width: `${progress}%` }} />
+
+            {/* Navigation controls - commented out */}
+            {/* <div className="mb-6 flex items-center justify-center gap-4">
               <button
                 onClick={prev}
                 className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-200 text-black hover:bg-primary hover:text-white transition-all dark:bg-[#2A2E44] dark:text-white dark:hover:bg-primary"
@@ -269,17 +287,18 @@ const Features = () => {
                   <path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
-            </div>
+            </div> */}
 
-            {/* Horizontal slider grid with swipe/drag support */}
+            {/* Horizontal slider grid with swipe/drag support - centered vertically */}
             <div 
-              className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 px-2 sm:px-4 cursor-grab active:cursor-grabbing select-none"
+              className="flex items-center justify-center min-h-[400px]"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
               onMouseDown={handleMouseDown}
               onMouseUp={handleMouseUp}
             >
-              {pageItems.map((item, index) => (
+              <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 px-2 sm:px-4 cursor-grab active:cursor-grabbing select-none w-full">
+                {pageItems.map((item, index) => (
                 <div key={index} className="w-full">
                   <div
                     className="wow fadeInUp group w-full h-full flex flex-col items-center text-center pointer-events-none"
@@ -297,6 +316,7 @@ const Features = () => {
                   </div>
                 </div>
               ))}
+              </div>
             </div>
           </div>
         </div>
