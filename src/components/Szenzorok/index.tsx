@@ -123,18 +123,40 @@ const Szenzorok = () => {
 
         <div className="container max-w-[1320px] px-0">
           <div className="rounded-xl sm:rounded-2xl bg-white px-3 sm:px-5 pb-10 sm:pb-14 pt-10 sm:pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-10 lg:pb-14 lg:pt-20 xl:px-10">
-            {/* Slider dots */}
-            <div className="mb-6 sm:mb-8 flex items-center justify-center gap-2">
-              {Array.from({ length: totalSlides }).map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setSlide(i)}
-                  className={`h-2 rounded-full transition-all ${
-                    slide === i ? 'w-8 bg-slate-400' : 'w-2 bg-slate-300'
-                  }`}
-                  aria-label={`Slide ${i + 1}`}
-                />
-              ))}
+            {/* Slider dots with navigation buttons */}
+            <div className="mb-6 sm:mb-8 flex items-center justify-center gap-4">
+              <button
+                onClick={() => setSlide((s) => (s - 1 + totalSlides) % totalSlides)}
+                className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-200 text-black hover:bg-primary hover:text-white transition-all dark:bg-[#2A2E44] dark:text-white dark:hover:bg-primary"
+                aria-label="Previous slide"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+
+              <div className="flex gap-2">
+                {Array.from({ length: totalSlides }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setSlide(i)}
+                    className={`h-2 rounded-full transition-all ${
+                      slide === i ? 'w-8 bg-slate-400' : 'w-2 bg-slate-300'
+                    }`}
+                    aria-label={`Slide ${i + 1}`}
+                  />
+                ))}
+              </div>
+
+              <button
+                onClick={() => setSlide((s) => (s + 1) % totalSlides)}
+                className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-200 text-black hover:bg-primary hover:text-white transition-all dark:bg-[#2A2E44] dark:text-white dark:hover:bg-primary"
+                aria-label="Next slide"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
             </div>
 
             {/* Slider container */}
