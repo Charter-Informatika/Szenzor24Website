@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 
 interface Szenzor {
@@ -20,10 +20,81 @@ const szenzorData: Szenzor[] = [
     name: "MPU-6050 giroszkóp és hőmérséklet szenzor",
     imageUrl: "/images/szenzorok/mpu6050.png",
   },
+  {
+    id: 3,
+    name: "Gáz szenzor",
+    imageUrl: "/images/szenzorok/gassensor.png",
+  },
+  {
+    id: 4,
+    name: "Hőmérséklet szenzor",
+    imageUrl: "/images/szenzorok/homersekletsensor.png",
+  },
+  {
+    id: 5,
+    name: "Fény szenzor",
+    imageUrl: "/images/szenzorok/lightsensor.png",
+  },
+  {
+    id: 6,
+    name: "Hidrogén szenzor",
+    imageUrl: "/images/szenzorok/hidrogensensor.png",
+  },
+  
 ];
 
 const Szenzorok = () => {
   const [selectedSzenzors, setSelectedSzenzors] = useState<number[]>([]);
+  const [slide, setSlide] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [mouseStart, setMouseStart] = useState<number | null>(null);
+  const [mouseEnd, setMouseEnd] = useState<number | null>(null);
+  const itemsPerSlide = 3;
+  const totalSlides = Math.ceil(szenzorData.length / itemsPerSlide);
+
+  const prevSlide = () => setSlide((s) => (s - 1 + totalSlides) % totalSlides);
+  const nextSlide = () => setSlide((s) => (s + 1) % totalSlides);
+
+  // Handle swipe/drag
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    setTouchEnd(e.changedTouches[0].clientX);
+    handleSwipe(touchStart, e.changedTouches[0].clientX);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setMouseStart(e.clientX);
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    setMouseEnd(e.clientX);
+    handleSwipe(mouseStart, e.clientX);
+  };
+
+  const handleSwipe = (start: number | null, end: number | null) => {
+    if (!start || !end) return;
+    
+    const distance = start - end;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      nextSlide();
+    } else if (isRightSwipe) {
+      prevSlide();
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSlide((s) => (s + 1) % totalSlides);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [totalSlides]);
 
   const toggleSzenzor = (id: number) => {
     if (selectedSzenzors.includes(id)) {
@@ -33,71 +104,84 @@ const Szenzorok = () => {
     }
   };
 
+  const currentItems = szenzorData.slice(slide * itemsPerSlide, (slide + 1) * itemsPerSlide);
+
   return (
-    <section id="szenzorok" className="relative z-10 pt-[110px] pb-[110px]">
-      <div className="container">
+    <section id="szenzorok" className="relative z-10 pt-16 pb-16 sm:pt-[110px] sm:pb-[110px]">
+      <div className="container px-3 sm:px-4">
         <div
-          className="wow fadeInUp mx-auto mb-14 max-w-[690px] text-center lg:mb-[70px]"
+          className="wow fadeInUp mx-auto mb-10 sm:mb-14 max-w-[690px] text-center lg:mb-[70px]"
           data-wow-delay=".2s"
         >
-          <h2 className="mb-4 text-3xl font-bold text-black dark:text-white sm:text-4xl md:text-[44px] md:leading-tight">
+          <h2 className="mb-3 sm:mb-4 text-2xl sm:text-3xl font-bold text-black dark:text-white md:text-4xl lg:text-[44px] lg:leading-tight">
             Szenzorok
           </h2>
-          <p className="text-base text-body">
+          <p className="text-sm sm:text-base text-body px-2">
             Válassza ki a számára megfelelő szenzorokat. Kattintson a kártyákra a kijelöléshez.
           </p>
         </div>
 
-        <div className="container max-w-[1320px]">
-          <div className="rounded-2xl bg-white px-5 pb-14 pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-10 lg:pb-14 lg:pt-20 xl:px-10">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center max-w-[800px] mx-auto">
-              {szenzorData.map((szenzor) => {
+        <div className="container max-w-[1320px] px-0">
+          <div className="rounded-xl sm:rounded-2xl bg-white px-3 sm:px-5 pb-10 sm:pb-14 pt-10 sm:pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-10 lg:pb-14 lg:pt-20 xl:px-10">
+            {/* Slider dots */}
+            <div className="mb-6 sm:mb-8 flex items-center justify-center gap-2">
+              {Array.from({ length: totalSlides }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSlide(i)}
+                  className={`h-2 rounded-full transition-all ${
+                    slide === i ? 'w-8 bg-slate-400' : 'w-2 bg-slate-300'
+                  }`}
+                  aria-label={`Slide ${i + 1}`}
+                />
+              ))}
+            </div>
+
+            {/* Slider container */}
+            <div 
+              className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-3 sm:gap-6 px-2 sm:px-4 cursor-grab active:cursor-grabbing"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              onMouseDown={handleMouseDown}
+              onMouseUp={handleMouseUp}
+            >
+              {currentItems.map((szenzor) => {
                 const isSelected = selectedSzenzors.includes(szenzor.id);
                 return (
                   <div
                     key={szenzor.id}
-                    className="w-full max-w-[310px]"
+                    className="w-full"
                   >
-                    <div
+                    <button
                       onClick={() => toggleSzenzor(szenzor.id)}
-                      className={`wow fadeInUp group h-full flex flex-col cursor-pointer rounded-xl border-2 p-6 text-center transition-all duration-300 hover:shadow-lg select-none ${
+                      className={`wow fadeInUp group h-full w-full flex flex-col items-center gap-2 rounded-lg border-2 p-3 text-center transition-all duration-300 active:scale-95 select-none ${
                         isSelected
-                          ? "border-primary bg-primary/5 shadow-lg dark:bg-primary/10"
-                          : "border-gray-200 bg-gray-50 dark:border-[#2A2E44] dark:bg-[#1A1D2E]"
+                          ? "border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg dark:bg-gradient-to-br dark:from-primary/20 dark:to-primary/10"
+                          : "border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 dark:border-slate-700 dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900"
                       }`}
                       data-wow-delay=".2s"
                     >
-                      {/* Szenzor kép */}
-                      <div className="relative mx-auto mb-6 h-[180px] w-full overflow-hidden rounded-lg pointer-events-none select-none">
+                      {/* Image container - responsive */}
+                      <div className="relative w-full h-20 rounded-lg overflow-hidden bg-slate-300 dark:bg-slate-700 flex items-center justify-center shadow-inner">
                         <Image
                           src={szenzor.imageUrl}
                           alt={szenzor.name}
                           fill
-                          className="object-cover select-none pointer-events-none"
-                          draggable={false}
+                          className="object-contain p-2 transition-transform"
                         />
                       </div>
 
                       {/* Szenzor név */}
                       <h3
-                        className={`text-xl font-semibold transition-colors sm:text-[22px] ${
+                        className={`text-xs font-bold transition-colors line-clamp-2 ${
                           isSelected
-                            ? "text-primary dark:text-primary"
+                            ? "text-primary dark:text-blue-400"
                             : "text-black dark:text-white"
                         }`}
                       >
                         {szenzor.name}
                       </h3>
-
-                      {/* Kiválasztva jelző */}
-                      {isSelected && (
-                        <div className="mt-4 pt-4 border-t border-primary/30">
-                          <span className="inline-block px-4 py-2 bg-primary text-white font-bold text-sm rounded-full animate-pulse">
-                            ✓ KIVÁLASZTVA
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                    </button>
                   </div>
                 );
               })}

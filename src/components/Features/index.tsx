@@ -151,11 +151,48 @@ const featuresData: Feature[] = [
 
 const Features = () => {
   const [slide, setSlide] = useState<number>(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [mouseStart, setMouseStart] = useState<number | null>(null);
+  const [mouseEnd, setMouseEnd] = useState<number | null>(null);
   const itemsPerPage = 6;
   const totalPages = Math.ceil(featuresData.length / itemsPerPage);
   const prev = () => setSlide((s) => (s - 1 + totalPages) % totalPages);
   const next = () => setSlide((s) => (s + 1) % totalPages);
   const pageItems = featuresData.slice(slide * itemsPerPage, slide * itemsPerPage + itemsPerPage);
+
+  // Handle swipe/drag
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    setTouchEnd(e.changedTouches[0].clientX);
+    handleSwipe(touchStart, e.changedTouches[0].clientX);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setMouseStart(e.clientX);
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    setMouseEnd(e.clientX);
+    handleSwipe(mouseStart, e.clientX);
+  };
+
+  const handleSwipe = (start: number | null, end: number | null) => {
+    if (!start || !end) return;
+    
+    const distance = start - end;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      next();
+    } else if (isRightSwipe) {
+      prev();
+    }
+  };
 
   // Auto-slide every 5 seconds
   useEffect(() => {
@@ -186,7 +223,7 @@ const Features = () => {
             className="wow fadeInUp mx-auto mb-14 max-w-[690px] text-center lg:mb-[70px]"
             data-wow-delay=".2s"
           >
-            <h2 className="mt-12 mb-4 text-2xl font-bold text-black dark:text-white sm:text-3xl md:text-4xl md:leading-tight whitespace-nowrap">
+            <h2 className="mt-12 mb-4 text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold text-black dark:text-white leading-tight">
               A szenzoraink előnyei és fő jellemzői
             </h2>
             <ul className="mb-6 text-base sm:text-lg leading-relaxed text-left max-w-2xl mx-auto list-none">
@@ -201,29 +238,40 @@ const Features = () => {
           <div className="rounded-2xl bg-white px-5 pb-14 pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-20 xl:px-10">
             <div className="mb-6 flex items-center justify-center gap-2">
               {Array.from({ length: totalPages }).map((_, i) => (
-                <div
+                <button
                   key={i}
+                  onClick={() => setSlide(i)}
                   className={`h-2 rounded-full transition-all ${
                     slide === i ? 'w-8 bg-slate-400' : 'w-2 bg-slate-300'
                   }`}
+                  aria-label={`Slide ${i + 1}`}
                 />
               ))}
             </div>
 
-            <div className="-mx-4 flex flex-wrap">
+            {/* Horizontal slider grid with swipe/drag support */}
+            <div 
+              className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 px-2 sm:px-4 cursor-grab active:cursor-grabbing select-none"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              onMouseDown={handleMouseDown}
+              onMouseUp={handleMouseUp}
+            >
               {pageItems.map((item, index) => (
-                <div key={index} className="w-full px-4 sm:w-1/2 md:w-1/3 lg:w-1/6">
+                <div key={index} className="w-full">
                   <div
-                    className="wow fadeInUp group w-full h-full flex flex-col items-center text-center mb-[60px]"
+                    className="wow fadeInUp group w-full h-full flex flex-col items-center text-center pointer-events-none"
                     data-wow-delay=".2s"
                   >
-                    <div className="mx-auto mb-8 flex h-[90px] w-[90px] items-center justify-center rounded-3xl bg-gray-100 text-primary duration-300 group-hover:bg-primary group-hover:text-white dark:bg-[#2A2E44] dark:text-white dark:group-hover:bg-primary border border-slate-200">
-                      {item.icon}
+                    <div className="mx-auto mb-3 sm:mb-8 flex h-12 sm:h-[90px] w-12 sm:w-[90px] items-center justify-center rounded-2xl sm:rounded-3xl bg-gray-100 text-primary duration-300 group-hover:bg-primary group-hover:text-white dark:bg-[#2A2E44] dark:text-white dark:group-hover:bg-primary border border-slate-200 flex-shrink-0">
+                      <div className="scale-50 sm:scale-100 origin-center">
+                        {item.icon}
+                      </div>
                     </div>
-                    <h3 className="mb-4 text-xl font-semibold text-black dark:text-white sm:text-[22px] xl:text-[26px] whitespace-pre-line">
+                    <h3 className="mb-1 sm:mb-4 text-xs sm:text-xl font-semibold text-black dark:text-white whitespace-pre-line line-clamp-2 sm:line-clamp-none">
                       {item.title}
                     </h3>
-                    <p className="text-base text-body">{item.description}</p>
+                    <p className="hidden sm:block text-base text-body">{item.description}</p>
                   </div>
                 </div>
               ))}
