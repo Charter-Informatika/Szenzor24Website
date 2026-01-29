@@ -291,28 +291,28 @@ const Features = () => {
 
             {/* Horizontal slider grid with swipe/drag support - centered vertically */}
             <div 
-              className="flex items-center justify-center min-h-[400px]"
+              className="flex items-center justify-center min-h-[200px] sm:min-h-[300px] lg:min-h-[400px]"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
               onMouseDown={handleMouseDown}
               onMouseUp={handleMouseUp}
             >
-              <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 px-2 sm:px-4 cursor-grab active:cursor-grabbing select-none w-full">
+              <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-4 lg:gap-6 px-1 sm:px-4 cursor-grab active:cursor-grabbing select-none w-full">
                 {pageItems.map((item, index) => (
                 <div key={index} className="w-full">
                   <div
                     className="wow fadeInUp group w-full h-full flex flex-col items-center text-center pointer-events-none"
                     data-wow-delay=".2s"
                   >
-                    <div className="mx-auto mb-3 sm:mb-8 flex h-12 sm:h-[90px] w-12 sm:w-[90px] items-center justify-center rounded-2xl sm:rounded-3xl bg-gray-100 text-primary duration-300 group-hover:bg-primary group-hover:text-white dark:bg-[#2A2E44] dark:text-white dark:group-hover:bg-primary border border-slate-200 flex-shrink-0">
+                    <div className="mx-auto mb-2 sm:mb-4 lg:mb-8 flex h-10 sm:h-16 lg:h-[90px] w-10 sm:w-16 lg:w-[90px] items-center justify-center rounded-lg sm:rounded-2xl lg:rounded-3xl bg-gray-100 text-primary duration-300 group-hover:bg-primary group-hover:text-white dark:bg-[#2A2E44] dark:text-white dark:group-hover:bg-primary border border-slate-200 flex-shrink-0">
                       <div className="scale-50 sm:scale-100 origin-center">
                         {item.icon}
                       </div>
                     </div>
-                    <h3 className="mb-1 sm:mb-4 text-xs sm:text-xl font-semibold text-black dark:text-white whitespace-pre-line line-clamp-2 sm:line-clamp-none">
+                    <h3 className="mb-0 sm:mb-2 lg:mb-4 text-[10px] sm:text-sm lg:text-xl font-semibold text-black dark:text-white whitespace-pre-line line-clamp-2 sm:line-clamp-none">
                       {item.title}
                     </h3>
-                    <p className="hidden sm:block text-base text-body">{item.description}</p>
+                    <p className="hidden sm:block text-xs lg:text-base text-body">{item.description}</p>
                   </div>
                 </div>
               ))}
