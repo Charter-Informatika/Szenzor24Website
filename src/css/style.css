@@ -54,6 +54,7 @@
   --drop-shadow-card-dark: 0px 1px 5px rgba(16, 25, 55, 0.14);
 }
 
+
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still
@@ -121,6 +122,8 @@
 
 @utility container {
   @apply w-full max-w-[1320px] mx-auto px-4;
+  margin-inline: auto;
+  padding-inline: 1rem;
 }
 
 @utility keep-signed {
