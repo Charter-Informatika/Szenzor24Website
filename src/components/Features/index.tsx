@@ -134,7 +134,7 @@ const featuresData: Feature[] = [
     title: 'Infravörös szenzor',
     description: 'Mozgás- és hőérzékelés infravörös technológiával.',
   },
-  {
+  /*{
     icon: (
       <svg width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M5 8l2 2 2-2M5 12l2 2 2-2M5 16l2 2 2-2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -144,25 +144,76 @@ const featuresData: Feature[] = [
     ),
     title: 'Mágneses tér szenzor',
     description: 'Mágneses tér anomália és erősség detektálása.',
-  }
+  }*/
   
 
 ];
 
 const Features = () => {
   const [slide, setSlide] = useState<number>(0);
+  const [progress, setProgress] = useState<number>(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [mouseStart, setMouseStart] = useState<number | null>(null);
+  const [mouseEnd, setMouseEnd] = useState<number | null>(null);
   const itemsPerPage = 6;
   const totalPages = Math.ceil(featuresData.length / itemsPerPage);
   const prev = () => setSlide((s) => (s - 1 + totalPages) % totalPages);
   const next = () => setSlide((s) => (s + 1) % totalPages);
   const pageItems = featuresData.slice(slide * itemsPerPage, slide * itemsPerPage + itemsPerPage);
 
-  // Auto-slide every 5 seconds
+  // Handle swipe/drag
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    setTouchEnd(e.changedTouches[0].clientX);
+    handleSwipe(touchStart, e.changedTouches[0].clientX);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setMouseStart(e.clientX);
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    setMouseEnd(e.clientX);
+    handleSwipe(mouseStart, e.clientX);
+  };
+
+  const handleSwipe = (start: number | null, end: number | null) => {
+    if (!start || !end) return;
+    
+    const distance = start - end;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      next();
+    } else if (isRightSwipe) {
+      prev();
+    }
+  };
+
+  // Auto-slide every 5 seconds with progress bar
   useEffect(() => {
-    const interval = setInterval(() => {
+    setProgress(0);
+    const progressInterval = setInterval(() => {
+      setProgress((p) => {
+        if (p >= 100) return 100;
+        return p + 2;
+      });
+    }, 100);
+
+    const slideInterval = setInterval(() => {
       setSlide((s) => (s + 1) % totalPages);
+      setProgress(0);
     }, 5000);
-    return () => clearInterval(interval);
+
+    return () => {
+      clearInterval(progressInterval);
+      clearInterval(slideInterval);
+    };
   }, [totalPages]);
 
   return (
@@ -183,10 +234,10 @@ const Features = () => {
           </div>
 
           <div
-            className="wow fadeInUp mx-auto mb-14 max-w-[690px] text-center lg:mb-[70px]"
+            className="wow fadeInUp mx-auto mb-14 max-w-[690px] text-center lg:mb-[70px] px-4"
             data-wow-delay=".2s"
           >
-            <h2 className="mt-12 mb-4 text-2xl font-bold text-black dark:text-white sm:text-3xl md:text-4xl md:leading-tight whitespace-nowrap">
+            <h2 className="mt-12 mb-4 text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold text-black dark:text-white leading-tight">
               A szenzoraink előnyei és fő jellemzői
             </h2>
             <ul className="mb-6 text-base sm:text-lg leading-relaxed text-left max-w-2xl mx-auto list-none">
@@ -198,35 +249,74 @@ const Features = () => {
         </div>
 
         <div className="container max-w-[1320px]">
-          <div className="rounded-2xl bg-white px-5 pb-14 pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-20 xl:px-10">
-            <div className="mb-6 flex items-center justify-center gap-2">
-              {Array.from({ length: totalPages }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-2 rounded-full transition-all ${
-                    slide === i ? 'w-8 bg-slate-400' : 'w-2 bg-slate-300'
-                  }`}
-                />
-              ))}
-            </div>
+          <div className="rounded-2xl bg-white px-4 py-6 sm:px-5 sm:pb-14 sm:pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-20 xl:px-10 relative overflow-hidden">
+            {/* Progress bar */}
+            <div className="absolute bottom-0 left-0 h-1 bg-primary transition-all duration-100" style={{ width: `${progress}%` }} />
 
-            <div className="-mx-4 flex flex-wrap">
-              {pageItems.map((item, index) => (
-                <div key={index} className="w-full px-4 sm:w-1/2 md:w-1/3 lg:w-1/6">
+            {/* Navigation controls - commented out */}
+            {/* <div className="mb-6 flex items-center justify-center gap-4">
+              <button
+                onClick={prev}
+                className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-200 text-black hover:bg-primary hover:text-white transition-all dark:bg-[#2A2E44] dark:text-white dark:hover:bg-primary"
+                aria-label="Previous slide"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              
+              <div className="flex gap-2">
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setSlide(i)}
+                    className={`h-2 rounded-full transition-all ${
+                      slide === i ? 'w-8 bg-slate-400' : 'w-2 bg-slate-300'
+                    }`}
+                    aria-label={`Slide ${i + 1}`}
+                  />
+                ))}
+              </div>
+
+              <button
+                onClick={next}
+                className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-200 text-black hover:bg-primary hover:text-white transition-all dark:bg-[#2A2E44] dark:text-white dark:hover:bg-primary"
+                aria-label="Next slide"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div> */}
+
+            {/* Horizontal slider grid with swipe/drag support - centered vertically */}
+            <div 
+              className="flex items-center justify-center min-h-[200px] sm:min-h-[300px] lg:min-h-[400px]"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              onMouseDown={handleMouseDown}
+              onMouseUp={handleMouseUp}
+            >
+              <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-4 lg:gap-6 px-1 sm:px-4 cursor-grab active:cursor-grabbing select-none w-full">
+                {pageItems.map((item, index) => (
+                <div key={index} className="w-full">
                   <div
-                    className="wow fadeInUp group w-full h-full flex flex-col items-center text-center mb-[60px]"
+                    className="wow fadeInUp group w-full h-full flex flex-col items-center text-center pointer-events-none"
                     data-wow-delay=".2s"
                   >
-                    <div className="mx-auto mb-8 flex h-[90px] w-[90px] items-center justify-center rounded-3xl bg-gray-100 text-primary duration-300 group-hover:bg-primary group-hover:text-white dark:bg-[#2A2E44] dark:text-white dark:group-hover:bg-primary border border-slate-200">
-                      {item.icon}
+                    <div className="mx-auto mb-2 sm:mb-4 lg:mb-8 flex h-10 sm:h-16 lg:h-[90px] w-10 sm:w-16 lg:w-[90px] items-center justify-center rounded-lg sm:rounded-2xl lg:rounded-3xl bg-gray-100 text-primary duration-300 group-hover:bg-primary group-hover:text-white dark:bg-[#2A2E44] dark:text-white dark:group-hover:bg-primary border border-slate-200 flex-shrink-0">
+                      <div className="scale-50 sm:scale-100 origin-center">
+                        {item.icon}
+                      </div>
                     </div>
-                    <h3 className="mb-4 text-xl font-semibold text-black dark:text-white sm:text-[22px] xl:text-[26px] whitespace-pre-line">
+                    <h3 className="mb-0 sm:mb-2 lg:mb-4 text-[10px] sm:text-sm lg:text-xl font-semibold text-black dark:text-white whitespace-pre-line line-clamp-2 sm:line-clamp-none">
                       {item.title}
                     </h3>
-                    <p className="text-base text-body">{item.description}</p>
+                    <p className="hidden sm:block text-xs lg:text-base text-body">{item.description}</p>
                   </div>
                 </div>
               ))}
+              </div>
             </div>
           </div>
         </div>
