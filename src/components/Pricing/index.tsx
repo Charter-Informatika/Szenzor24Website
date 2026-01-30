@@ -206,8 +206,23 @@ const Pricing = () => {
           </div>
 
           {/* Pricing table */}
-          <div className="mt-6 grid gap-6 grid-cols-1 md:grid-cols-2 md:max-w-3xl md:mx-auto">
-  
+          <div className="mt-6 grid gap-6 grid-cols-1 md:grid-cols-3">
+            {/* Card - Ingyenes */}
+            <div className="rounded-2xl bg-white px-5 pb-14 pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-20 xl:px-10">
+              <h4 className="text-3xl font-bold text-center mb-4 text-slate-900 dark:text-slate-100">INGYENES</h4>
+              <hr className="border-t border-slate-300 dark:border-slate-700 mb-4" />
+              <ul className="space-y-2 mb-4 text-slate-700 dark:text-slate-300">
+                <li>✅ <span className="font-medium">Valós idejű adatelérés</span></li>
+                <li>✅ <span className="font-medium">Webes hozzáférés</span></li>
+                <li>✅ <span className="font-medium">30 napos adatmegőrzés</span></li>
+                <li className="mt-3 text-rose-600 dark:text-rose-400">❌ hőmérséklet naplózás</li>
+                <li className="text-rose-600 dark:text-rose-400">❌ Illetéktelen hozzáférés elleni védelem</li>
+              </ul>
+              <hr className="border-t border-slate-300 dark:border-slate-700 mb-4" />
+              <p className="font-semibold text-slate-800 dark:text-slate-200">✅ 3 hónap pénzvisszafizetési garancia</p>
+              <div className="mt-6 text-center text-3xl font-bold text-slate-900 dark:text-slate-100">0 Ft</div>
+            </div>
+
             {/* Card - Havi */}
             <div className="rounded-2xl bg-white px-5 pb-14 pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-20 xl:px-10">
               <h4 className="text-3xl font-bold text-center mb-4 text-slate-900 dark:text-slate-100">HAVI</h4>
