@@ -38,6 +38,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id; // User ID hozzáadása a tokenhez
         token.licence = (user as any).licence;
         token.trialEnded = (user as any).trialEnded;
       }
@@ -45,6 +46,7 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
+        (session.user as any).id = token.id; // User ID hozzáadása a session-höz
         session.user.licence = (token as any).licence;
         session.user.trialEnded = (token as any).trialEnded;
       }

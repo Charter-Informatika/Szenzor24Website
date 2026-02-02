@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
+import axios from "axios";
+import { OrderPayload } from "@/types/order";
 
 // Szenzor típusok
 const szenzorok = [
@@ -131,8 +133,10 @@ const tapellatasok = [
 
 type StepId = "szenzor" | "eszkoz" | "doboz" | "szin" | "tapellatas" | "osszesites";
 
+const MAX_SZENZOROK = 3;
+
 interface Selection {
-  szenzor: string | null;
+  szenzorok: string[]; // Max 3 szenzor
   eszkoz: string | null;
   doboz: string | null;
   dobozSzin: string;
@@ -144,7 +148,7 @@ const ProductConfigurator = () => {
   const { data: session } = useSession();
   const [currentStep, setCurrentStep] = useState<StepId>("szenzor");
   const [selection, setSelection] = useState<Selection>({
-    szenzor: null,
+    szenzorok: [],
     eszkoz: null,
     doboz: null,
     dobozSzin: "zold",
@@ -172,8 +176,9 @@ const ProductConfigurator = () => {
 
   const calculateTotal = () => {
     let total = 0;
-    if (selection.szenzor) {
-      const szenzor = szenzorok.find((s) => s.id === selection.szenzor);
+    // Több szenzor összege
+    for (const szenzorId of selection.szenzorok) {
+      const szenzor = szenzorok.find((s) => s.id === szenzorId);
       if (szenzor) total += szenzor.price;
     }
     if (selection.eszkoz) {
@@ -191,10 +196,32 @@ const ProductConfigurator = () => {
     return total;
   };
 
+  const toggleSzenzor = (szenzorId: string) => {
+    const isSelected = selection.szenzorok.includes(szenzorId);
+    
+    if (isSelected) {
+      // Eltávolítás
+      setSelection((prev) => ({
+        ...prev,
+        szenzorok: prev.szenzorok.filter((id) => id !== szenzorId),
+      }));
+    } else {
+      // Hozzáadás (max 3)
+      if (selection.szenzorok.length >= MAX_SZENZOROK) {
+        toast.error(`Maximum ${MAX_SZENZOROK} szenzort választhatsz!`);
+        return;
+      }
+      setSelection((prev) => ({
+        ...prev,
+        szenzorok: [...prev.szenzorok, szenzorId],
+      }));
+    }
+  };
+
   const canProceed = () => {
     switch (currentStep) {
       case "szenzor":
-        return selection.szenzor !== null;
+        return selection.szenzorok.length > 0; // Legalább 1 szenzor kell
       case "eszkoz":
         return selection.eszkoz !== null;
       case "doboz":
@@ -224,39 +251,142 @@ const ProductConfigurator = () => {
     }
   };
 
-  const handleOrder = () => {
+  const handleOrder = async () => {
     if (!session) {
       toast.error("A rendeléshez be kell jelentkezni!");
       return;
     }
-    toast.success("Rendelés elküldve! Hamarosan felvesszük Önnel a kapcsolatot.");
+
+    // Kiválasztott szenzorok (több is lehet)
+    const selectedSzenzorok = selection.szenzorok
+      .map((id) => szenzorok.find((s) => s.id === id))
+      .filter(Boolean);
+    const selectedEszkoz = eszkozok.find((e) => e.id === selection.eszkoz);
+    const selectedDoboz = dobozok.find((d) => d.id === selection.doboz);
+    const selectedTap = tapellatasok.find((t) => t.id === selection.tapellatas);
+    const selectedDobozSzin = dobozSzinek.find((s) => s.id === selection.dobozSzin);
+    const selectedTetoSzin = tetoSzinek.find((s) => s.id === selection.tetoSzin);
+
+    if (selectedSzenzorok.length === 0 || !selectedEszkoz || !selectedDoboz || !selectedTap) {
+      toast.error("Hiányzó termék választás!");
+      return;
+    }
+
+    const subtotal = calculateTotal();
+    const vatPercent = 27;
+    const vatAmount = Math.round(subtotal * (vatPercent / 100));
+    const total = subtotal + vatAmount;
+
+    const orderPayload: OrderPayload = {
+      userId: (session.user as any).id || "unknown",
+      userEmail: session.user?.email || "",
+
+      szenzorok: selectedSzenzorok.map((sz) => ({
+        id: sz!.id,
+        name: sz!.name,
+        price: sz!.price,
+        quantity: 1,
+      })),
+      eszkoz: {
+        id: selectedEszkoz.id,
+        name: selectedEszkoz.name,
+        price: selectedEszkoz.price,
+        quantity: 1,
+      },
+      doboz: {
+        id: selectedDoboz.id,
+        name: selectedDoboz.name,
+        price: selectedDoboz.price,
+        quantity: 1,
+      },
+      tapellatas: {
+        id: selectedTap.id,
+        name: selectedTap.name,
+        price: selectedTap.price,
+        quantity: 1,
+      },
+
+      colors: {
+        dobozSzin: {
+          id: selectedDobozSzin?.id || "zold",
+          name: selectedDobozSzin?.name || "Zöld",
+        },
+        tetoSzin: {
+          id: selectedTetoSzin?.id || "feher",
+          name: selectedTetoSzin?.name || "Fehér",
+        },
+      },
+
+      subtotal,
+      vatPercent,
+      vatAmount,
+      total,
+
+      currency: "HUF",
+      createdAt: new Date().toISOString(),
+      locale: "hu-HU",
+    };
+
+    try {
+      const { data } = await axios.post("/api/order", orderPayload);
+      
+      if (data.url) {
+        // Stripe checkout URL - redirect
+        window.location.href = data.url;
+      } else {
+        toast.success("Rendelés elküldve! Hamarosan felvesszük Önnel a kapcsolatot.");
+        console.log("Order response:", data);
+      }
+    } catch (error: any) {
+      console.error("Order error:", error);
+      toast.error(error.response?.data?.error || "Hiba történt a rendelés során!");
+    }
   };
 
   const renderStepContent = () => {
     switch (currentStep) {
       case "szenzor":
         return (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {szenzorok.map((szenzor) => (
-              <div
-                key={szenzor.id}
-                onClick={() => setSelection({ ...selection, szenzor: szenzor.id })}
-                className={`cursor-pointer rounded-xl border-2 p-6 transition-all hover:shadow-lg ${
-                  selection.szenzor === szenzor.id
-                    ? "border-primary bg-primary/10"
-                    : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
-                }`}
-              >
-                <div className="mb-3 text-4xl">{szenzor.icon}</div>
-                <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
-                  {szenzor.name}
-                </h4>
-                <p className="mb-3 text-sm text-body">{szenzor.description}</p>
-                <p className="text-xl font-bold text-primary">
-                  {szenzor.price.toLocaleString("hu-HU")} Ft
-                </p>
-              </div>
-            ))}
+          <div>
+            <p className="mb-4 text-center text-sm text-body">
+              Válassz max. {MAX_SZENZOROK} szenzort! ({selection.szenzorok.length}/{MAX_SZENZOROK} kiválasztva)
+            </p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {szenzorok.map((szenzor) => {
+                const isSelected = selection.szenzorok.includes(szenzor.id);
+                return (
+                  <div
+                    key={szenzor.id}
+                    onClick={() => toggleSzenzor(szenzor.id)}
+                    className={`cursor-pointer rounded-xl border-2 p-6 transition-all hover:shadow-lg ${
+                      isSelected
+                        ? "border-primary bg-primary/10"
+                        : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="mb-3 text-4xl">{szenzor.icon}</div>
+                      <div className={`flex h-6 w-6 items-center justify-center rounded-md border-2 ${
+                        isSelected ? "border-primary bg-primary" : "border-gray-300 dark:border-gray-600"
+                      }`}>
+                        {isSelected && (
+                          <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                    <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
+                      {szenzor.name}
+                    </h4>
+                    <p className="mb-3 text-sm text-body">{szenzor.description}</p>
+                    <p className="text-xl font-bold text-primary">
+                      {szenzor.price.toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         );
 
@@ -420,12 +550,15 @@ const ProductConfigurator = () => {
         );
 
       case "osszesites":
-        const selectedSzenzor = szenzorok.find((s) => s.id === selection.szenzor);
+        const selectedSzenzorokList = selection.szenzorok
+          .map((id) => szenzorok.find((s) => s.id === id))
+          .filter(Boolean);
         const selectedEszkoz = eszkozok.find((e) => e.id === selection.eszkoz);
         const selectedDoboz = dobozok.find((d) => d.id === selection.doboz);
         const selectedTap = tapellatasok.find((t) => t.id === selection.tapellatas);
         const selectedDobozSzin = dobozSzinek.find((s) => s.id === selection.dobozSzin);
         const selectedTetoSzin = tetoSzinek.find((s) => s.id === selection.tetoSzin);
+        const szenzorokTotal = selectedSzenzorokList.reduce((sum, sz) => sum + (sz?.price || 0), 0);
 
         return (
           <div className="mx-auto max-w-2xl">
@@ -435,16 +568,25 @@ const ProductConfigurator = () => {
               </h4>
 
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-stroke pb-3 dark:border-stroke-dark">
-                  <div>
-                    <p className="font-medium text-black dark:text-white">
-                      {selectedSzenzor?.icon} {selectedSzenzor?.name}
+                {/* Szenzorok - több is lehet */}
+                <div className="border-b border-stroke pb-3 dark:border-stroke-dark">
+                  <p className="mb-2 text-sm font-medium text-body">Szenzorok ({selectedSzenzorokList.length} db)</p>
+                  {selectedSzenzorokList.map((sz) => (
+                    <div key={sz?.id} className="flex items-center justify-between py-1">
+                      <p className="font-medium text-black dark:text-white">
+                        {sz?.icon} {sz?.name}
+                      </p>
+                      <p className="font-semibold text-black dark:text-white">
+                        {sz?.price.toLocaleString("hu-HU")} Ft
+                      </p>
+                    </div>
+                  ))}
+                  <div className="mt-2 flex items-center justify-between border-t border-dashed border-gray-300 pt-2 dark:border-gray-600">
+                    <p className="text-sm text-body">Szenzorok összesen:</p>
+                    <p className="font-semibold text-primary">
+                      {szenzorokTotal.toLocaleString("hu-HU")} Ft
                     </p>
-                    <p className="text-sm text-body">Szenzor</p>
                   </div>
-                  <p className="font-semibold text-black dark:text-white">
-                    {selectedSzenzor?.price.toLocaleString("hu-HU")} Ft
-                  </p>
                 </div>
 
                 <div className="flex items-center justify-between border-b border-stroke pb-3 dark:border-stroke-dark">
