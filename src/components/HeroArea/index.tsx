@@ -77,8 +77,14 @@ const HeroArea = () => {
                     <span className="font-bold text-black dark:text-white">A HűtőMonitor</span> egy innovatív megoldás, amely teljesen automatizálja a hűtők és a fagyasztók hőmérsékletének naplózását, így Önnek többé nem kell manuálisan rögzítenie az adatokat.<br />
                     A rendszer folyamatosan figyeli a hőmérsékleti értékeket, és automatikusan naplózza azokat a HACCP követelményeinek megfelelően.
                   </p>
-                <p className="flex flex-wrap gap-4">
-                </p>
+                <div className="flex flex-wrap gap-4 justify-center">
+                  <Link
+                    href="/vasarlas"
+                    className="inline-flex items-center justify-center rounded-full bg-primary px-8 py-4 text-lg font-semibold text-white shadow-lg hover:bg-primary/90 transition-all duration-300 hover:scale-105"
+                  >
+                    🛒 Vásárlás
+                  </Link>
+                </div>
                
               </div>
             </div>
