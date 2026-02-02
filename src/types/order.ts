@@ -25,7 +25,7 @@ export interface OrderPayload {
 
   // Kiválasztott termékek
   szenzorok: OrderItem[]; // Max 3 szenzor lehet!
-  eszkoz: OrderItem;
+  eszkoz?: OrderItem;     // Opcionális - jelenleg nem használt
   doboz: OrderItem;
   tapellatas: OrderItem;
 

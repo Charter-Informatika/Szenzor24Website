@@ -6,8 +6,10 @@ import { OrderPayload } from "@/types/order";
 
 /*
 ================================================================================
-BACKEND - ADATBÁZIS SÉMA JAVASLAT
+BACKEND KOLLÉGA - ADATBÁZIS SÉMA JAVASLAT (2026-02-02 frissítve)
 ================================================================================
+
+MEGJEGYZÉS: Az "eszkoz" mező OPCIONÁLIS lett! A frontend jelenleg nem küldi.
 
 PRISMA MODEL - Order tábla:
 
@@ -19,9 +21,11 @@ model Order {
   
   // Termékek - JSON formátumban vagy külön OrderItem tábla
   szenzorokJson   Json                            // [{ id, name, price, quantity }] - max 3 elem
-  eszkozId        String                          // "basic" | "standard" | "pro"
-  eszkozName      String                          // pl. "Basic Modul"
-  eszkozPrice     Int                             // Egységár (Ft)
+  
+  // OPCIONÁLIS - jelenleg nem használt a frontenden
+  eszkozId        String?                         // "basic" | "standard" | "pro"
+  eszkozName      String?                         // pl. "Basic Modul"
+  eszkozPrice     Int?                            // Egységár (Ft)
   
   dobozId         String                          // "muanyag" | "fem" | "rozsdamentes"
   dobozName       String                          // pl. "Műanyag doboz"
@@ -65,57 +69,30 @@ enum OrderStatus {
   CANCELLED     // Törölve
 }
 
-ALTERNATÍVA - OrderItem tábla a termékeknek:
-
-model OrderItem {
-  id          String   @id @default(cuid())
-  orderId     String
-  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
-  itemType    ItemType                            // SZENZOR, ESZKOZ, DOBOZ, TAPELLATAS
-  itemId      String                              // pl. "htu21d", "basic", stb.
-  itemName    String                              // Megjelenítési név
-  price       Int                                 // Egységár
-  quantity    Int      @default(1)
-  
-  // Szín (csak doboznál)
-  dobozSzin   String?
-  tetoSzin    String?
-  
-  @@index([orderId])
-}
-
-enum ItemType {
-  SZENZOR
-  ESZKOZ
-  DOBOZ
-  TAPELLATAS
-}
-
 ================================================================================
-BEJÖVŐ JSON STRUKTÚRA (body):
+BEJÖVŐ JSON STRUKTÚRA (body) - 2026-02-02 frissítve:
 ================================================================================
 {
   "userId": "cml52vail000058c1ltq6lylg",
   "userEmail": "user@example.com",
-  "szenzorok": [                          // Max 3 elem!
+  "szenzorok": [                          // KÖTELEZŐ - Max 3 elem!
     { "id": "htu21d", "name": "HTU21D", "price": 5000, "quantity": 1 },
     { "id": "mpu6050", "name": "MPU-6050", "price": 6000, "quantity": 1 }
   ],
-  "eszkoz": { "id": "basic", "name": "Basic Modul", "price": 8000, "quantity": 1 },
+  // "eszkoz": { ... },                   // OPCIONÁLIS - jelenleg nem küldi a frontend!
   "doboz": { "id": "muanyag", "name": "Műanyag doboz", "price": 2000, "quantity": 1 },
   "colors": {
     "dobozSzin": { "id": "zold", "name": "Zöld" },
     "tetoSzin": { "id": "feher", "name": "Fehér" }
   },
   "tapellatas": { "id": "vezetekes", "name": "Vezetékes", "price": 2500, "quantity": 1 },
-  "subtotal": 21500,
+  "subtotal": 13500,
   "vatPercent": 27,
-  "vatAmount": 5805,
-  "total": 27305,
+  "vatAmount": 3645,
+  "total": 17145,
   "currency": "HUF",
   "locale": "hu-HU",
-  "createdAt": "2026-02-02T12:38:08.553Z"
+  "createdAt": "2026-02-02T14:30:00.000Z"
 }
 
 ================================================================================
@@ -156,8 +133,8 @@ export async function POST(request: Request) {
     //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     // }
 
-    // Validáció - kötelező mezők
-    if (!body.szenzorok || body.szenzorok.length === 0 || !body.eszkoz || !body.doboz || !body.tapellatas) {
+    // Validáció - kötelező mezők (eszkoz opcionális)
+    if (!body.szenzorok || body.szenzorok.length === 0 || !body.doboz || !body.tapellatas) {
       return NextResponse.json(
         { error: "Hiányzó termék adatok" },
         { status: 400 }
@@ -181,9 +158,10 @@ export async function POST(request: Request) {
 
     // Összeg újraszámolás (biztonság kedvéért)
     const szenzorokTotal = body.szenzorok.reduce((sum, sz) => sum + sz.price * sz.quantity, 0);
+    const eszkozTotal = body.eszkoz ? body.eszkoz.price * body.eszkoz.quantity : 0;
     const calculatedSubtotal =
       szenzorokTotal +
-      body.eszkoz.price * body.eszkoz.quantity +
+      eszkozTotal +
       body.doboz.price * body.doboz.quantity +
       body.tapellatas.price * body.tapellatas.quantity;
 

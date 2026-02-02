@@ -1,9 +1,9 @@
 "use client";
 
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import FsLightbox from "fslightbox-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useRef, useMemo } from "react";
 
 const HeroArea = () => {
   const [toggler, setToggler] = useState(false);

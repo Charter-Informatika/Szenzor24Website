@@ -164,13 +164,12 @@ const tapellatasok = [
   },
 ];
 
-type StepId = "szenzor" | "eszkoz" | "doboz" | "szin" | "tapellatas" | "osszesites";
+type StepId = "szenzor" | "doboz" | "szin" | "tapellatas" | "osszesites";
 
 const MAX_SZENZOROK = 3;
 
 interface Selection {
   szenzorok: string[]; // Max 3 szenzor
-  eszkoz: string | null;
   doboz: string | null;
   dobozSzin: string;
   tetoSzin: string;
@@ -182,7 +181,6 @@ const ProductConfigurator = () => {
   const [currentStep, setCurrentStep] = useState<StepId>("szenzor");
   const [selection, setSelection] = useState<Selection>({
     szenzorok: [],
-    eszkoz: null,
     doboz: null,
     dobozSzin: "zold",
     tetoSzin: "feher",
@@ -195,15 +193,14 @@ const ProductConfigurator = () => {
     import("@google/model-viewer");
   }, []);
 
-  const getModelPath = (box: string, top: string) => `/images/hero/${box}_${top}.glb`;
+  const getModelPath = (box: string, top: string) => `/images/hero/${box}/${box}_${top}.glb`;
   const modelSrc = getModelPath(selection.dobozSzin, selection.tetoSzin);
 
   const steps: { id: StepId; title: string; icon: string }[] = [
     { id: "szenzor", title: "Szenzor", icon: "1" },
-    { id: "eszkoz", title: "Eszköz", icon: "2" },
-    { id: "doboz", title: "Doboz", icon: "3" },
-    { id: "szin", title: "Szín", icon: "4" },
-    { id: "tapellatas", title: "Tápellátás", icon: "5" },
+    { id: "doboz", title: "Doboz", icon: "2" },
+    { id: "szin", title: "Szín", icon: "3" },
+    { id: "tapellatas", title: "Tápellátás", icon: "4" },
     { id: "osszesites", title: "Összesítés", icon: "✓" },
   ];
 
@@ -213,10 +210,6 @@ const ProductConfigurator = () => {
     for (const szenzorId of selection.szenzorok) {
       const szenzor = szenzorok.find((s) => s.id === szenzorId);
       if (szenzor) total += szenzor.price;
-    }
-    if (selection.eszkoz) {
-      const eszkoz = eszkozok.find((e) => e.id === selection.eszkoz);
-      if (eszkoz) total += eszkoz.price;
     }
     if (selection.doboz) {
       const doboz = dobozok.find((d) => d.id === selection.doboz);
@@ -255,8 +248,6 @@ const ProductConfigurator = () => {
     switch (currentStep) {
       case "szenzor":
         return selection.szenzorok.length > 0; // Legalább 1 szenzor kell
-      case "eszkoz":
-        return selection.eszkoz !== null;
       case "doboz":
         return selection.doboz !== null;
       case "szin":
@@ -294,13 +285,12 @@ const ProductConfigurator = () => {
     const selectedSzenzorok = selection.szenzorok
       .map((id) => szenzorok.find((s) => s.id === id))
       .filter(Boolean);
-    const selectedEszkoz = eszkozok.find((e) => e.id === selection.eszkoz);
     const selectedDoboz = dobozok.find((d) => d.id === selection.doboz);
     const selectedTap = tapellatasok.find((t) => t.id === selection.tapellatas);
     const selectedDobozSzin = dobozSzinek.find((s) => s.id === selection.dobozSzin);
     const selectedTetoSzin = tetoSzinek.find((s) => s.id === selection.tetoSzin);
 
-    if (selectedSzenzorok.length === 0 || !selectedEszkoz || !selectedDoboz || !selectedTap) {
+    if (selectedSzenzorok.length === 0 || !selectedDoboz || !selectedTap) {
       toast.error("Hiányzó termék választás!");
       return;
     }
@@ -320,12 +310,6 @@ const ProductConfigurator = () => {
         price: sz!.price,
         quantity: 1,
       })),
-      eszkoz: {
-        id: selectedEszkoz.id,
-        name: selectedEszkoz.name,
-        price: selectedEszkoz.price,
-        quantity: 1,
-      },
       doboz: {
         id: selectedDoboz.id,
         name: selectedDoboz.name,
@@ -420,35 +404,6 @@ const ProductConfigurator = () => {
                 );
               })}
             </div>
-          </div>
-        );
-
-      case "eszkoz":
-        return (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {eszkozok.map((eszkoz) => (
-              <div
-                key={eszkoz.id}
-                onClick={() => setSelection({ ...selection, eszkoz: eszkoz.id })}
-                className={`cursor-pointer rounded-xl border-2 p-6 transition-all hover:shadow-lg ${
-                  selection.eszkoz === eszkoz.id
-                    ? "border-primary bg-primary/10"
-                    : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
-                }`}
-              >
-                <div className="mb-3 text-4xl">{eszkoz.icon}</div>
-                <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
-                  {eszkoz.name}
-                </h4>
-                <p className="mb-2 text-sm text-body">{eszkoz.description}</p>
-                <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">
-                  Max. {eszkoz.maxSzenzorok} szenzor csatlakoztatható
-                </p>
-                <p className="text-xl font-bold text-primary">
-                  {eszkoz.price.toLocaleString("hu-HU")} Ft
-                </p>
-              </div>
-            ))}
           </div>
         );
 
@@ -586,7 +541,6 @@ const ProductConfigurator = () => {
         const selectedSzenzorokList = selection.szenzorok
           .map((id) => szenzorok.find((s) => s.id === id))
           .filter(Boolean);
-        const selectedEszkoz = eszkozok.find((e) => e.id === selection.eszkoz);
         const selectedDoboz = dobozok.find((d) => d.id === selection.doboz);
         const selectedTap = tapellatasok.find((t) => t.id === selection.tapellatas);
         const selectedDobozSzin = dobozSzinek.find((s) => s.id === selection.dobozSzin);
@@ -620,18 +574,6 @@ const ProductConfigurator = () => {
                       {szenzorokTotal.toLocaleString("hu-HU")} Ft
                     </p>
                   </div>
-                </div>
-
-                <div className="flex items-center justify-between border-b border-stroke pb-3 dark:border-stroke-dark">
-                  <div>
-                    <p className="font-medium text-black dark:text-white">
-                      {selectedEszkoz?.icon} {selectedEszkoz?.name}
-                    </p>
-                    <p className="text-sm text-body">Eszköz</p>
-                  </div>
-                  <p className="font-semibold text-black dark:text-white">
-                    {selectedEszkoz?.price.toLocaleString("hu-HU")} Ft
-                  </p>
                 </div>
 
                 <div className="flex items-center justify-between border-b border-stroke pb-3 dark:border-stroke-dark">
@@ -688,8 +630,6 @@ const ProductConfigurator = () => {
     switch (currentStep) {
       case "szenzor":
         return "Válassz szenzort!";
-      case "eszkoz":
-        return "Válassz eszközt!";
       case "doboz":
         return "Válassz dobozt!";
       case "szin":
