@@ -6,6 +6,7 @@ import { passwordValidation } from "@/utils/validations";
 import { integrations, messages } from "@integrations-config";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 
@@ -16,6 +17,10 @@ type Input = {
 };
 
 export function SignInForm() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
+
   const {
     handleSubmit,
     control,
@@ -41,8 +46,9 @@ export function SignInForm() {
       }
 
       if (callback?.ok && !callback?.error) {
-        toast.success("Logged in successfully");
+        toast.success("Sikeres bejelentkezés!");
         reset();
+        router.push(callbackUrl);
       }
     });
   }

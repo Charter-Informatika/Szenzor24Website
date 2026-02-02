@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prismaDB";
-import { generateUniqueLicence } from "@/lib/licence";
+// import { generateUniqueLicence } from "@/lib/licence"; // LICENCE DISABLED
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -41,6 +41,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
 
       if (user) {
+        token.id = user.id; // User ID hozzáadása a tokenhez
         token.licence = (user as any).licence;
         token.trialEnded = (user as any).trialEnded;
       }
@@ -65,6 +66,7 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
+        (session.user as any).id = token.id; // User ID hozzáadása a session-höz
         session.user.licence = (token as any).licence;
         session.user.trialEnded = (token as any).trialEnded;
       }
@@ -73,19 +75,20 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     // Runs after a user is created by the adapter (OAuth / Email etc.)
-    createUser: async ({ user }) => {
-      try {
-        if (!user.licence || user.licence === "XXXXXXXXXXXXXXXX") {
-          const licence = await generateUniqueLicence();
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { licence },
-          });
-        }
-      } catch (e) {
-        console.error("Failed to assign licence to new user", e);
-      }
-    },
+    // LICENCE DISABLED - createUser event commented out
+    // createUser: async ({ user }) => {
+    //   try {
+    //     if (!user.licence || user.licence === "XXXXXXXXXXXXXXXX") {
+    //       const licence = await generateUniqueLicence();
+    //       await prisma.user.update({
+    //         where: { id: user.id },
+    //         data: { licence },
+    //       });
+    //     }
+    //   } catch (e) {
+    //     console.error("Failed to assign licence to new user", e);
+    //   }
+    // },
     // Log sign-in events and NextAuth errors
     signIn: async ({ user, account, profile }) => {
       try {
