@@ -21,6 +21,10 @@ const menuData: Menu[] = [
     route: "/#pricing",
   },
   {
+    label: "Vásárlás",
+    route: "/vasarlas",
+  },
+  {
     label: "Elérhetőség",
     route: "/#screens",
   }

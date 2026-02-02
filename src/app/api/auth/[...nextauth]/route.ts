@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prismaDB";
-import { generateUniqueLicence } from "@/lib/licence";
+// import { generateUniqueLicence } from "@/lib/licence"; // LICENCE DISABLED
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -53,19 +53,20 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     // Runs after a user is created by the adapter (OAuth / Email etc.)
-    createUser: async ({ user }) => {
-      try {
-        if (!user.licence || user.licence === "XXXXXXXXXXXXXXXX") {
-          const licence = await generateUniqueLicence();
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { licence },
-          });
-        }
-      } catch (e) {
-        console.error("Failed to assign licence to new user", e);
-      }
-    },
+    // LICENCE DISABLED - createUser event commented out
+    // createUser: async ({ user }) => {
+    //   try {
+    //     if (!user.licence || user.licence === "XXXXXXXXXXXXXXXX") {
+    //       const licence = await generateUniqueLicence();
+    //       await prisma.user.update({
+    //         where: { id: user.id },
+    //         data: { licence },
+    //       });
+    //     }
+    //   } catch (e) {
+    //     console.error("Failed to assign licence to new user", e);
+    //   }
+    // },
   },
 
   providers: [

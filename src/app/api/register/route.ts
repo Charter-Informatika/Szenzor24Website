@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/prismaDB";
-import { generateUniqueLicence } from "@/lib/licence";
+// import { generateUniqueLicence } from "@/lib/licence"; // LICENCE DISABLED
 
 export async function POST(request: any) {
   const body = await request.json();
@@ -23,14 +23,14 @@ export async function POST(request: any) {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const licence = await generateUniqueLicence();
+  // const licence = await generateUniqueLicence(); // LICENCE DISABLED
 
   const created = await prisma.user.create({
     data: {
       name,
       email,
       password: hashedPassword,
-      licence,
+      // licence, // LICENCE DISABLED
     },
   });
   const { password: _pw, passwordResetToken, passwordResetTokenExp, ...safe } = created as any;
