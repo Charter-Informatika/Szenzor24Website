@@ -4,6 +4,141 @@ import { getServerSession } from "next-auth";
 // import { prisma } from "@/lib/prismaDB";
 import { OrderPayload } from "@/types/order";
 
+/*
+================================================================================
+BACKEND - ADATBÁZIS SÉMA JAVASLAT
+================================================================================
+
+PRISMA MODEL - Order tábla:
+
+model Order {
+  id              String   @id @default(cuid())
+  userId          String                          // FK -> User.id
+  user            User     @relation(fields: [userId], references: [id])
+  userEmail       String                          // Rendeléskor aktuális email
+  
+  // Termékek - JSON formátumban vagy külön OrderItem tábla
+  szenzorokJson   Json                            // [{ id, name, price, quantity }] - max 3 elem
+  eszkozId        String                          // "basic" | "standard" | "pro"
+  eszkozName      String                          // pl. "Basic Modul"
+  eszkozPrice     Int                             // Egységár (Ft)
+  
+  dobozId         String                          // "muanyag" | "fem" | "rozsdamentes"
+  dobozName       String                          // pl. "Műanyag doboz"
+  dobozPrice      Int
+  dobozSzin       String                          // "zold" | "feher" | "sarga" | "piros" | "kek" | "fekete"
+  tetoSzin        String                          // "feher" | "sarga" | "kek" | "zold" | "piros" | "fekete"
+  
+  tapellatasId    String                          // "akkus" | "vezetekes" | "napelemes"
+  tapellatasName  String
+  tapellatasPrice Int
+  
+  // Összegek (Ft)
+  subtotal        Int                             // Nettó összeg (ÁFA nélkül)
+  vatPercent      Int       @default(27)          // ÁFA százalék
+  vatAmount       Int                             // ÁFA összeg
+  total           Int                             // Bruttó végösszeg
+  currency        String    @default("HUF")
+  
+  // Stripe
+  stripeSessionId String?   @unique               // Checkout session ID
+  stripePaymentId String?                         // Payment Intent ID
+  
+  // Státusz
+  status          OrderStatus @default(PENDING)   // PENDING, PAID, SHIPPED, COMPLETED, CANCELLED
+  
+  // Időbélyegek
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  paidAt          DateTime?                       // Fizetés időpontja
+  
+  @@index([userId])
+  @@index([status])
+  @@index([stripeSessionId])
+}
+
+enum OrderStatus {
+  PENDING       // Függőben - fizetésre vár
+  PAID          // Fizetve - feldolgozásra vár
+  SHIPPED       // Kiszállítva
+  COMPLETED     // Teljesítve
+  CANCELLED     // Törölve
+}
+
+ALTERNATÍVA - OrderItem tábla a termékeknek:
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  itemType    ItemType                            // SZENZOR, ESZKOZ, DOBOZ, TAPELLATAS
+  itemId      String                              // pl. "htu21d", "basic", stb.
+  itemName    String                              // Megjelenítési név
+  price       Int                                 // Egységár
+  quantity    Int      @default(1)
+  
+  // Szín (csak doboznál)
+  dobozSzin   String?
+  tetoSzin    String?
+  
+  @@index([orderId])
+}
+
+enum ItemType {
+  SZENZOR
+  ESZKOZ
+  DOBOZ
+  TAPELLATAS
+}
+
+================================================================================
+BEJÖVŐ JSON STRUKTÚRA (body):
+================================================================================
+{
+  "userId": "cml52vail000058c1ltq6lylg",
+  "userEmail": "user@example.com",
+  "szenzorok": [                          // Max 3 elem!
+    { "id": "htu21d", "name": "HTU21D", "price": 5000, "quantity": 1 },
+    { "id": "mpu6050", "name": "MPU-6050", "price": 6000, "quantity": 1 }
+  ],
+  "eszkoz": { "id": "basic", "name": "Basic Modul", "price": 8000, "quantity": 1 },
+  "doboz": { "id": "muanyag", "name": "Műanyag doboz", "price": 2000, "quantity": 1 },
+  "colors": {
+    "dobozSzin": { "id": "zold", "name": "Zöld" },
+    "tetoSzin": { "id": "feher", "name": "Fehér" }
+  },
+  "tapellatas": { "id": "vezetekes", "name": "Vezetékes", "price": 2500, "quantity": 1 },
+  "subtotal": 21500,
+  "vatPercent": 27,
+  "vatAmount": 5805,
+  "total": 27305,
+  "currency": "HUF",
+  "locale": "hu-HU",
+  "createdAt": "2026-02-02T12:38:08.553Z"
+}
+
+================================================================================
+SZENZOR ID-K:
+  - htu21d, mpu6050, gaz, homerseklet, feny, hidrogen, metan, sensorion
+
+ESZKÖZ ID-K:
+  - basic, standard, pro
+
+DOBOZ ID-K:
+  - muanyag, fem, rozsdamentes
+
+DOBOZ SZÍN ID-K:
+  - zold, feher, sarga, piros, kek, fekete
+
+TETŐ SZÍN ID-K:
+  - feher, sarga, kek, zold, piros, fekete
+
+TÁPELLÁTÁS ID-K:
+  - akkus, vezetekes, napelemes
+================================================================================
+*/
+
 // POST /api/order - Rendelés leadása
 // A backend kolléga ide írja a Stripe integrációt
 export async function POST(request: Request) {

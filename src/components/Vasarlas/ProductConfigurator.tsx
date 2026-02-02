@@ -9,32 +9,60 @@ import { OrderPayload } from "@/types/order";
 // Szenzor típusok
 const szenzorok = [
   {
-    id: "homerseklet",
-    name: "Hőmérséklet szenzor",
-    description: "Precíz hőmérséklet mérés -40°C és +85°C között",
+    id: "htu21d",
+    name: "HTU21D",
+    description: "Hőmérséklet és páratartalom szenzor",
     price: 5000,
     icon: "🌡️",
   },
   {
-    id: "paratartalom",
-    name: "Páratartalom szenzor",
-    description: "Páratartalom mérés 0-100% RH tartományban",
+    id: "mpu6050",
+    name: "MPU-6050",
+    description: "6 tengelyes gyorsulásmérő és giroszkóp",
     price: 6000,
-    icon: "💧",
+    icon: "📐",
   },
   {
-    id: "ajto",
-    name: "Ajtó nyitás érzékelő",
-    description: "Mágneses ajtó nyitás/zárás érzékelő",
-    price: 3000,
-    icon: "🚪",
+    id: "gaz",
+    name: "Gáz szenzor",
+    description: "Általános gáz érzékelő",
+    price: 7000,
+    icon: "💨",
   },
   {
-    id: "mozgas",
-    name: "Mozgásérzékelő",
-    description: "PIR alapú mozgásérzékelő",
+    id: "homerseklet",
+    name: "Hőmérséklet szenzor",
+    description: "Precíz hőmérséklet mérés",
     price: 4500,
-    icon: "👁️",
+    icon: "🌡️",
+  },
+  {
+    id: "feny",
+    name: "Fény szenzor",
+    description: "Fényerősség mérő szenzor",
+    price: 4000,
+    icon: "💡",
+  },
+  {
+    id: "hidrogen",
+    name: "Hidrogén szenzor",
+    description: "Hidrogén gáz érzékelő",
+    price: 8000,
+    icon: "⚗️",
+  },
+  {
+    id: "metan",
+    name: "Metán szenzor",
+    description: "Metán gáz érzékelő",
+    price: 7500,
+    icon: "🔥",
+  },
+  {
+    id: "sensorion",
+    name: "SENSORION hőmérséklet szenzor",
+    description: "SENSORION precíziós hőmérséklet szenzor",
+    price: 9000,
+    icon: "🌡️",
   },
 ];
 
@@ -94,6 +122,8 @@ const dobozok = [
 // Doboz színek
 const dobozSzinek = [
   { id: "zold", name: "Zöld", hex: "#22c55e" },
+  { id: "feher", name: "Fehér", hex: "#f9fafb" },
+  { id: "sarga", name: "Sárga", hex: "#eab308" },
   { id: "piros", name: "Piros", hex: "#ef4444" },
   { id: "kek", name: "Kék", hex: "#3b82f6" },
   { id: "fekete", name: "Fekete", hex: "#1f2937" },
@@ -102,7 +132,10 @@ const dobozSzinek = [
 // Tető színek
 const tetoSzinek = [
   { id: "feher", name: "Fehér", hex: "#f9fafb" },
-  { id: "szurke", name: "Szürke", hex: "#9ca3af" },
+  { id: "sarga", name: "Sárga", hex: "#eab308" },
+  { id: "kek", name: "Kék", hex: "#3b82f6" },
+  { id: "zold", name: "Zöld", hex: "#22c55e" },
+  { id: "piros", name: "Piros", hex: "#ef4444" },
   { id: "fekete", name: "Fekete", hex: "#1f2937" },
 ];
 
