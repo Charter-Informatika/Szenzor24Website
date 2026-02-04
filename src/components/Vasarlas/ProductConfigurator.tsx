@@ -164,12 +164,45 @@ const tapellatasok = [
   },
 ];
 
-type StepId = "szenzor" | "doboz" | "szin" | "tapellatas" | "osszesites";
+// Burok anyag típusok (PLACEHOLDER - árak és típusok később pontosítandók)
+const anyagok = [
+  {
+    id: "sima_pla",
+    name: "Sima PLA",
+    description: "Alap PLA anyag, beltéri használatra",
+    price: 0, // Alap ár, nincs felár
+    icon: "🧱",
+  },
+  {
+    id: "uv_allo_pla",
+    name: "UV álló PLA",
+    description: "UV sugárzásnak ellenálló, kültéri használatra",
+    price: 1500,
+    icon: "☀️",
+  },
+  {
+    id: "abs",
+    name: "ABS",
+    description: "Hőálló, ütésálló műanyag",
+    price: 2000,
+    icon: "🛡️",
+  },
+  {
+    id: "petg",
+    name: "PETG",
+    description: "Vegyszerálló, erős és rugalmas",
+    price: 2500,
+    icon: "💪",
+  },
+];
+
+type StepId = "szenzor" | "anyag" | "doboz" | "szin" | "tapellatas" | "osszesites";
 
 const MAX_SZENZOROK = 3;
 
 interface Selection {
   szenzorok: string[]; // Max 3 szenzor
+  anyag: string | null;
   doboz: string | null;
   dobozSzin: string;
   tetoSzin: string;
@@ -181,6 +214,7 @@ const ProductConfigurator = () => {
   const [currentStep, setCurrentStep] = useState<StepId>("szenzor");
   const [selection, setSelection] = useState<Selection>({
     szenzorok: [],
+    anyag: null,
     doboz: null,
     dobozSzin: "zold",
     tetoSzin: "feher",
@@ -198,9 +232,10 @@ const ProductConfigurator = () => {
 
   const steps: { id: StepId; title: string; icon: string }[] = [
     { id: "szenzor", title: "Szenzor", icon: "1" },
-    { id: "doboz", title: "Doboz", icon: "2" },
-    { id: "szin", title: "Szín", icon: "3" },
-    { id: "tapellatas", title: "Tápellátás", icon: "4" },
+    { id: "anyag", title: "Anyag", icon: "2" },
+    { id: "doboz", title: "Doboz", icon: "3" },
+    { id: "szin", title: "Szín", icon: "4" },
+    { id: "tapellatas", title: "Tápellátás", icon: "5" },
     { id: "osszesites", title: "Összesítés", icon: "✓" },
   ];
 
@@ -210,6 +245,11 @@ const ProductConfigurator = () => {
     for (const szenzorId of selection.szenzorok) {
       const szenzor = szenzorok.find((s) => s.id === szenzorId);
       if (szenzor) total += szenzor.price;
+    }
+    // Anyag (burok) ár
+    if (selection.anyag) {
+      const anyag = anyagok.find((a) => a.id === selection.anyag);
+      if (anyag) total += anyag.price;
     }
     if (selection.doboz) {
       const doboz = dobozok.find((d) => d.id === selection.doboz);
@@ -248,6 +288,8 @@ const ProductConfigurator = () => {
     switch (currentStep) {
       case "szenzor":
         return selection.szenzorok.length > 0; // Legalább 1 szenzor kell
+      case "anyag":
+        return selection.anyag !== null;
       case "doboz":
         return selection.doboz !== null;
       case "szin":
@@ -285,12 +327,13 @@ const ProductConfigurator = () => {
     const selectedSzenzorok = selection.szenzorok
       .map((id) => szenzorok.find((s) => s.id === id))
       .filter(Boolean);
+    const selectedAnyag = anyagok.find((a) => a.id === selection.anyag);
     const selectedDoboz = dobozok.find((d) => d.id === selection.doboz);
     const selectedTap = tapellatasok.find((t) => t.id === selection.tapellatas);
     const selectedDobozSzin = dobozSzinek.find((s) => s.id === selection.dobozSzin);
     const selectedTetoSzin = tetoSzinek.find((s) => s.id === selection.tetoSzin);
 
-    if (selectedSzenzorok.length === 0 || !selectedDoboz || !selectedTap) {
+    if (selectedSzenzorok.length === 0 || !selectedAnyag || !selectedDoboz || !selectedTap) {
       toast.error("Hiányzó termék választás!");
       return;
     }
@@ -303,6 +346,7 @@ const ProductConfigurator = () => {
     const orderPayload: OrderPayload = {
       userId: (session.user as any).id || "unknown",
       userEmail: session.user?.email || "",
+      userName: session.user?.name || "Ismeretlen",
 
       szenzorok: selectedSzenzorok.map((sz) => ({
         id: sz!.id,
@@ -310,6 +354,12 @@ const ProductConfigurator = () => {
         price: sz!.price,
         quantity: 1,
       })),
+      anyag: {
+        id: selectedAnyag.id,
+        name: selectedAnyag.name,
+        price: selectedAnyag.price,
+        quantity: 1,
+      },
       doboz: {
         id: selectedDoboz.id,
         name: selectedDoboz.name,
@@ -403,6 +453,37 @@ const ProductConfigurator = () => {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        );
+
+      case "anyag":
+        return (
+          <div>
+            <p className="mb-4 text-center text-sm text-body">
+              Válaszd ki a burok anyagát! (PLACEHOLDER - árak és típusok később pontosítandók)
+            </p>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {anyagok.map((anyag) => (
+                <div
+                  key={anyag.id}
+                  onClick={() => setSelection({ ...selection, anyag: anyag.id })}
+                  className={`cursor-pointer rounded-xl border-2 p-6 transition-all hover:shadow-lg ${
+                    selection.anyag === anyag.id
+                      ? "border-primary bg-primary/10"
+                      : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                  }`}
+                >
+                  <div className="mb-3 text-4xl">{anyag.icon}</div>
+                  <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
+                    {anyag.name}
+                  </h4>
+                  <p className="mb-3 text-sm text-body">{anyag.description}</p>
+                  <p className="text-xl font-bold text-primary">
+                    {anyag.price === 0 ? "Alap ár" : `+${anyag.price.toLocaleString("hu-HU")} Ft`}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         );
@@ -541,6 +622,7 @@ const ProductConfigurator = () => {
         const selectedSzenzorokList = selection.szenzorok
           .map((id) => szenzorok.find((s) => s.id === id))
           .filter(Boolean);
+        const selectedAnyagOssz = anyagok.find((a) => a.id === selection.anyag);
         const selectedDoboz = dobozok.find((d) => d.id === selection.doboz);
         const selectedTap = tapellatasok.find((t) => t.id === selection.tapellatas);
         const selectedDobozSzin = dobozSzinek.find((s) => s.id === selection.dobozSzin);
@@ -574,6 +656,19 @@ const ProductConfigurator = () => {
                       {szenzorokTotal.toLocaleString("hu-HU")} Ft
                     </p>
                   </div>
+                </div>
+
+                {/* Anyag */}
+                <div className="flex items-center justify-between border-b border-stroke pb-3 dark:border-stroke-dark">
+                  <div>
+                    <p className="font-medium text-black dark:text-white">
+                      {selectedAnyagOssz?.icon} {selectedAnyagOssz?.name}
+                    </p>
+                    <p className="text-sm text-body">Burok anyaga</p>
+                  </div>
+                  <p className="font-semibold text-black dark:text-white">
+                    {selectedAnyagOssz?.price === 0 ? "Alap ár" : `+${selectedAnyagOssz?.price.toLocaleString("hu-HU")} Ft`}
+                  </p>
                 </div>
 
                 <div className="flex items-center justify-between border-b border-stroke pb-3 dark:border-stroke-dark">

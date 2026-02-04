@@ -3,13 +3,17 @@ import { getServerSession } from "next-auth";
 // import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 // import { prisma } from "@/lib/prismaDB";
 import { OrderPayload } from "@/types/order";
+import { sendOrderConfirmationEmail } from "@/lib/orderEmail";
 
 /*
 ================================================================================
-BACKEND KOLLÉGA - ADATBÁZIS SÉMA JAVASLAT (2026-02-02 frissítve)
+BACKEND KOLLÉGA - ADATBÁZIS SÉMA JAVASLAT (2026-02-04 frissítve)
 ================================================================================
 
-MEGJEGYZÉS: Az "eszkoz" mező OPCIONÁLIS lett! A frontend jelenleg nem küldi.
+VÁLTOZÁSOK:
+- userName mező HOZZÁADVA (megrendelő neve)
+- anyag mező HOZZÁADVA (burok anyag típusa: PLA, UV álló PLA, stb.)
+- eszkoz mező továbbra is OPCIONÁLIS
 
 PRISMA MODEL - Order tábla:
 
@@ -18,9 +22,15 @@ model Order {
   userId          String                          // FK -> User.id
   user            User     @relation(fields: [userId], references: [id])
   userEmail       String                          // Rendeléskor aktuális email
+  userName        String                          // Megrendelő neve
   
   // Termékek - JSON formátumban vagy külön OrderItem tábla
   szenzorokJson   Json                            // [{ id, name, price, quantity }] - max 3 elem
+  
+  // Burok anyag (KÖTELEZŐ)
+  anyagId         String                          // "sima_pla" | "uv_allo_pla" | "abs" | "petg"
+  anyagName       String                          // pl. "UV álló PLA"
+  anyagPrice      Int                             // Felár (Ft)
   
   // OPCIONÁLIS - jelenleg nem használt a frontenden
   eszkozId        String?                         // "basic" | "standard" | "pro"
@@ -70,34 +80,42 @@ enum OrderStatus {
 }
 
 ================================================================================
-BEJÖVŐ JSON STRUKTÚRA (body) - 2026-02-02 frissítve:
+BEJÖVŐ JSON STRUKTÚRA (body) - 2026-02-04 frissítve:
 ================================================================================
 {
   "userId": "cml52vail000058c1ltq6lylg",
   "userEmail": "user@example.com",
-  "szenzorok": [                          // KÖTELEZŐ - Max 3 elem!
+  "userName": "Kiss Péter",                       // ÚJ - Megrendelő neve
+  "szenzorok": [                                  // KÖTELEZŐ - Max 3 elem!
     { "id": "htu21d", "name": "HTU21D", "price": 5000, "quantity": 1 },
     { "id": "mpu6050", "name": "MPU-6050", "price": 6000, "quantity": 1 }
   ],
-  // "eszkoz": { ... },                   // OPCIONÁLIS - jelenleg nem küldi a frontend!
+  "anyag": { "id": "uv_allo_pla", "name": "UV álló PLA", "price": 1500, "quantity": 1 },  // ÚJ - Burok anyag
+  // "eszkoz": { ... },                           // OPCIONÁLIS - jelenleg nem küldi a frontend!
   "doboz": { "id": "muanyag", "name": "Műanyag doboz", "price": 2000, "quantity": 1 },
   "colors": {
     "dobozSzin": { "id": "zold", "name": "Zöld" },
     "tetoSzin": { "id": "feher", "name": "Fehér" }
   },
   "tapellatas": { "id": "vezetekes", "name": "Vezetékes", "price": 2500, "quantity": 1 },
-  "subtotal": 13500,
+  "subtotal": 15000,
   "vatPercent": 27,
-  "vatAmount": 3645,
-  "total": 17145,
+  "vatAmount": 4050,
+  "total": 19050,
   "currency": "HUF",
   "locale": "hu-HU",
-  "createdAt": "2026-02-02T14:30:00.000Z"
+  "createdAt": "2026-02-04T10:30:00.000Z"
 }
 
 ================================================================================
 SZENZOR ID-K:
   - htu21d, mpu6050, gaz, homerseklet, feny, hidrogen, metan, sensorion
+
+ANYAG ID-K (PLACEHOLDER - árak később pontosítandók):
+  - sima_pla (0 Ft - alap ár)
+  - uv_allo_pla (+1500 Ft)
+  - abs (+2000 Ft)
+  - petg (+2500 Ft)
 
 ESZKÖZ ID-K:
   - basic, standard, pro
@@ -134,7 +152,7 @@ export async function POST(request: Request) {
     // }
 
     // Validáció - kötelező mezők (eszkoz opcionális)
-    if (!body.szenzorok || body.szenzorok.length === 0 || !body.doboz || !body.tapellatas) {
+    if (!body.szenzorok || body.szenzorok.length === 0 || !body.anyag || !body.doboz || !body.tapellatas) {
       return NextResponse.json(
         { error: "Hiányzó termék adatok" },
         { status: 400 }
@@ -149,7 +167,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!body.userId || !body.userEmail) {
+    if (!body.userId || !body.userEmail || !body.userName) {
       return NextResponse.json(
         { error: "Hiányzó felhasználó adatok" },
         { status: 400 }
@@ -158,9 +176,11 @@ export async function POST(request: Request) {
 
     // Összeg újraszámolás (biztonság kedvéért)
     const szenzorokTotal = body.szenzorok.reduce((sum, sz) => sum + sz.price * sz.quantity, 0);
+    const anyagTotal = body.anyag.price * body.anyag.quantity;
     const eszkozTotal = body.eszkoz ? body.eszkoz.price * body.eszkoz.quantity : 0;
     const calculatedSubtotal =
       szenzorokTotal +
+      anyagTotal +
       eszkozTotal +
       body.doboz.price * body.doboz.quantity +
       body.tapellatas.price * body.tapellatas.quantity;
@@ -261,16 +281,28 @@ export async function POST(request: Request) {
     });
     */
 
-    // Placeholder válasz - Backend cseréli ki
+    // Rendelés adatok összeállítása
+    const orderWithCalculation = {
+      ...body,
+      subtotal: calculatedSubtotal,
+      vatAmount: vatAmount,
+      total: total,
+    };
+
+    // Email küldés a megrendelőnek
+    try {
+      await sendOrderConfirmationEmail(orderWithCalculation);
+      console.log("✅ Rendelés visszaigazoló email elküldve:", body.userEmail);
+    } catch (emailError) {
+      console.error("❌ Email küldési hiba:", emailError);
+      // Email hiba nem blokkolja a rendelést
+    }
+
+    // Placeholder válasz - Backend cseréli ki Stripe-ra
     return NextResponse.json({
       success: true,
       message: "Rendelés fogadva - Stripe integráció TODO",
-      order: {
-        ...body,
-        subtotal: calculatedSubtotal,
-        vatAmount: vatAmount,
-        total: total,
-      },
+      order: orderWithCalculation,
       // url: checkoutSession.url  // Backend uncomment-eli
     });
 

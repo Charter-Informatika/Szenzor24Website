@@ -22,11 +22,13 @@ export interface OrderPayload {
   // Felhasználó adatok
   userId: string;
   userEmail: string;
+  userName: string;        // Megrendelő neve
 
   // Kiválasztott termékek
   szenzorok: OrderItem[]; // Max 3 szenzor lehet!
   eszkoz?: OrderItem;     // Opcionális - jelenleg nem használt
   doboz: OrderItem;
+  anyag: OrderItem;       // Burok anyag típusa (PLA, UV álló PLA, stb.)
   tapellatas: OrderItem;
 
   // Színek (nem befolyásolja az árat)
