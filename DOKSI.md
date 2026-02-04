@@ -1,6 +1,6 @@
 # Vásárlás Funkció Dokumentáció
 
-**Utolsó frissítés:** 2026. február 2.  
+**Utolsó frissítés:** 2026. február 4.  
 **Branch:** `dev_style`  
 **Státusz:** Frontend kész ✅ | Backend integráció TODO ⏳
 
@@ -24,9 +24,10 @@
 
 A vásárlás funkció lehetővé teszi a felhasználók számára, hogy egyedi szenzor-csomagot állítsanak össze:
 - Maximum 3 szenzor kiválasztása
+- Burok anyag típus választás (PLA, UV álló PLA, stb.)
 - Doboz típus választás
 - Doboz és tető szín választás (3D előnézettel)
-- Tápellátás típus választás
+- Tápellátás típus választás (vezetékes v. akkus)
 - Automatikus ár kalkuláció ÁFA-val
 
 **Jelenlegi állapot:** A frontend teljesen működőképes, a rendelés JSON formátumban elkészül és elküldésre kerül a `/api/order` végpontra. A backend integráció (Stripe fizetés, adatbázis mentés) még hiányzik.
@@ -50,15 +51,16 @@ A vásárlás oldalra a főoldali "Vásárlás" gombbal lehet eljutni:
 - Ha nincs bejelentkezve → átirányítás `/auth/signin?callbackUrl=/vasarlas`
 - Sikeres bejelentkezés után visszakerül a `/vasarlas` oldalra
 
-### 5 lépéses konfigurátor
+### 6 lépéses konfigurátor
 
 | Lépés | Név | Leírás |
 |-------|-----|--------|
 | 1 | Szenzorok | Max 3 szenzor kiválasztása (checkbox multi-select) |
-| 2 | Doboz | Doboz típus (műanyag/fém/rozsdamentes) |
-| 3 | Színek | Doboz szín + tető szín (3D előnézet) |
-| 4 | Tápellátás | Akkumulátoros/Vezetékes/Napelemes |
-| 5 | Összesítés | Végleges rendelés áttekintés + "Megrendelés" gomb |
+| 2 | Anyag | Burok anyag típusa (Sima PLA, UV álló PLA, ABS, PETG) |
+| 3 | Doboz | Doboz típus (műanyag/fém/rozsdamentes) |
+| 4 | Színek | Doboz szín + tető szín (3D előnézet) |
+| 5 | Tápellátás | Akkumulátoros/Vezetékes/Napelemes |
+| 6 | Összesítés | Végleges rendelés áttekintés + "Megrendelés" gomb |
 
 ### Elérhető opciók
 
@@ -73,6 +75,14 @@ A vásárlás oldalra a főoldali "Vásárlás" gombbal lehet eljutni:
 | `hidrogen` | Hidrogén szenzor | Hidrogén gáz érzékelő | 8 000 Ft |
 | `metan` | Metán szenzor | Metán gáz érzékelő | 7 500 Ft |
 | `sensorion` | SENSORION | SENSORION precíziós hőmérséklet szenzor | 9 000 Ft |
+
+#### Burok anyag típusok (PLACEHOLDER - árak később pontosítandók)
+| ID | Név | Leírás | Ár |
+|----|-----|--------|-----|
+| `sima_pla` | Sima PLA | Alap PLA anyag, beltéri használatra | Alap ár (0 Ft) |
+| `uv_allo_pla` | UV álló PLA | UV sugárzásnak ellenálló, kültéri használatra | +1 500 Ft |
+| `abs` | ABS | Hőálló, ütésálló műanyag | +2 000 Ft |
+| `petg` | PETG | Vegyszerálló, erős és rugalmas | +2 500 Ft |
 
 #### Doboz típusok
 | ID | Név | Leírás | Ár |
@@ -182,11 +192,18 @@ A vásárlás oldalra a főoldali "Vásárlás" gombbal lehet eljutni:
 {
   "userId": "cml52vail000058c1ltq6lylg",
   "userEmail": "charterinformatikus@gmail.com",
+  "userName": "Kiss Péter",
   "szenzorok": [
     { "id": "htu21d", "name": "HTU21D", "price": 5000, "quantity": 1 },
     { "id": "mpu6050", "name": "MPU-6050", "price": 6000, "quantity": 1 },
     { "id": "homerseklet", "name": "Hőmérséklet szenzor", "price": 4500, "quantity": 1 }
   ],
+  "anyag": {
+    "id": "uv_allo_pla",
+    "name": "UV álló PLA",
+    "price": 1500,
+    "quantity": 1
+  },
   "doboz": {
     "id": "muanyag",
     "name": "Műanyag doboz",
@@ -205,17 +222,19 @@ A vásárlás oldalra a főoldali "Vásárlás" gombbal lehet eljutni:
   },
   "locale": "hu-HU",
   "currency": "HUF",
-  "createdAt": "2026-02-02T14:27:50.033Z"
+  "createdAt": "2026-02-04T10:30:00.000Z"
 }
 ```
 
 **Fontos mezők:**
 - `userId`: A bejelentkezett felhasználó egyedi azonosítója
 - `userEmail`: A felhasználó email címe
+- `userName`: A megrendelő neve (session-ből)
 - `szenzorok`: Tömb, 1-3 elemmel, mindegyikben id, name, price, quantity
+- `anyag`: Burok anyag típusa (Sima PLA, UV álló PLA, ABS, PETG)
 - `doboz`: Objektum a kiválasztott dobozzal
 - `colors`: Doboz szín és tető szín külön objektumokban
-- `tapellatas`: Kiválasztott tápellátás típus
+- `tapellatas`: Kiválasztott tápellátás típus (vezetékes v. akkus)
 - `locale`: Nyelv és régió (hu-HU)
 - `currency`: Pénznem (HUF)
 - `createdAt`: ISO 8601 időbélyeg
@@ -231,11 +250,18 @@ A backend **MINDEN** eredeti mezőt visszaad, plusz a számított értékeket:
   "order": {
     "userId": "cml52vail000058c1ltq6lylg",
     "userEmail": "charterinformatikus@gmail.com",
+    "userName": "Kiss Péter",
     "szenzorok": [
       { "id": "htu21d", "name": "HTU21D", "price": 5000, "quantity": 1 },
       { "id": "mpu6050", "name": "MPU-6050", "price": 6000, "quantity": 1 },
       { "id": "homerseklet", "name": "Hőmérséklet szenzor", "price": 4500, "quantity": 1 }
     ],
+    "anyag": {
+      "id": "uv_allo_pla",
+      "name": "UV álló PLA",
+      "price": 1500,
+      "quantity": 1
+    },
     "doboz": {
       "id": "muanyag",
       "name": "Műanyag doboz",
@@ -252,13 +278,13 @@ A backend **MINDEN** eredeti mezőt visszaad, plusz a számított értékeket:
       "price": 12000,
       "quantity": 1
     },
-    "subtotal": 29500,
+    "subtotal": 31000,
     "vatPercent": 27,
-    "vatAmount": 7965,
-    "total": 37465,
+    "vatAmount": 8370,
+    "total": 39370,
     "locale": "hu-HU",
     "currency": "HUF",
-    "createdAt": "2026-02-02T14:27:50.033Z"
+    "createdAt": "2026-02-04T10:30:00.000Z"
   }
 }
 ```
@@ -266,10 +292,10 @@ A backend **MINDEN** eredeti mezőt visszaad, plusz a számított értékeket:
 **Számított mezők (backend számolja):**
 | Mező | Leírás | Példa |
 |------|--------|-------|
-| `subtotal` | Nettó összeg (szenzorok + doboz + tápellátás) | 29 500 Ft |
+| `subtotal` | Nettó összeg (szenzorok + anyag + doboz + tápellátás) | 31 000 Ft |
 | `vatPercent` | ÁFA kulcs | 27% |
-| `vatAmount` | ÁFA összeg (subtotal × 0.27) | 7 965 Ft |
-| `total` | Bruttó végösszeg (subtotal + vatAmount) | 37 465 Ft |
+| `vatAmount` | ÁFA összeg (subtotal × 0.27) | 8 370 Ft |
+| `total` | Bruttó végösszeg (subtotal + vatAmount) | 39 370 Ft |
 
 ### TypeScript típusok
 
@@ -296,7 +322,9 @@ export interface OrderColors {
 export interface OrderPayload {
   userId: string;
   userEmail: string;
+  userName: string;          // Megrendelő neve
   szenzorok: OrderItem[];
+  anyag: OrderItem;          // Burok anyag típusa
   eszkoz?: OrderItem;        // OPCIONÁLIS - jelenleg nem használt
   doboz: OrderItem;
   colors: OrderColors;
@@ -565,6 +593,7 @@ lineItems.push({
 - [x] Bejelentkezés nélkül átirányít signin-ra
 - [x] Bejelentkezés után visszakerül /vasarlas-ra
 - [x] Szenzor választás működik (max 3)
+- [x] Anyag választás működik (PLA típusok)
 - [x] Doboz választás működik
 - [x] Szín választás működik
 - [x] 3D előnézet betölt minden kombinációra
@@ -574,6 +603,7 @@ lineItems.push({
 - [x] Megrendelés gomb elküldi a JSON-t
 - [x] Toast üzenet megjelenik
 - [x] Console-ban látható a válasz
+- [x] Email küldés sikeres rendelésnél
 
 ### Backend TODO ⏳
 
@@ -583,8 +613,31 @@ lineItems.push({
 - [ ] Webhook endpoint
 - [ ] Sikeres oldal
 - [ ] Megszakított oldal
-- [ ] Email értesítés
 - [ ] Admin dashboard (rendelések listája)
+
+---
+
+## Email értesítés 📧
+
+A sikeres rendelés után automatikusan email megy a megrendelőnek.
+
+**Fájl:** `src/lib/orderEmail.ts`
+
+### Email tartalma:
+- ✅ Rendelés visszaigazolás
+- 📦 Részletes termék lista (szenzorok, anyag, doboz, színek, tápellátás)
+- 💰 Árak és összesítés (nettó, ÁFA, bruttó)
+- 🚀 **CTA gomb: Regisztráció a rendszer.szenzor24.hu-ra**
+- 📊 Rendelés státusz info
+
+### Email beállítások (.env):
+```env
+EMAIL_SERVER_HOST=smtp.example.com
+EMAIL_SERVER_PORT=465
+EMAIL_SERVER_USER=your-user
+EMAIL_SERVER_PASSWORD=your-password
+EMAIL_FROM=info@szenzor24.hu
+```
 
 ---
 
@@ -593,9 +646,11 @@ lineItems.push({
 | Fájl | Leírás |
 |------|--------|
 | `src/app/(site)/vasarlas/page.tsx` | Vásárlás oldal |
-| `src/components/Vasarlas/ProductConfigurator.tsx` | 5 lépéses konfigurátor |
+| `src/components/Vasarlas/ProductConfigurator.tsx` | 6 lépéses konfigurátor |
 | `src/types/order.ts` | TypeScript típusok |
-| `src/app/api/order/route.ts` | API endpoint + dokumentáció |
+| `src/app/api/order/route.ts` | API endpoint + email küldés |
+| `src/lib/orderEmail.ts` | Rendelés visszaigazoló email template |
+| `src/lib/email.ts` | Nodemailer konfiguráció |
 | `src/components/Pricing/index.tsx` | "Rendelés" gomb |
 
 ---
@@ -607,9 +662,9 @@ Ha kérdés van a frontend működésével kapcsolatban, nézd meg:
 2. A Network tabot a request/response-ért
 3. Ezt a dokumentációt
 
-**Frontend fejlesztő:** [Név]  
-**Backend fejlesztő:** [Név]
+**Frontend fejlesztő:** Péter (szenzor24.hu)  
+**Backend fejlesztő:** [Név] (rendszer.szenzor24.hu)
 
 ---
 
-*Dokumentáció generálva: 2026. február 2.*
+*Dokumentáció generálva: 2025. február 4.*
