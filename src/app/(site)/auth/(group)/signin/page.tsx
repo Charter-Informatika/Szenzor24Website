@@ -1,7 +1,7 @@
 "use client";
 
+import React from "react";
 import { GoogleAuth } from "@/components/Auth/google-auth";
-import { MagicLinkForm } from "@/components/Auth/magic-link-form";
 import { TabContent, TabList, Tabs, TabTrigger } from "@/components/ui/tabs";
 import { SignInForm } from "./_components/form";
 

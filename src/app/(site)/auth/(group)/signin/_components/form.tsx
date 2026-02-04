@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+import { Suspense } from "react";
 
 type Input = {
   email: string;
@@ -16,10 +17,8 @@ type Input = {
   keepSignedIn: boolean;
 };
 
-export function SignInForm() {
-  const searchParams = useSearchParams();
+function SignInFormInner({ callbackUrl }: { callbackUrl: string }) {
   const router = useRouter();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   const {
     handleSubmit,
@@ -109,5 +108,19 @@ export function SignInForm() {
         Bejelentkezés
       </button>
     </form>
+  );
+}
+
+function SignInFormWithParams() {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  return <SignInFormInner callbackUrl={callbackUrl} />;
+}
+
+export function SignInForm() {
+  return (
+    <Suspense fallback={<div>Betöltés...</div>}>
+      <SignInFormWithParams />
+    </Suspense>
   );
 }
