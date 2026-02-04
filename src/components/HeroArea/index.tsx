@@ -1,9 +1,9 @@
 "use client";
 
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import FsLightbox from "fslightbox-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useRef, useMemo } from "react";
 
 const HeroArea = () => {
   const [toggler, setToggler] = useState(false);
@@ -92,19 +92,18 @@ const HeroArea = () => {
                 </p>
 
                 <div className="flex items-center gap-4 flex-wrap">
+                  <Link
+                    href="/vasarlas"
+                    className="inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] transition-all duration-200"
+                  >
+                    🛒 Vásárlás
+                  </Link>
                   <a
                     href="#pricing"
                     onClick={scrollToPricing}
-                    className="inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] transition-all duration-200"
-                  >
-                    Fedezd fel eszközeinket
-                  </a>
-                  <a
-                    href="#screens"
-                    onClick={scrollToScreen}
                     className="inline-flex items-center justify-center rounded-lg bg-blue-400/10 border-2 border-blue-400/30 px-5 py-3 text-sm text-blue-300 hover:bg-blue-500 hover:text-white hover:border-transparent hover:scale-[1.02] transition-all duration-200"
                   >
-                    Kapcsolatfelvétel
+                    Fedezd fel eszközeinket
                   </a>
                 </div>
               </div>
