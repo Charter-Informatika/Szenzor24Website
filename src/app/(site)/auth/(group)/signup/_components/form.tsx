@@ -11,6 +11,7 @@ type Input = {
   fullName: string;
   email: string;
   password: string;
+  confirmPassword: string;
   privacyPolicy: boolean;
 };
 
@@ -21,9 +22,12 @@ export function SignUpForm() {
     formState: { errors },
     reset,
     control,
+    watch,
   } = useForm<Input>();
 
-  async function onSubmit({ privacyPolicy, ...payload }: Input) {
+  const password = watch("password");
+
+  async function onSubmit({ privacyPolicy, confirmPassword, ...payload }: Input) {
     if (!integrations?.isAuthEnabled) {
       toast.error(messages?.auth);
       return;
@@ -68,7 +72,7 @@ export function SignUpForm() {
         />
       </div>
 
-      <div className="mb-6">
+      <div className="mb-5">
         <InputGroup
           type="password"
           label="Jelszó"
@@ -81,6 +85,21 @@ export function SignUpForm() {
               "A jelszónak tartalmaznia kell legalább egy nagybetűt, egy kisbetűt, egy számot és egy speciális karaktert",
           })}
           errorMessages={errors.password?.message}
+        />
+      </div>
+
+      <div className="mb-6">
+        <InputGroup
+          type="password"
+          label="Jelszó megerősítése"
+          placeholder="Add meg újra a jelszavad"
+          required
+          {...register("confirmPassword", {
+            required: "Jelszó megerősítése kötelező",
+            validate: (value) =>
+              value === password || "A jelszavak nem egyeznek",
+          })}
+          errorMessages={errors.confirmPassword?.message}
         />
       </div>
 
