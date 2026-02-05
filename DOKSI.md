@@ -210,34 +210,44 @@ A vásárlás oldalra a főoldali "Vásárlás" gombbal lehet eljutni:
     "price": 2000,
     "quantity": 1
   },
-  "colors": {
-    "dobozSzin": { "id": "sarga", "name": "Sárga" },
-    "tetoSzin": { "id": "sarga", "name": "Sárga" }
-  },
   "tapellatas": {
     "id": "napelemes",
     "name": "Napelemes",
     "price": 12000,
     "quantity": 1
   },
-  "locale": "hu-HU",
+  "colors": {
+    "dobozSzin": { "id": "sarga", "name": "Sárga" },
+    "tetoSzin": { "id": "sarga", "name": "Sárga" }
+  },
+  "subtotal": 31000,
+  "vatPercent": 27,
+  "vatAmount": 8370,
+  "total": 39370,
   "currency": "HUF",
-  "createdAt": "2026-02-04T10:30:00.000Z"
+  "createdAt": "2026-02-04T10:30:00.000Z",
+  "locale": "hu-HU"
 }
 ```
 
-**Fontos mezők:**
-- `userId`: A bejelentkezett felhasználó egyedi azonosítója
-- `userEmail`: A felhasználó email címe
-- `userName`: A megrendelő neve (session-ből)
-- `szenzorok`: Tömb, 1-3 elemmel, mindegyikben id, name, price, quantity
-- `anyag`: Burok anyag típusa (Sima PLA, UV álló PLA, ABS, PETG)
-- `doboz`: Objektum a kiválasztott dobozzal
-- `colors`: Doboz szín és tető szín külön objektumokban
-- `tapellatas`: Kiválasztott tápellátás típus (vezetékes v. akkus)
-- `locale`: Nyelv és régió (hu-HU)
-- `currency`: Pénznem (HUF)
-- `createdAt`: ISO 8601 időbélyeg
+**MINDEN mező amit a frontend küld:**
+| Mező | Típus | Leírás |
+|------|-------|--------|
+| `userId` | string | Bejelentkezett felhasználó ID-ja |
+| `userEmail` | string | Felhasználó email címe |
+| `userName` | string | Megrendelő neve (session-ből) |
+| `szenzorok` | array | 1-3 elem, mindegyik: `{ id, name, price, quantity }` |
+| `anyag` | object | Burok anyag: `{ id, name, price, quantity }` |
+| `doboz` | object | Doboz típus: `{ id, name, price, quantity }` |
+| `tapellatas` | object | Tápellátás: `{ id, name, price, quantity }` |
+| `colors` | object | `{ dobozSzin: { id, name }, tetoSzin: { id, name } }` |
+| `subtotal` | number | Nettó összeg (Ft) |
+| `vatPercent` | number | ÁFA kulcs (27) |
+| `vatAmount` | number | ÁFA összeg (Ft) |
+| `total` | number | Bruttó végösszeg (Ft) |
+| `currency` | string | Pénznem ("HUF") |
+| `createdAt` | string | ISO 8601 időbélyeg |
+| `locale` | string | Nyelv/régió ("hu-HU") |
 
 ### API válasz (amit a backend visszaad)
 
