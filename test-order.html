@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order teszt - Szenzor24</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+      .container {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        max-width: 900px;
+        width: 100%;
+        padding: 40px;
+      }
+      h1 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 28px;
+      }
+      .subtitle {
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 14px;
+      }
+      .section {
+        margin-bottom: 30px;
+      }
+      .section-title {
+        color: #667eea;
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+      }
+      input,
+      textarea {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+      }
+      input:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+      textarea {
+        min-height: 200px;
+        resize: vertical;
+      }
+      .button-group {
+        display: flex;
+        gap: 10px;
+      }
+      button {
+        flex: 1;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .btn-send {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      .btn-send:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+      }
+      .btn-reset {
+        background: #f0f0f0;
+        color: #333;
+      }
+      .btn-reset:hover {
+        background: #e0e0e0;
+      }
+      .response {
+        background: #f5f5f5;
+        border-left: 4px solid #667eea;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 20px;
+        display: none;
+      }
+      .response.success {
+        border-left-color: #22c55e;
+        background: #f0fdf4;
+      }
+      .response.error {
+        border-left-color: #ef4444;
+        background: #fef2f2;
+      }
+      .response-title {
+        font-weight: 600;
+        margin-bottom: 10px;
+        font-size: 14px;
+      }
+      .response.success .response-title {
+        color: #22c55e;
+      }
+      .response.error .response-title {
+        color: #ef4444;
+      }
+      .response-content {
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+        white-space: pre-wrap;
+        word-break: break-all;
+        color: #333;
+      }
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 20px;
+        color: #667eea;
+      }
+      .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #ddd;
+        border-top-color: #667eea;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🧪 Order Teszt</h1>
+      <p class="subtitle">Szenzor24 rendelés teszt - JSON küldés</p>
+
+      <div class="section">
+        <div class="section-title">Backend URL</div>
+        <input
+          type="text"
+          id="url"
+          placeholder="http://192.168.88.210:3000/api/orders/create"
+          value="http://192.168.88.210:3000/api/orders/create"
+        />
+      </div>
+
+      <div class="section">
+        <div class="section-title">JSON Payload</div>
+        <textarea id="payload" placeholder="JSON adatok..."></textarea>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-send" onclick="sendOrder()">📤 Küldés</button>
+        <button class="btn-reset" onclick="resetForm()">🔄 Alapérték</button>
+      </div>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Várakozás a válaszra...</p>
+      </div>
+
+      <div class="response" id="response">
+        <div class="response-title" id="responseTitle"></div>
+        <div class="response-content" id="responseContent"></div>
+      </div>
+    </div>
+
+    <script>
+      const mockPayload = {
+        userId: "test-user-123",
+        userEmail: "test@example.com",
+        userName: "Test User",
+        szenzorok: [
+          { id: "htu21d", name: "HTU21D", price: 5000, quantity: 1 },
+          {
+            id: "mpu6050",
+            name: "MPU-6050",
+            price: 6000,
+            quantity: 1,
+          },
+          {
+            id: "homerseklet",
+            name: "Hőmérséklet szenzor",
+            price: 4500,
+            quantity: 1,
+          },
+        ],
+        anyag: {
+          id: "uv_allo_pla",
+          name: "UV álló PLA",
+          price: 1500,
+          quantity: 1,
+        },
+        doboz: {
+          id: "muanyag",
+          name: "Műanyag doboz",
+          price: 2000,
+          quantity: 1,
+        },
+        tapellatas: {
+          id: "napelemes",
+          name: "Napelemes",
+          price: 12000,
+          quantity: 1,
+        },
+        colors: {
+          dobozSzin: { id: "sarga", name: "Sárga" },
+          tetoSzin: { id: "feher", name: "Fehér" },
+        },
+        subtotal: 31000,
+        vatPercent: 27,
+        vatAmount: 8370,
+        total: 39370,
+        currency: "HUF",
+        createdAt: new Date().toISOString(),
+        locale: "hu-HU",
+      };
+
+      function loadPayload() {
+        document.getElementById("payload").value = JSON.stringify(
+          mockPayload,
+          null,
+          2
+        );
+      }
+
+      function resetForm() {
+        loadPayload();
+        document.getElementById("response").style.display = "none";
+        document.getElementById("response").classList.remove(
+          "success",
+          "error"
+        );
+      }
+
+      async function sendOrder() {
+        const url = document.getElementById("url").value;
+        const payloadText = document.getElementById("payload").value;
+        const loading = document.getElementById("loading");
+        const response = document.getElementById("response");
+
+        try {
+          const payload = JSON.parse(payloadText);
+
+          loading.style.display = "block";
+          response.style.display = "none";
+
+          const result = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+
+          loading.style.display = "none";
+          response.style.display = "block";
+
+          const data = await result.json();
+
+          if (result.ok) {
+            response.classList.remove("error");
+            response.classList.add("success");
+            document.getElementById("responseTitle").textContent = "✅ SIKERES!";
+          } else {
+            response.classList.remove("success");
+            response.classList.add("error");
+            document.getElementById("responseTitle").textContent =
+              "❌ HIBA! (" + result.status + ")";
+          }
+
+          document.getElementById("responseContent").textContent = JSON.stringify(
+            data,
+            null,
+            2
+          );
+        } catch (error) {
+          loading.style.display = "none";
+          response.style.display = "block";
+          response.classList.remove("success");
+          response.classList.add("error");
+
+          if (error instanceof SyntaxError) {
+            document.getElementById("responseTitle").textContent =
+              "❌ JSON parse hiba!";
+          } else {
+            document.getElementById("responseTitle").textContent =
+              "❌ HIBA: " + error.message;
+          }
+
+          document.getElementById("responseContent").textContent =
+            error.message;
+        }
+      }
+
+      // Alapértékek betöltése
+      loadPayload();
+    </script>
+  </body>
+</html>
