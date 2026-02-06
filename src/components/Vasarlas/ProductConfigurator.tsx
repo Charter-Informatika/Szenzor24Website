@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { OrderPayload } from "@/types/order";
+import { ALT_MODEL_PATH } from "@/lib/modelPaths";
 
 // Szenzor típusok
 const szenzorok = [
@@ -221,14 +222,17 @@ const ProductConfigurator = () => {
   }, []);
 
   const getModelPath = (box: string, top: string) => `/images/hero/${box}/${box}_${top}.glb`;
-  const modelSrc = getModelPath(selection.dobozSzin, selection.tetoSzin);
+  const modelSrc =
+    selection.tapellatas === "akkus"
+      ? ALT_MODEL_PATH
+      : getModelPath(selection.dobozSzin, selection.tetoSzin);
 
   const steps: { id: StepId; title: string; icon: string }[] = [
     { id: "szenzor", title: "Szenzor", icon: "1" },
     { id: "anyag", title: "Anyag", icon: "2" },
-    { id: "doboz", title: "Doboz", icon: "3" },
-    { id: "szin", title: "Szín", icon: "4" },
-    { id: "tapellatas", title: "Tápellátás", icon: "5" },
+    { id: "tapellatas", title: "Tápellátás", icon: "3" },
+    { id: "doboz", title: "Doboz", icon: "4" },
+    { id: "szin", title: "Szín", icon: "5" },
     { id: "osszesites", title: "Összesítés", icon: "✓" },
   ];
 

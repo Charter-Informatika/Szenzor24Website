@@ -7,7 +7,7 @@ import ProductConfigurator from "@/components/Vasarlas/ProductConfigurator";
 
 export default function VasarlasPage() {
   // TEMP: disable forced login for UI testing. Set to true to restore.
-  const FORCE_LOGIN = true;
+  const FORCE_LOGIN = false;
   const { data: session, status } = useSession();
   const router = useRouter();
 
