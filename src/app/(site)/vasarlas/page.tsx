@@ -6,17 +6,19 @@ import { useRouter } from "next/navigation";
 import ProductConfigurator from "@/components/Vasarlas/ProductConfigurator";
 
 export default function VasarlasPage() {
+  // TEMP: disable forced login for UI testing. Set to true to restore.
+  const FORCE_LOGIN = true;
   const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (FORCE_LOGIN && status === "unauthenticated") {
       router.push("/auth/signin?callbackUrl=/vasarlas");
     }
-  }, [status, router]);
+  }, [FORCE_LOGIN, status, router]);
 
   // Loading állapot
-  if (status === "loading") {
+  if (FORCE_LOGIN && status === "loading") {
     return (
       <main className="pt-[100px] pb-20">
         <div className="container flex items-center justify-center min-h-[400px]">
@@ -30,7 +32,7 @@ export default function VasarlasPage() {
   }
 
   // Ha nincs bejelentkezve, ne rendereljük a tartalmat (redirect folyamatban)
-  if (!session) {
+  if (FORCE_LOGIN && !session) {
     return null;
   }
 
