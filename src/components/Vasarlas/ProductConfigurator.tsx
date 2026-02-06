@@ -411,21 +411,21 @@ const ProductConfigurator = () => {
             <p className="mb-4 text-center text-sm text-body">
               Válassz max. {MAX_SZENZOROK} szenzort! ({selection.szenzorok.length}/{MAX_SZENZOROK} kiválasztva)
             </p>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="mx-auto max-w-5xl grid grid-cols-2 gap-3 sm:grid-cols-4">
               {szenzorok.map((szenzor) => {
                 const isSelected = selection.szenzorok.includes(szenzor.id);
                 return (
                   <div
                     key={szenzor.id}
                     onClick={() => toggleSzenzor(szenzor.id)}
-                    className={`cursor-pointer rounded-xl border-2 p-6 transition-all hover:shadow-lg ${
+                    className={`cursor-pointer rounded-xl border-2 p-4 transition-all hover:shadow-lg ${
                       isSelected
                         ? "border-primary bg-primary/10"
                         : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
                     }`}
                   >
                     <div className="flex items-start justify-between">
-                      <div className="mb-3 flex h-48 w-48 items-center justify-center rounded-lg bg-slate-100 p-2 dark:bg-slate-800">
+                      <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-lg bg-slate-100 p-2 dark:bg-slate-800 sm:h-24 sm:w-24">
                         <img
                           src={szenzor.imageUrl}
                           alt={szenzor.name}
@@ -442,11 +442,11 @@ const ProductConfigurator = () => {
                         )}
                       </div>
                     </div>
-                    <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
+                    <h4 className="mb-1 text-base font-semibold text-black dark:text-white">
                       {szenzor.name}
                     </h4>
-                    <p className="mb-3 text-sm text-body">{szenzor.description}</p>
-                    <p className="text-xl font-bold text-primary">
+                    <p className="mb-2 text-xs text-body break-words">{szenzor.description}</p>
+                    <p className="text-lg font-bold text-primary">
                       {szenzor.price.toLocaleString("hu-HU")} Ft
                     </p>
                   </div>
