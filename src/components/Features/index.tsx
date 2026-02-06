@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Graphics from "@/components/Features/Graphics";
 import { Feature } from "@/types/feature";
 
@@ -152,15 +152,52 @@ const featuresData: Feature[] = [
 const Features = () => {
   const [slide, setSlide] = useState<number>(0);
   const [progress, setProgress] = useState<number>(0);
+  const [isFading, setIsFading] = useState(false);
+  const slideIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const fadeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [mouseStart, setMouseStart] = useState<number | null>(null);
   const [mouseEnd, setMouseEnd] = useState<number | null>(null);
   const itemsPerPage = 6;
   const totalPages = Math.ceil(featuresData.length / itemsPerPage);
-  const prev = () => setSlide((s) => (s - 1 + totalPages) % totalPages);
-  const next = () => setSlide((s) => (s + 1) % totalPages);
+  const prev = () => {
+    setIsFading(true);
+    if (fadeTimeoutRef.current) {
+      clearTimeout(fadeTimeoutRef.current);
+    }
+    fadeTimeoutRef.current = setTimeout(() => {
+      setSlide((s) => (s - 1 + totalPages) % totalPages);
+      setIsFading(false);
+    }, 200);
+  };
+
+  const next = () => {
+    setIsFading(true);
+    if (fadeTimeoutRef.current) {
+      clearTimeout(fadeTimeoutRef.current);
+    }
+    fadeTimeoutRef.current = setTimeout(() => {
+      setSlide((s) => (s + 1) % totalPages);
+      setIsFading(false);
+    }, 200);
+  };
+
+  const goToSlide = (index: number) => {
+    setIsFading(true);
+    if (fadeTimeoutRef.current) {
+      clearTimeout(fadeTimeoutRef.current);
+    }
+    fadeTimeoutRef.current = setTimeout(() => {
+      setSlide(index);
+      setIsFading(false);
+    }, 200);
+  };
   const pageItems = featuresData.slice(slide * itemsPerPage, slide * itemsPerPage + itemsPerPage);
+  const AUTO_INTERVAL = 8000;
+  const PROGRESS_INTERVAL = 100;
+  const progressStep = 100 / (AUTO_INTERVAL / PROGRESS_INTERVAL);
 
   // Handle swipe/drag
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -195,24 +232,40 @@ const Features = () => {
     }
   };
 
-  // Auto-slide every 5 seconds with progress bar
-  useEffect(() => {
+  const startAuto = () => {
+    if (slideIntervalRef.current) {
+      clearInterval(slideIntervalRef.current);
+    }
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
+
     setProgress(0);
-    const progressInterval = setInterval(() => {
+    progressIntervalRef.current = setInterval(() => {
       setProgress((p) => {
         if (p >= 100) return 100;
-        return p + 2;
+        return Math.min(100, p + progressStep);
       });
-    }, 100);
+    }, PROGRESS_INTERVAL);
 
-    const slideInterval = setInterval(() => {
-      setSlide((s) => (s + 1) % totalPages);
+    slideIntervalRef.current = setInterval(() => {
+      next();
       setProgress(0);
-    }, 5000);
+    }, AUTO_INTERVAL);
+  };
 
+  useEffect(() => {
+    startAuto();
     return () => {
-      clearInterval(progressInterval);
-      clearInterval(slideInterval);
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+      if (slideIntervalRef.current) {
+        clearInterval(slideIntervalRef.current);
+      }
+      if (fadeTimeoutRef.current) {
+        clearTimeout(fadeTimeoutRef.current);
+      }
     };
   }, [totalPages]);
 
@@ -253,10 +306,12 @@ const Features = () => {
             {/* Progress bar */}
             <div className="absolute bottom-0 left-0 h-1 bg-primary transition-all duration-100" style={{ width: `${progress}%` }} />
 
-            {/* Navigation controls - commented out */}
-            {/* <div className="mb-6 flex items-center justify-center gap-4">
+            <div className="mb-6 flex items-center justify-center gap-4">
               <button
-                onClick={prev}
+                onClick={() => {
+                  prev();
+                  startAuto();
+                }}
                 className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-200 text-black hover:bg-primary hover:text-white transition-all dark:bg-[#2A2E44] dark:text-white dark:hover:bg-primary"
                 aria-label="Previous slide"
               >
@@ -269,7 +324,10 @@ const Features = () => {
                 {Array.from({ length: totalPages }).map((_, i) => (
                   <button
                     key={i}
-                    onClick={() => setSlide(i)}
+                    onClick={() => {
+                      goToSlide(i);
+                      startAuto();
+                    }}
                     className={`h-2 rounded-full transition-all ${
                       slide === i ? 'w-8 bg-slate-400' : 'w-2 bg-slate-300'
                     }`}
@@ -279,7 +337,10 @@ const Features = () => {
               </div>
 
               <button
-                onClick={next}
+                onClick={() => {
+                  next();
+                  startAuto();
+                }}
                 className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-200 text-black hover:bg-primary hover:text-white transition-all dark:bg-[#2A2E44] dark:text-white dark:hover:bg-primary"
                 aria-label="Next slide"
               >
@@ -287,7 +348,7 @@ const Features = () => {
                   <path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
-            </div> */}
+            </div>
 
             {/* Horizontal slider grid with swipe/drag support - centered vertically */}
             <div 
@@ -297,25 +358,27 @@ const Features = () => {
               onMouseDown={handleMouseDown}
               onMouseUp={handleMouseUp}
             >
-              <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-4 lg:gap-6 px-1 sm:px-4 cursor-grab active:cursor-grabbing select-none w-full">
-                {pageItems.map((item, index) => (
-                <div key={index} className="w-full">
-                  <div
-                    className="wow fadeInUp group w-full h-full flex flex-col items-center text-center pointer-events-none"
-                    data-wow-delay=".2s"
-                  >
-                    <div className="mx-auto mb-2 sm:mb-4 lg:mb-8 flex h-10 sm:h-16 lg:h-[90px] w-10 sm:w-16 lg:w-[90px] items-center justify-center rounded-lg sm:rounded-2xl lg:rounded-3xl bg-gray-100 text-primary duration-300 group-hover:bg-primary group-hover:text-white dark:bg-[#2A2E44] dark:text-white dark:group-hover:bg-primary border border-slate-200 flex-shrink-0">
-                      <div className="scale-50 sm:scale-100 origin-center">
-                        {item.icon}
+              <div className={`w-full transition-opacity duration-300 ${isFading ? "opacity-40" : "opacity-100"}`}>
+                <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-4 lg:gap-6 px-1 sm:px-4 cursor-grab active:cursor-grabbing select-none w-full">
+                  {pageItems.map((item, index) => (
+                    <div key={index} className="w-full">
+                      <div
+                        className="wow fadeInUp group w-full h-full flex flex-col items-center text-center pointer-events-none"
+                        data-wow-delay=".2s"
+                      >
+                        <div className="mx-auto mb-2 sm:mb-4 lg:mb-8 flex h-10 sm:h-16 lg:h-[90px] w-10 sm:w-16 lg:w-[90px] items-center justify-center rounded-lg sm:rounded-2xl lg:rounded-3xl bg-gray-100 text-primary duration-300 group-hover:bg-primary group-hover:text-white dark:bg-[#2A2E44] dark:text-white dark:group-hover:bg-primary border border-slate-200 flex-shrink-0">
+                          <div className="scale-50 sm:scale-100 origin-center">
+                            {item.icon}
+                          </div>
+                        </div>
+                        <h3 className="mb-0 sm:mb-2 lg:mb-4 text-[10px] sm:text-sm lg:text-xl font-semibold text-black dark:text-white whitespace-pre-line line-clamp-2 sm:line-clamp-none">
+                          {item.title}
+                        </h3>
+                        <p className="hidden sm:block text-xs lg:text-base text-body">{item.description}</p>
                       </div>
                     </div>
-                    <h3 className="mb-0 sm:mb-2 lg:mb-4 text-[10px] sm:text-sm lg:text-xl font-semibold text-black dark:text-white whitespace-pre-line line-clamp-2 sm:line-clamp-none">
-                      {item.title}
-                    </h3>
-                    <p className="hidden sm:block text-xs lg:text-base text-body">{item.description}</p>
-                  </div>
+                  ))}
                 </div>
-              ))}
               </div>
             </div>
           </div>
