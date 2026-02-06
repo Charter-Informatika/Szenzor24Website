@@ -13,56 +13,56 @@ const szenzorok = [
     name: "HTU21D",
     description: "Hőmérséklet és páratartalom szenzor",
     price: 5000,
-    icon: "🌡️",
+    imageUrl: "/images/szenzorok/htu21.png",
   },
   {
     id: "mpu6050",
     name: "MPU-6050",
     description: "6 tengelyes gyorsulásmérő és giroszkóp",
     price: 6000,
-    icon: "📐",
+    imageUrl: "/images/szenzorok/mpu6050.png",
   },
   {
     id: "gaz",
     name: "Gáz szenzor",
     description: "Általános gáz érzékelő",
     price: 7000,
-    icon: "💨",
+    imageUrl: "/images/szenzorok/gassensor.png",
   },
   {
     id: "homerseklet",
     name: "Hőmérséklet szenzor",
     description: "Precíz hőmérséklet mérés",
     price: 4500,
-    icon: "🌡️",
+    imageUrl: "/images/szenzorok/homersekletsensor.png",
   },
   {
     id: "feny",
     name: "Fény szenzor",
     description: "Fényerősség mérő szenzor",
     price: 4000,
-    icon: "💡",
+    imageUrl: "/images/szenzorok/lightsensor.png",
   },
   {
     id: "hidrogen",
     name: "Hidrogén szenzor",
     description: "Hidrogén gáz érzékelő",
     price: 8000,
-    icon: "⚗️",
+    imageUrl: "/images/szenzorok/hidrogensensor.png",
   },
   {
     id: "metan",
     name: "Metán szenzor",
     description: "Metán gáz érzékelő",
     price: 7500,
-    icon: "🔥",
+    imageUrl: "/images/szenzorok/metan.png",
   },
   {
     id: "sensorion",
     name: "SENSORION hőmérséklet szenzor",
     description: "SENSORION precíziós hőmérséklet szenzor",
     price: 9000,
-    icon: "🌡️",
+    imageUrl: "/images/szenzorok/levegominoseg.png",
   },
 ];
 
@@ -154,13 +154,6 @@ const tapellatasok = [
     description: "230V AC adapter, folyamatos üzem",
     price: 2500,
     icon: "🔌",
-  },
-  {
-    id: "napelemes",
-    name: "Napelemes",
-    description: "Napelem + akkumulátor kombináció",
-    price: 12000,
-    icon: "☀️",
   },
 ];
 
@@ -432,7 +425,13 @@ const ProductConfigurator = () => {
                     }`}
                   >
                     <div className="flex items-start justify-between">
-                      <div className="mb-3 text-4xl">{szenzor.icon}</div>
+                      <div className="mb-3 flex h-48 w-48 items-center justify-center rounded-lg bg-slate-100 p-2 dark:bg-slate-800">
+                        <img
+                          src={szenzor.imageUrl}
+                          alt={szenzor.name}
+                          className="h-full w-full object-contain"
+                        />
+                      </div>
                       <div className={`flex h-6 w-6 items-center justify-center rounded-md border-2 ${
                         isSelected ? "border-primary bg-primary" : "border-gray-300 dark:border-gray-600"
                       }`}>
@@ -594,27 +593,29 @@ const ProductConfigurator = () => {
 
       case "tapellatas":
         return (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {tapellatasok.map((tap) => (
-              <div
-                key={tap.id}
-                onClick={() => setSelection({ ...selection, tapellatas: tap.id })}
-                className={`cursor-pointer rounded-xl border-2 p-6 transition-all hover:shadow-lg ${
-                  selection.tapellatas === tap.id
-                    ? "border-primary bg-primary/10"
-                    : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
-                }`}
-              >
-                <div className="mb-3 text-4xl">{tap.icon}</div>
-                <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
-                  {tap.name}
-                </h4>
-                <p className="mb-3 text-sm text-body">{tap.description}</p>
-                <p className="text-xl font-bold text-primary">
-                  {tap.price.toLocaleString("hu-HU")} Ft
-                </p>
-              </div>
-            ))}
+          <div className="mx-auto max-w-4xl">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {tapellatasok.map((tap) => (
+                <div
+                  key={tap.id}
+                  onClick={() => setSelection({ ...selection, tapellatas: tap.id })}
+                  className={`cursor-pointer rounded-xl border-2 p-6 transition-all hover:shadow-lg ${
+                    selection.tapellatas === tap.id
+                      ? "border-primary bg-primary/10"
+                      : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                  }`}
+                >
+                  <div className="mb-3 text-4xl">{tap.icon}</div>
+                  <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
+                    {tap.name}
+                  </h4>
+                  <p className="mb-3 text-sm text-body">{tap.description}</p>
+                  <p className="text-xl font-bold text-primary">
+                    {tap.price.toLocaleString("hu-HU")} Ft
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         );
 
@@ -642,9 +643,18 @@ const ProductConfigurator = () => {
                   <p className="mb-2 text-sm font-medium text-body">Szenzorok ({selectedSzenzorokList.length} db)</p>
                   {selectedSzenzorokList.map((sz) => (
                     <div key={sz?.id} className="flex items-center justify-between py-1">
-                      <p className="font-medium text-black dark:text-white">
-                        {sz?.icon} {sz?.name}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        {sz?.imageUrl && (
+                          <img
+                            src={sz.imageUrl}
+                            alt={sz.name}
+                            className="h-6 w-6 object-contain"
+                          />
+                        )}
+                        <p className="font-medium text-black dark:text-white">
+                          {sz?.name}
+                        </p>
+                      </div>
                       <p className="font-semibold text-black dark:text-white">
                         {sz?.price.toLocaleString("hu-HU")} Ft
                       </p>
