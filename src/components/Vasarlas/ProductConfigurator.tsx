@@ -395,7 +395,7 @@ const ProductConfigurator = () => {
     };
 
     try {
-      const { data } = await axios.post("/api/order", orderPayload);
+      const { data } = await axios.post("http://192.168.88.210:3000/api/orders/create", orderPayload);
       
       if (data.url) {
         // Stripe checkout URL - redirect

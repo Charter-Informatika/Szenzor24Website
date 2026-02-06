@@ -30,7 +30,7 @@ A vásárlás funkció lehetővé teszi a felhasználók számára, hogy egyedi 
 - Tápellátás típus választás (vezetékes v. akkus)
 - Automatikus ár kalkuláció ÁFA-val
 
-**Jelenlegi állapot:** A frontend teljesen működőképes, a rendelés JSON formátumban elkészül és elküldésre kerül a `/api/order` végpontra. A backend integráció (Stripe fizetés, adatbázis mentés) még hiányzik.
+**Jelenlegi állapot:** A frontend teljesen működőképes, a rendelés JSON formátumban elkészül és elküldésre kerül a `http://192.168.88.210:3000/api/orders/create` végpontra (rendszer.szenzor24.hu backend). Az email-t a szenzor24.hu API még elküldi a megrendelőnek.
 
 ---
 
@@ -39,7 +39,7 @@ A vásárlás funkció lehetővé teszi a felhasználók számára, hogy egyedi 
 ### Elérési út
 - **URL:** `/vasarlas`
 - **Komponens:** `src/components/Vasarlas/ProductConfigurator.tsx`
-- **API route:** `src/app/api/order/route.ts`
+- **API route:** `http://192.168.88.210:3000/api/orders/create`
 
 ### Belépési pont
 A vásárlás oldalra a főoldali "Vásárlás" gombbal lehet eljutni:
@@ -162,7 +162,7 @@ A vásárlás oldalra a főoldali "Vásárlás" gombbal lehet eljutni:
 │  7. Összesítés + "Megrendelés" gomb                             │
 │           │                                                      │
 │           ▼                                                      │
-│  8. POST /api/order                                              │
+│  8. POST http://192.168.88.210:3000/api/orders/create             │
 │           │                                                      │
 │           ▼                                                      │
 │  ┌────────────────────────────────────┐                         │
@@ -210,34 +210,44 @@ A vásárlás oldalra a főoldali "Vásárlás" gombbal lehet eljutni:
     "price": 2000,
     "quantity": 1
   },
-  "colors": {
-    "dobozSzin": { "id": "sarga", "name": "Sárga" },
-    "tetoSzin": { "id": "sarga", "name": "Sárga" }
-  },
   "tapellatas": {
     "id": "napelemes",
     "name": "Napelemes",
     "price": 12000,
     "quantity": 1
   },
-  "locale": "hu-HU",
+  "colors": {
+    "dobozSzin": { "id": "sarga", "name": "Sárga" },
+    "tetoSzin": { "id": "sarga", "name": "Sárga" }
+  },
+  "subtotal": 31000,
+  "vatPercent": 27,
+  "vatAmount": 8370,
+  "total": 39370,
   "currency": "HUF",
-  "createdAt": "2026-02-04T10:30:00.000Z"
+  "createdAt": "2026-02-04T10:30:00.000Z",
+  "locale": "hu-HU"
 }
 ```
 
-**Fontos mezők:**
-- `userId`: A bejelentkezett felhasználó egyedi azonosítója
-- `userEmail`: A felhasználó email címe
-- `userName`: A megrendelő neve (session-ből)
-- `szenzorok`: Tömb, 1-3 elemmel, mindegyikben id, name, price, quantity
-- `anyag`: Burok anyag típusa (Sima PLA, UV álló PLA, ABS, PETG)
-- `doboz`: Objektum a kiválasztott dobozzal
-- `colors`: Doboz szín és tető szín külön objektumokban
-- `tapellatas`: Kiválasztott tápellátás típus (vezetékes v. akkus)
-- `locale`: Nyelv és régió (hu-HU)
-- `currency`: Pénznem (HUF)
-- `createdAt`: ISO 8601 időbélyeg
+**MINDEN mező amit a frontend küld:**
+| Mező | Típus | Leírás |
+|------|-------|--------|
+| `userId` | string | Bejelentkezett felhasználó ID-ja |
+| `userEmail` | string | Felhasználó email címe |
+| `userName` | string | Megrendelő neve (session-ből) |
+| `szenzorok` | array | 1-3 elem, mindegyik: `{ id, name, price, quantity }` |
+| `anyag` | object | Burok anyag: `{ id, name, price, quantity }` |
+| `doboz` | object | Doboz típus: `{ id, name, price, quantity }` |
+| `tapellatas` | object | Tápellátás: `{ id, name, price, quantity }` |
+| `colors` | object | `{ dobozSzin: { id, name }, tetoSzin: { id, name } }` |
+| `subtotal` | number | Nettó összeg (Ft) |
+| `vatPercent` | number | ÁFA kulcs (27) |
+| `vatAmount` | number | ÁFA összeg (Ft) |
+| `total` | number | Bruttó végösszeg (Ft) |
+| `currency` | string | Pénznem ("HUF") |
+| `createdAt` | string | ISO 8601 időbélyeg |
+| `locale` | string | Nyelv/régió ("hu-HU") |
 
 ### API válasz (amit a backend visszaad)
 
@@ -451,7 +461,7 @@ Sikeres fizetés után:
 
 ## API dokumentáció
 
-### POST /api/order
+### POST http://192.168.88.210:3000/api/orders/create
 
 **Request Headers:**
 ```
@@ -648,7 +658,7 @@ EMAIL_FROM=info@szenzor24.hu
 | `src/app/(site)/vasarlas/page.tsx` | Vásárlás oldal |
 | `src/components/Vasarlas/ProductConfigurator.tsx` | 6 lépéses konfigurátor |
 | `src/types/order.ts` | TypeScript típusok |
-| `src/app/api/order/route.ts` | API endpoint + email küldés |
+| `src/app/api/order/route.ts` | Local proxy (üres, már nem küld ide) |
 | `src/lib/orderEmail.ts` | Rendelés visszaigazoló email template |
 | `src/lib/email.ts` | Nodemailer konfiguráció |
 | `src/components/Pricing/index.tsx` | "Rendelés" gomb |
