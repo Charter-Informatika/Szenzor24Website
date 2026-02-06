@@ -8,7 +8,7 @@ import Features from "@/components/Features";
 import HeroArea from "@/components/HeroArea";
 import Pricing from "@/components/Pricing";
 import Screens from "@/components/Screens";
-import Szenzorok from "@/components/Szenzorok";
+// import Szenzorok from "@/components/Szenzorok";
 import Testimonials from "@/components/Testimonials";
 // import WorkProcess from "@/components/WorkProcess";
 import { integrations } from "@integrations-config";
@@ -26,7 +26,7 @@ export default function Home() {
       <HeroArea />
       <Features />
       {/*<About />*/}
-      <Szenzorok />
+      {/*<Szenzorok />*/}
       {/*<WorkProcess />*/}
       <Pricing />
       <Screens />
