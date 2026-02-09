@@ -55,7 +55,7 @@ async function testOrder() {
     console.log("\n⏳ Várakozás a válaszra...\n");
 
     const response = await axios.post(
-      "http://192.168.88.210:3000/api/orders/create",
+      "https://szenzor24.hu/api/orders/create",
       mockOrder,
       {
         timeout: 5000,
