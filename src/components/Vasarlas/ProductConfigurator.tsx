@@ -8,6 +8,13 @@ import { OrderPayload } from "@/types/order";
 import { ALT_MODEL_PATH } from "@/lib/modelPaths";
 import FoxpostSelector, { FoxpostAutomataData } from "./FoxpostSelector";
 
+const formatFoxpostFindme = (value: string) =>
+  value
+    .replace(/<br\s*\/?\s*>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
 // Szenzor típusok
 const szenzorok = [
   {
@@ -1398,8 +1405,8 @@ const ProductConfigurator = () => {
                             {selection.foxpostAutomata.zip} {selection.foxpostAutomata.city}, {selection.foxpostAutomata.address}
                           </p>
                           {selection.foxpostAutomata.findme && (
-                            <p className="text-xs text-body italic">
-                              📍 {selection.foxpostAutomata.findme}
+                            <p className="whitespace-pre-line text-xs text-body italic">
+                              📍 {formatFoxpostFindme(selection.foxpostAutomata.findme)}
                             </p>
                           )}
                         </div>
