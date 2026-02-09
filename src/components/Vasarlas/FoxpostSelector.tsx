@@ -123,6 +123,13 @@ function parseMessagePayload(rawData: unknown): FoxpostAutomataData | null {
   return null;
 }
 
+const formatFindme = (value: string) =>
+  value
+    .replace(/<br\s*\/?\s*>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
 const FoxpostSelector: React.FC<FoxpostSelectorProps> = ({ onSelect, selected }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -185,8 +192,8 @@ const FoxpostSelector: React.FC<FoxpostSelectorProps> = ({ onSelect, selected })
                 {selected.zip} {selected.city}, {selected.address}
               </p>
               {selected.findme && (
-                <p className="mt-1 text-xs text-body italic">
-                  📍 {selected.findme}
+                <p className="mt-1 whitespace-pre-line text-xs text-body italic">
+                  📍 {formatFindme(selected.findme)}
                 </p>
               )}
             </div>
