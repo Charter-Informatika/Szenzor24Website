@@ -25,7 +25,7 @@ export interface OrderPayload {
   userName: string;        // Megrendelő neve
 
   // Kiválasztott termékek
-  szenzorok: OrderItem[]; // Max 3 szenzor lehet!
+  szenzorok: OrderItem[]; // Max 2 szenzor lehet!
   eszkoz?: OrderItem;     // Opcionális - jelenleg nem használt
   doboz: OrderItem;
   anyag: OrderItem;       // Burok anyag típusa (PLA, UV álló PLA, stb.)
@@ -54,8 +54,7 @@ export interface OrderPayload {
   
   "szenzorok": [
     { "id": "homerseklet", "name": "Hőmérséklet szenzor", "price": 5000, "quantity": 1 },
-    { "id": "paratartalom", "name": "Páratartalom szenzor", "price": 6000, "quantity": 1 },
-    { "id": "ajto", "name": "Ajtó nyitás érzékelő", "price": 3000, "quantity": 1 }
+    { "id": "paratartalom", "name": "Páratartalom szenzor", "price": 6000, "quantity": 1 }
   ],
   
   "eszkoz": {

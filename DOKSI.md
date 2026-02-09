@@ -1,6 +1,6 @@
-# Vásárlás Funkció Dokumentáció
+# Rendelés Funkció Dokumentáció
 
-**Utolsó frissítés:** 2026. február 4.  
+**Utolsó frissítés:** 2026. február 9.  
 **Branch:** `dev_style`  
 **Státusz:** Frontend kész ✅ | Backend integráció TODO ⏳
 
@@ -10,7 +10,7 @@
 
 1. [Összefoglaló](#összefoglaló)
 2. [Frontend - Jelenlegi állapot](#frontend---jelenlegi-állapot)
-3. [Vásárlási folyamat](#vásárlási-folyamat)
+3. [Rendelési folyamat](#rendelési-folyamat)
 4. [JSON struktúra](#json-struktúra)
 5. [Backend teendők](#backend-teendők)
 6. [API dokumentáció](#api-dokumentáció)
@@ -22,8 +22,8 @@
 
 ## Összefoglaló
 
-A vásárlás funkció lehetővé teszi a felhasználók számára, hogy egyedi szenzor-csomagot állítsanak össze:
-- Maximum 3 szenzor kiválasztása
+A rendelés funkció lehetővé teszi a felhasználók számára, hogy egyedi szenzor-csomagot állítsanak össze:
+- Maximum 2 szenzor kiválasztása
 - Burok anyag típus választás (PLA, UV álló PLA, stb.)
 - Doboz típus választás
 - Doboz és tető szín választás (3D előnézettel)
@@ -42,12 +42,14 @@ A vásárlás funkció lehetővé teszi a felhasználók számára, hogy egyedi 
 - **API route:** `http://192.168.88.210:3000/api/orders/create`
 
 ### Belépési pont
-A vásárlás oldalra a főoldali "Vásárlás" gombbal lehet eljutni:
-- **Fájl:** `src/components/Pricing/index.tsx`
-- **Gomb:** "Vásárlás" → navigál a `/vasarlas` oldalra
+A rendelés oldalra a főoldali "Rendelés" CTA-val és a fejléc menüponttal lehet eljutni:
+- **Fájl:** `src/components/HeroArea/index.tsx`
+- **CTA:** "Rendelés" → navigál a `/vasarlas` oldalra
+- **Fájl:** `src/components/Header/index.tsx`
+- **Menü:** "Rendelés" → navigál a `/vasarlas` oldalra
 
 ### Autentikáció
-- ⚠️ **Bejelentkezés kötelező** a vásárláshoz
+- ⚠️ **Bejelentkezés kötelező** a rendeléshez
 - Ha nincs bejelentkezve → átirányítás `/auth/signin?callbackUrl=/vasarlas`
 - Sikeres bejelentkezés után visszakerül a `/vasarlas` oldalra
 
@@ -55,7 +57,7 @@ A vásárlás oldalra a főoldali "Vásárlás" gombbal lehet eljutni:
 
 | Lépés | Név | Leírás |
 |-------|-----|--------|
-| 1 | Szenzorok | Max 3 szenzor kiválasztása (checkbox multi-select) |
+| 1 | Szenzorok | Max 2 szenzor kiválasztása (checkbox multi-select) |
 | 2 | Anyag | Burok anyag típusa (Sima PLA, UV álló PLA, ABS, PETG) |
 | 3 | Doboz | Doboz típus (műanyag/fém/rozsdamentes) |
 | 4 | Színek | Doboz szín + tető szín (3D előnézet) |
@@ -64,7 +66,7 @@ A vásárlás oldalra a főoldali "Vásárlás" gombbal lehet eljutni:
 
 ### Elérhető opciók
 
-#### Szenzorok (max 3 választható)
+#### Szenzorok (max 2 választható)
 | ID | Név | Leírás | Ár |
 |----|-----|--------|-----|
 | `htu21d` | HTU21D | Hőmérséklet és páratartalom szenzor | 5 000 Ft |
@@ -126,7 +128,7 @@ A vásárlás oldalra a főoldali "Vásárlás" gombbal lehet eljutni:
 
 ---
 
-## Vásárlási folyamat
+## Rendelési folyamat
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -147,7 +149,7 @@ A vásárlás oldalra a főoldali "Vásárlás" gombbal lehet eljutni:
 │     │           │                                                │
 │     └─────┬─────┘                                               │
 │           ▼                                                      │
-│  3. Szenzor választás (1-3 db)                                  │
+│  3. Szenzor választás (1-2 db)                                  │
 │           │                                                      │
 │           ▼                                                      │
 │  4. Doboz típus választás                                       │
@@ -195,8 +197,7 @@ A vásárlás oldalra a főoldali "Vásárlás" gombbal lehet eljutni:
   "userName": "Kiss Péter",
   "szenzorok": [
     { "id": "htu21d", "name": "HTU21D", "price": 5000, "quantity": 1 },
-    { "id": "mpu6050", "name": "MPU-6050", "price": 6000, "quantity": 1 },
-    { "id": "homerseklet", "name": "Hőmérséklet szenzor", "price": 4500, "quantity": 1 }
+    { "id": "mpu6050", "name": "MPU-6050", "price": 6000, "quantity": 1 }
   ],
   "anyag": {
     "id": "uv_allo_pla",
@@ -220,10 +221,10 @@ A vásárlás oldalra a főoldali "Vásárlás" gombbal lehet eljutni:
     "dobozSzin": { "id": "sarga", "name": "Sárga" },
     "tetoSzin": { "id": "sarga", "name": "Sárga" }
   },
-  "subtotal": 31000,
+  "subtotal": 26500,
   "vatPercent": 27,
-  "vatAmount": 8370,
-  "total": 39370,
+  "vatAmount": 7155,
+  "total": 33655,
   "currency": "HUF",
   "createdAt": "2026-02-04T10:30:00.000Z",
   "locale": "hu-HU"
@@ -236,7 +237,7 @@ A vásárlás oldalra a főoldali "Vásárlás" gombbal lehet eljutni:
 | `userId` | string | Bejelentkezett felhasználó ID-ja |
 | `userEmail` | string | Felhasználó email címe |
 | `userName` | string | Megrendelő neve (session-ből) |
-| `szenzorok` | array | 1-3 elem, mindegyik: `{ id, name, price, quantity }` |
+| `szenzorok` | array | 1-2 elem, mindegyik: `{ id, name, price, quantity }` |
 | `anyag` | object | Burok anyag: `{ id, name, price, quantity }` |
 | `doboz` | object | Doboz típus: `{ id, name, price, quantity }` |
 | `tapellatas` | object | Tápellátás: `{ id, name, price, quantity }` |
@@ -263,8 +264,7 @@ A backend **MINDEN** eredeti mezőt visszaad, plusz a számított értékeket:
     "userName": "Kiss Péter",
     "szenzorok": [
       { "id": "htu21d", "name": "HTU21D", "price": 5000, "quantity": 1 },
-      { "id": "mpu6050", "name": "MPU-6050", "price": 6000, "quantity": 1 },
-      { "id": "homerseklet", "name": "Hőmérséklet szenzor", "price": 4500, "quantity": 1 }
+      { "id": "mpu6050", "name": "MPU-6050", "price": 6000, "quantity": 1 }
     ],
     "anyag": {
       "id": "uv_allo_pla",
@@ -288,10 +288,10 @@ A backend **MINDEN** eredeti mezőt visszaad, plusz a számított értékeket:
       "price": 12000,
       "quantity": 1
     },
-    "subtotal": 31000,
+    "subtotal": 26500,
     "vatPercent": 27,
-    "vatAmount": 8370,
-    "total": 39370,
+    "vatAmount": 7155,
+    "total": 33655,
     "locale": "hu-HU",
     "currency": "HUF",
     "createdAt": "2026-02-04T10:30:00.000Z"
@@ -302,10 +302,10 @@ A backend **MINDEN** eredeti mezőt visszaad, plusz a számított értékeket:
 **Számított mezők (backend számolja):**
 | Mező | Leírás | Példa |
 |------|--------|-------|
-| `subtotal` | Nettó összeg (szenzorok + anyag + doboz + tápellátás) | 31 000 Ft |
+| `subtotal` | Nettó összeg (szenzorok + anyag + doboz + tápellátás) | 26 500 Ft |
 | `vatPercent` | ÁFA kulcs | 27% |
-| `vatAmount` | ÁFA összeg (subtotal × 0.27) | 8 370 Ft |
-| `total` | Bruttó végösszeg (subtotal + vatAmount) | 39 370 Ft |
+| `vatAmount` | ÁFA összeg (subtotal × 0.27) | 7 155 Ft |
+| `total` | Bruttó végösszeg (subtotal + vatAmount) | 33 655 Ft |
 
 ### TypeScript típusok
 
@@ -501,7 +501,7 @@ Cookie: next-auth.session-token=...
 |------|---------|
 | `userId` | Kötelező, string |
 | `userEmail` | Kötelező, valid email |
-| `szenzorok` | Kötelező, 1-3 elem |
+| `szenzorok` | Kötelező, 1-2 elem |
 | `doboz` | Kötelező, id + name + price + quantity |
 | `colors` | Kötelező, dobozSzin + tetoSzin |
 | `tapellatas` | Kötelező, id + name + price + quantity |
@@ -602,7 +602,7 @@ lineItems.push({
 
 - [x] Bejelentkezés nélkül átirányít signin-ra
 - [x] Bejelentkezés után visszakerül /vasarlas-ra
-- [x] Szenzor választás működik (max 3)
+- [x] Szenzor választás működik (max 2)
 - [x] Anyag választás működik (PLA típusok)
 - [x] Doboz választás működik
 - [x] Szín választás működik
@@ -655,13 +655,14 @@ EMAIL_FROM=info@szenzor24.hu
 
 | Fájl | Leírás |
 |------|--------|
-| `src/app/(site)/vasarlas/page.tsx` | Vásárlás oldal |
+| `src/app/(site)/vasarlas/page.tsx` | Rendelés oldal (/vasarlas) |
 | `src/components/Vasarlas/ProductConfigurator.tsx` | 6 lépéses konfigurátor |
 | `src/types/order.ts` | TypeScript típusok |
-| `src/app/api/order/route.ts` | Local proxy (üres, már nem küld ide) |
+| `src/app/api/order/route.ts` | Lokális API referencia/validáció (frontend jelenleg külső API-ra küld) |
 | `src/lib/orderEmail.ts` | Rendelés visszaigazoló email template |
 | `src/lib/email.ts` | Nodemailer konfiguráció |
-| `src/components/Pricing/index.tsx` | "Rendelés" gomb |
+| `src/components/HeroArea/index.tsx` | Főoldali "Rendelés" CTA |
+| `src/components/Header/index.tsx` | Fejléc "Rendelés" menüpont |
 
 ---
 
@@ -677,4 +678,4 @@ Ha kérdés van a frontend működésével kapcsolatban, nézd meg:
 
 ---
 
-*Dokumentáció generálva: 2025. február 4.*
+*Dokumentáció generálva: 2026. február 9.*

@@ -25,7 +25,7 @@ model Order {
   userName        String                          // Megrendelő neve
   
   // Termékek - JSON formátumban vagy külön OrderItem tábla
-  szenzorokJson   Json                            // [{ id, name, price, quantity }] - max 3 elem
+  szenzorokJson   Json                            // [{ id, name, price, quantity }] - max 2 elem
   
   // Burok anyag (KÖTELEZŐ)
   anyagId         String                          // "sima_pla" | "uv_allo_pla" | "abs" | "petg"
@@ -86,7 +86,7 @@ BEJÖVŐ JSON STRUKTÚRA (body) - 2026-02-04 frissítve:
   "userId": "cml52vail000058c1ltq6lylg",
   "userEmail": "user@example.com",
   "userName": "Kiss Péter",                       // ÚJ - Megrendelő neve
-  "szenzorok": [                                  // KÖTELEZŐ - Max 3 elem!
+  "szenzorok": [                                  // KÖTELEZŐ - Max 2 elem!
     { "id": "htu21d", "name": "HTU21D", "price": 5000, "quantity": 1 },
     { "id": "mpu6050", "name": "MPU-6050", "price": 6000, "quantity": 1 }
   ],
@@ -159,10 +159,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Max 3 szenzor ellenőrzés
-    if (body.szenzorok.length > 3) {
+    // Max 2 szenzor ellenőrzés
+    if (body.szenzorok.length > 2) {
       return NextResponse.json(
-        { error: "Maximum 3 szenzor választható" },
+        { error: "Maximum 2 szenzor választható" },
         { status: 400 }
       );
     }
@@ -192,7 +192,7 @@ export async function POST(request: Request) {
     /*
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
     
-    // Szenzorok line_items (max 3)
+    // Szenzorok line_items (max 2)
     const szenzorLineItems = body.szenzorok.map((sz) => ({
       price_data: {
         currency: "huf",

@@ -192,10 +192,10 @@ const anyagok = [
 
 type StepId = "szenzor" | "anyag" | "doboz" | "szin" | "tapellatas" | "osszesites";
 
-const MAX_SZENZOROK = 3;
+const MAX_SZENZOROK = 2;
 
 interface Selection {
-  szenzorok: string[]; // Max 3 szenzor
+  szenzorok: string[]; // Max 2 szenzor
   anyag: string | null;
   doboz: string | null;
   dobozSzin: string;
@@ -269,7 +269,7 @@ const ProductConfigurator = () => {
         szenzorok: prev.szenzorok.filter((id) => id !== szenzorId),
       }));
     } else {
-      // Hozzáadás (max 3)
+      // Hozzáadás (max 2)
       if (selection.szenzorok.length >= MAX_SZENZOROK) {
         toast.error(`Maximum ${MAX_SZENZOROK} szenzort választhatsz!`);
         return;
