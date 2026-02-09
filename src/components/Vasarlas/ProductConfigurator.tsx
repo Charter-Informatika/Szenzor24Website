@@ -392,7 +392,7 @@ const ProductConfigurator = () => {
     };
 
     try {
-      const { data } = await axios.post("https://szenzor24.hu/api/orders/create", orderPayload);
+      const { data } = await axios.post("https://rendszer.szenzor24.hu/api/orders/create", orderPayload);
       
       if (data.url) {
         // Stripe checkout URL - redirect
