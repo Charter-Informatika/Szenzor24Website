@@ -18,6 +18,28 @@ export interface OrderColors {
   };
 }
 
+export interface ShippingAddress {
+  zip: string;
+  city: string;
+  street: string;
+  houseNumber: string;
+  stair?: string | null;
+  floor?: string | null;
+  door?: string | null;
+}
+
+export interface ShippingDetails {
+  mode: "foxpost" | "hazhoz";
+  shippingAddress?: ShippingAddress | null;
+  billingSame?: boolean;
+  billingAddress: ShippingAddress;
+  foxpostAutomata?: string | null;
+}
+
+export interface PaymentDetails {
+  mode: "utalas" | "stripe";
+}
+
 export interface OrderPayload {
   // Felhasználó adatok
   userId: string;
@@ -25,7 +47,7 @@ export interface OrderPayload {
   userName: string;        // Megrendelő neve
 
   // Kiválasztott termékek
-  szenzorok: OrderItem[]; // Max 2 szenzor lehet!
+  szenzorok: OrderItem[]; // Custom max 2, preset limit
   eszkoz?: OrderItem;     // Opcionális - jelenleg nem használt
   doboz: OrderItem;
   anyag: OrderItem;       // Burok anyag típusa (PLA, UV álló PLA, stb.)
@@ -33,6 +55,12 @@ export interface OrderPayload {
 
   // Színek (nem befolyásolja az árat)
   colors: OrderColors;
+
+  // Szállítás
+  shipping: ShippingDetails;
+
+  // Fizetés
+  payment: PaymentDetails;
 
   // Összesítés
   subtotal: number;      // Nettó összeg (ÁFA nélkül)
@@ -81,6 +109,24 @@ export interface OrderPayload {
     "name": "Akkumulátoros",
     "price": 5000,
     "quantity": 1
+  },
+  "shipping": {
+    "mode": "foxpost",
+    "shippingAddress": null,
+    "billingSame": true,
+    "billingAddress": {
+      "zip": "1138",
+      "city": "Budapest",
+      "street": "Váci út",
+      "houseNumber": "99",
+      "stair": null,
+      "floor": null,
+      "door": null
+    },
+    "foxpostAutomata": "FOXP-LIFE-001"
+  },
+  "payment": {
+    "mode": "utalas"
   },
   
   "colors": {

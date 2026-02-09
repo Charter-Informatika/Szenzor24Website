@@ -103,6 +103,24 @@ BEJÖVŐ JSON STRUKTÚRA (body) - 2026-02-04 frissítve:
     "tetoSzin": { "id": "feher", "name": "Fehér" }
   },
   "tapellatas": { "id": "vezetekes", "name": "Vezetékes", "price": 2500, "quantity": 1 },
+  "shipping": {
+    "mode": "foxpost",
+    "shippingAddress": null,
+    "billingSame": true,
+    "billingAddress": {
+      "zip": "1138",
+      "city": "Budapest",
+      "street": "Váci út",
+      "houseNumber": "99",
+      "stair": null,
+      "floor": null,
+      "door": null
+    },
+    "foxpostAutomata": "FOXP-LIFE-001"
+  },
+   "payment": {
+     "mode": "utalas"
+   },
   "subtotal": 15000,
   "vatPercent": 27,
   "vatAmount": 4050,
@@ -111,7 +129,7 @@ BEJÖVŐ JSON STRUKTÚRA (body) - 2026-02-04 frissítve:
   "locale": "hu-HU",
   "createdAt": "2026-02-04T10:30:00.000Z",
   "presetId": "akvarium",                    // OPCIONÁLIS - preset azonosító
-  "presetLabel": "Akváriumhoz",              // OPCIONÁLIS - preset megnevezés
+  "presetLabel": "Akvárium",                // OPCIONÁLIS - preset megnevezés
   "presetMaxSzenzorok": 3                     // OPCIONÁLIS - preset limit
 }
 
@@ -140,7 +158,12 @@ TETŐ SZÍN ID-K:
   - feher, sarga, kek, zold, piros, fekete
 
 TÁPELLÁTÁS ID-K:
-  - akkus, vezetekes, napelemes
+  - akkus, vezetekes
+
+SZÁLLÍTÁSI MÓDOK:
+  - foxpost, hazhoz
+FIZETÉSI MÓDOK:
+  - utalas, stripe
 ================================================================================
 */
 
@@ -162,7 +185,7 @@ export async function POST(request: Request) {
     // }
 
     // Validáció - kötelező mezők (eszkoz opcionális)
-    if (!body.szenzorok || body.szenzorok.length === 0 || !body.anyag || !body.doboz || !body.tapellatas) {
+      if (!body.szenzorok || body.szenzorok.length === 0 || !body.anyag || !body.doboz || !body.tapellatas || !body.shipping || !body.payment) {
       return NextResponse.json(
         { error: "Hiányzó termék adatok" },
         { status: 400 }
@@ -188,6 +211,52 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    if (!body.shipping || !body.shipping.mode || !body.shipping.billingAddress) {
+      return NextResponse.json(
+        { error: "Hiányzó szállítási adatok" },
+        { status: 400 }
+      );
+    }
+
+    const billing = body.shipping.billingAddress;
+    if (!billing.zip || !billing.city || !billing.street || !billing.houseNumber) {
+      return NextResponse.json(
+        { error: "Hiányos számlázási cím" },
+        { status: 400 }
+      );
+    }
+
+    if (body.shipping.mode === "hazhoz") {
+      if (!body.shipping.shippingAddress) {
+        return NextResponse.json(
+          { error: "Hiányos szállítási cím" },
+          { status: 400 }
+        );
+      }
+
+      const shipping = body.shipping.shippingAddress;
+      if (!shipping.zip || !shipping.city || !shipping.street || !shipping.houseNumber) {
+        return NextResponse.json(
+          { error: "Hiányos szállítási cím" },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (body.shipping.mode === "foxpost" && !body.shipping.foxpostAutomata) {
+      return NextResponse.json(
+        { error: "Hiányzó Foxpost automata" },
+        { status: 400 }
+      );
+    }
+
+      if (!body.payment.mode) {
+        return NextResponse.json(
+          { error: "Hiányzó fizetési mód" },
+          { status: 400 }
+        );
+      }
 
     // Összeg újraszámolás (biztonság kedvéért)
     const szenzorokTotal = body.szenzorok.reduce((sum, sz) => sum + sz.price * sz.quantity, 0);

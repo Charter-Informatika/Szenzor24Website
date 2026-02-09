@@ -24,13 +24,15 @@
 
 A rendelés funkció lehetővé teszi a felhasználók számára, hogy egyedi szenzor-csomagot állítsanak össze:
 - Custom módban maximum 2 szenzor kiválasztása
-- Javasolt konfiguráció esetén a preset limit érvényes (pl. 3 szenzor)
-- Preset csak szenzorokat és burkot állít be, tápellátás és színek továbbra is választandók
-- Preset választásakor a szenzorok és a burkolat nem szerkeszthetők
+- Előre beállított konfiguráció esetén a konfigurációhoz tartozó limit érvényes (pl. 3 szenzor)
+- Előre beállított konfiguráció csak szenzorokat és burkot állít be, tápellátás és színek továbbra is választandók
+- Előre beállított konfiguráció választásakor a szenzorok és a burkolat nem szerkeszthetők
+- Előre beállított konfiguráció módban a Szenzor lépés csak a kiválasztott konfiguráció szenzorait mutatja
 - Burok anyag típus választás (PLA, UV álló PLA, stb.)
 - Doboz típus választás
 - Doboz és tető szín választás (3D előnézettel)
 - Tápellátás típus választás (vezetékes v. akkus)
+- Fizetési mód kiválasztás
 - Automatikus ár kalkuláció ÁFA-val
 
 **Jelenlegi állapot:** A frontend teljesen működőképes, a rendelés JSON formátumban elkészül és elküldésre kerül a `http://192.168.88.210:3000/api/orders/create` végpontra (rendszer.szenzor24.hu backend). Az email-t a szenzor24.hu API még elküldi a megrendelőnek.
@@ -56,21 +58,23 @@ A rendelés oldalra a főoldali "Rendelés" CTA-val és a fejléc menüponttal l
 - Ha nincs bejelentkezve → átirányítás `/auth/signin?callbackUrl=/vasarlas`
 - Sikeres bejelentkezés után visszakerül a `/vasarlas` oldalra
 
-### 7 lépéses konfigurátor
+### 9 lépéses konfigurátor
 
 | Lépés | Név | Leírás |
 |-------|-----|--------|
-| 1 | Mód | Javasolt konfiguráció vagy Teljeskörű személyre szabás |
-| 2 | Szenzorok | Custom: max 2 szenzor, preset: preset limit |
+| 1 | Mód | Előre beállított konfiguráció vagy Teljeskörű személyre szabás |
+| 2 | Szenzorok | Custom: max 2 szenzor, konfiguráció limit |
 | 3 | Anyag | Burok anyag típusa (Normál, Vízálló, PLA, UV álló PLA, ABS, PETG) |
-| 4 | Tápellátás | Akkumulátoros/Vezetékes/Napelemes |
+| 4 | Tápellátás | Akkumulátoros/Vezetékes |
 | 5 | Doboz | Doboz típus (műanyag/fém/rozsdamentes) |
 | 6 | Színek | Doboz szín + tető szín (3D előnézet) |
-| 7 | Összesítés | Végleges rendelés áttekintés + "Megrendelés" gomb |
+| 7 | Szállítás | Szállítási mód + cím megadása |
+| 8 | Fizetés | Fizetési mód kiválasztása |
+| 9 | Összesítés | Végleges rendelés áttekintés + "Megrendelés" gomb |
 
 ### Elérhető opciók
 
-#### Szenzorok (custom max 2, preset limit érvényes)
+#### Szenzorok (custom max 2, konfiguráció limit érvényes)
 | ID | Név | Leírás | Ár |
 |----|-----|--------|-----|
 | `htu21d` | HTU21D | Hőmérséklet és páratartalom szenzor | 5 000 Ft |
@@ -129,15 +133,28 @@ Megjegyzés: az új szenzorok és burkolatok árai jelenleg PLACEHOLDER értéke
 |----|-----|--------|-----|
 | `akkus` | Akkumulátoros | Beépített Li-Ion akku, ~6 hónap üzemidő | 5 000 Ft |
 | `vezetekes` | Vezetékes | 230V AC adapter, folyamatos üzem | 2 500 Ft |
-| `napelemes` | Napelemes | Napelem + akkumulátor kombináció | 12 000 Ft |
 
-#### Javasolt konfigurációk
+#### Szállítási módok
+| ID | Név | Leírás |
+|----|-----|--------|
+| `foxpost` | Foxpost automata | Csomagautomata átvétel |
+| `hazhoz` | Házhozszállítás | Kézbesítés a megadott címre |
+
+Megjegyzés: Foxpost esetén a címmezők a számlázási címet jelentik. Házhozszállításnál választható, hogy a számlázási cím megegyezik-e a szállítási címmel.
+
+#### Fizetési módok
+| ID | Név | Leírás |
+|----|-----|--------|
+| `utalas` | Utalás | Díjbekérő / előre utalás |
+| `stripe` | Stripe | Bankkártyás fizetés |
+
+#### Előre beállított konfigurációk
 | ID | Név | Szenzorok | Burok anyag |
 |----|-----|-----------|-------------|
-| `huto` | Hűtőhöz | Hő + páratartalom | Normál burkolat (`normal_burkolat`) |
-| `akvarium` | Akváriumhoz | Hő + O2 + CO2 | Vízálló burkolat (`vizallo_burkolat`) |
+| `huto` | Hűtő | Hő + páratartalom | Normál burkolat (`normal_burkolat`) |
+| `akvarium` | Akvárium | Hő + O2 + CO2 | Vízálló burkolat (`vizallo_burkolat`) |
 
-Megjegyzés: preset módban a szenzorok és a burkolat nem módosíthatók.
+Megjegyzés: előre beállított konfiguráció módban a szenzorok és a burkolat nem módosíthatók.
 
 ### 3D Előnézet
 - **Technológia:** Google Model Viewer (`@google/model-viewer`)
@@ -168,13 +185,13 @@ Megjegyzés: preset módban a szenzorok és a burkolat nem módosíthatók.
 │     │           │                                                │
 │     └─────┬─────┘                                               │
 │           ▼                                                      │
-│  3. Mód választás (Ajánlott / Teljeskörű)                       │
+│  3. Mód választás (Előre beállított / Teljeskörű)               │
 │           │                                                      │
 │           ▼                                                      │
-│  4. Szenzor választás (custom max 2 / preset limit)             │
+│  4. Szenzor választás (custom max 2 / konfiguráció limit)       │
 │           │                                                      │
 │           ▼                                                      │
-│  5. Anyag választás (presetnél előre beállítva)                 │
+│  5. Anyag választás (konfigurációnál előre beállítva)           │
 │           │                                                      │
 │           ▼                                                      │
 │  6. Tápellátás választás                                        │
@@ -186,10 +203,16 @@ Megjegyzés: preset módban a szenzorok és a burkolat nem módosíthatók.
 │  8. Szín választás (3D előnézet)                                │
 │           │                                                      │
 │           ▼                                                      │
-│  9. Összesítés + "Megrendelés" gomb                             │
+│  9. Szállítás mód + cím                                         │
 │           │                                                      │
 │           ▼                                                      │
-│  10. POST http://192.168.88.210:3000/api/orders/create            │
+│  10. Fizetési mód                                               │
+│           │                                                      │
+│           ▼                                                      │
+│  11. Összesítés + "Megrendelés" gomb                            │
+│           │                                                      │
+│           ▼                                                      │
+│  12. POST http://192.168.88.210:3000/api/orders/create           │
 │           │                                                      │
 │           ▼                                                      │
 │  ┌────────────────────────────────────┐                         │
@@ -198,13 +221,13 @@ Megjegyzés: preset módban a szenzorok és a burkolat nem módosíthatók.
 │  └────────────────────────────────────┘                         │
 │           │                                                      │
 │           ▼                                                      │
-│  11. [TODO] Stripe fizetési oldal                               │
+│  13. [TODO] Stripe fizetési oldal                               │
 │           │                                                      │
 │           ▼                                                      │
-│  12. [TODO] Webhook → DB mentés                                 │
+│  14. [TODO] Webhook → DB mentés                                 │
 │           │                                                      │
 │           ▼                                                      │
-│  13. [TODO] Visszairányítás + email                             │
+│  15. [TODO] Visszairányítás + email                             │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -238,10 +261,28 @@ Megjegyzés: preset módban a szenzorok és a burkolat nem módosíthatók.
     "quantity": 1
   },
   "tapellatas": {
-    "id": "napelemes",
-    "name": "Napelemes",
-    "price": 12000,
+    "id": "vezetekes",
+    "name": "Vezetékes",
+    "price": 2500,
     "quantity": 1
+  },
+  "shipping": {
+    "mode": "foxpost",
+    "shippingAddress": null,
+    "billingSame": true,
+    "billingAddress": {
+      "zip": "1138",
+      "city": "Budapest",
+      "street": "Váci út",
+      "houseNumber": "99",
+      "stair": null,
+      "floor": null,
+      "door": null
+    },
+    "foxpostAutomata": "FOXP-LIFE-001"
+  },
+  "payment": {
+    "mode": "utalas"
   },
   "colors": {
     "dobozSzin": { "id": "sarga", "name": "Sárga" },
@@ -255,7 +296,7 @@ Megjegyzés: preset módban a szenzorok és a burkolat nem módosíthatók.
   "createdAt": "2026-02-04T10:30:00.000Z",
   "locale": "hu-HU",
   "presetId": "akvarium",
-  "presetLabel": "Akváriumhoz",
+  "presetLabel": "Akvárium",
   "presetMaxSzenzorok": 3
 }
 ```
@@ -266,10 +307,12 @@ Megjegyzés: preset módban a szenzorok és a burkolat nem módosíthatók.
 | `userId` | string | Bejelentkezett felhasználó ID-ja |
 | `userEmail` | string | Felhasználó email címe |
 | `userName` | string | Megrendelő neve (session-ből) |
-| `szenzorok` | array | Custom: 1-2 elem, preset: preset limit |
+| `szenzorok` | array | Custom: 1-2 elem, konfiguráció limit |
 | `anyag` | object | Burok anyag: `{ id, name, price, quantity }` |
 | `doboz` | object | Doboz típus: `{ id, name, price, quantity }` |
 | `tapellatas` | object | Tápellátás: `{ id, name, price, quantity }` |
+| `shipping` | object | Szállítás: `{ mode, shippingAddress?, billingSame?, billingAddress, foxpostAutomata? }` |
+| `payment` | object | Fizetés: `{ mode }` |
 | `colors` | object | `{ dobozSzin: { id, name }, tetoSzin: { id, name } }` |
 | `subtotal` | number | Nettó összeg (Ft) |
 | `vatPercent` | number | ÁFA kulcs (27) |
@@ -316,10 +359,28 @@ A backend **MINDEN** eredeti mezőt visszaad, plusz a számított értékeket:
       "tetoSzin": { "id": "sarga", "name": "Sárga" }
     },
     "tapellatas": {
-      "id": "napelemes",
-      "name": "Napelemes",
-      "price": 12000,
+      "id": "vezetekes",
+      "name": "Vezetékes",
+      "price": 2500,
       "quantity": 1
+    },
+    "shipping": {
+      "mode": "foxpost",
+      "shippingAddress": null,
+      "billingSame": true,
+      "billingAddress": {
+        "zip": "1138",
+        "city": "Budapest",
+        "street": "Váci út",
+        "houseNumber": "99",
+        "stair": null,
+        "floor": null,
+        "door": null
+      },
+      "foxpostAutomata": "FOXP-LIFE-001"
+    },
+    "payment": {
+      "mode": "utalas"
     },
     "subtotal": 37500,
     "vatPercent": 27,
@@ -329,7 +390,7 @@ A backend **MINDEN** eredeti mezőt visszaad, plusz a számított értékeket:
     "currency": "HUF",
     "createdAt": "2026-02-04T10:30:00.000Z",
     "presetId": "akvarium",
-    "presetLabel": "Akváriumhoz",
+    "presetLabel": "Akvárium",
     "presetMaxSzenzorok": 3
   }
 }
@@ -374,6 +435,32 @@ export interface OrderPayload {
   eszkoz?: OrderItem;        // OPCIONÁLIS - jelenleg nem használt
   doboz: OrderItem;
   colors: OrderColors;
+  shipping: {
+    mode: "foxpost" | "hazhoz";
+    shippingAddress?: {
+      zip: string;
+      city: string;
+      street: string;
+      houseNumber: string;
+      stair?: string | null;
+      floor?: string | null;
+      door?: string | null;
+    } | null;
+    billingSame?: boolean;
+    billingAddress: {
+      zip: string;
+      city: string;
+      street: string;
+      houseNumber: string;
+      stair?: string | null;
+      floor?: string | null;
+      door?: string | null;
+    };
+    foxpostAutomata?: string | null;
+  };
+  payment: {
+    mode: "utalas" | "stripe";
+  };
   tapellatas: OrderItem;
   locale: string;
   currency: string;
@@ -542,10 +629,12 @@ Cookie: next-auth.session-token=...
 |------|---------|
 | `userId` | Kötelező, string |
 | `userEmail` | Kötelező, valid email |
-| `szenzorok` | Kötelező, custom: 1-2 elem, preset: preset limit |
+| `szenzorok` | Kötelező, custom: 1-2 elem, konfiguráció limit |
 | `doboz` | Kötelező, id + name + price + quantity |
 | `colors` | Kötelező, dobozSzin + tetoSzin |
 | `tapellatas` | Kötelező, id + name + price + quantity |
+| `shipping` | Kötelező, mode + billingAddress + (hazhoz esetén shippingAddress) + (foxpost esetén foxpostAutomata) |
+| `payment` | Kötelező, mode |
 | `eszkoz` | **OPCIONÁLIS** |
 | `presetId` | OPCIONÁLIS, preset azonosító |
 | `presetMaxSzenzorok` | OPCIONÁLIS, preset limit |
@@ -646,13 +735,14 @@ lineItems.push({
 - [x] Bejelentkezés nélkül átirányít signin-ra
 - [x] Bejelentkezés után visszakerül /vasarlas-ra
 - [x] Szenzor választás működik (custom max 2)
-- [x] Javasolt konfigurációk működnek (preset limit)
+- [x] Előre beállított konfigurációk működnek (preset limit)
 - [x] Anyag választás működik (PLA típusok)
 - [x] Doboz választás működik
 - [x] Szín választás működik
 - [x] 3D előnézet betölt minden kombinációra
 - [x] Tápellátás választás működik
 - [x] Összesítés helyes árakat mutat
+- [x] Szállítási adatok megadása kötelező (mód + cím + Foxpost automata ha szükséges)
 - [x] ÁFA kalkuláció helyes (27%)
 - [x] Megrendelés gomb elküldi a JSON-t
 - [x] Toast üzenet megjelenik
