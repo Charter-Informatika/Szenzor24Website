@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { OrderPayload } from "@/types/order";
 import { ALT_MODEL_PATH } from "@/lib/modelPaths";
+import FoxpostSelector, { FoxpostAutomataData } from "./FoxpostSelector";
 
 // Szenzor típusok
 const szenzorok = [
@@ -191,7 +192,7 @@ const szallitasiModok = [
     name: "Házhozszállítás",
     description: "Kézbesítés a megadott címre",
   },
-];
+] as const;
 
 // Fizetési módok
 const fizetesiModok = [
@@ -205,7 +206,7 @@ const fizetesiModok = [
     name: "Stripe",
     description: "Bankkártyás fizetés",
   },
-];
+] as const;
 
 // Burok anyag típusok (PLACEHOLDER - árak és típusok később pontosítandók)
 const anyagok = [
@@ -283,8 +284,8 @@ interface Selection {
   dobozSzin: string;
   tetoSzin: string;
   tapellatas: string | null;
-  shippingMode: string | null;
-  paymentMode: string | null;
+  shippingMode: "foxpost" | "hazhoz" | null;
+  paymentMode: "utalas" | "stripe" | null;
   shippingAddress: {
     zip: string;
     city: string;
@@ -304,7 +305,7 @@ interface Selection {
     floor: string;
     door: string;
   };
-  foxpostAutomata: string;
+  foxpostAutomata: FoxpostAutomataData | null;
 }
 
 const ProductConfigurator = () => {
@@ -340,7 +341,7 @@ const ProductConfigurator = () => {
       floor: "",
       door: "",
     },
-    foxpostAutomata: "",
+    foxpostAutomata: null,
   });
 
   const modelViewerRef = useRef<HTMLDivElement>(null);
@@ -412,7 +413,7 @@ const ProductConfigurator = () => {
 
     if (selection.shippingMode === "foxpost") {
       if (!isAddressComplete(selection.billingAddress)) return false;
-      if (!selection.foxpostAutomata.trim()) return false;
+      if (!selection.foxpostAutomata) return false;
       return true;
     }
 
@@ -601,8 +602,22 @@ const ProductConfigurator = () => {
                 door: selection.billingAddress.door.trim() || null,
               },
         foxpostAutomata:
-          selection.shippingMode === "foxpost"
-            ? selection.foxpostAutomata.trim()
+          selection.shippingMode === "foxpost" && selection.foxpostAutomata
+            ? selection.foxpostAutomata.name
+            : null,
+        foxpostAutomataDetails:
+          selection.shippingMode === "foxpost" && selection.foxpostAutomata
+            ? {
+                place_id: selection.foxpostAutomata.place_id,
+                operator_id: selection.foxpostAutomata.operator_id,
+                name: selection.foxpostAutomata.name,
+                address: selection.foxpostAutomata.address,
+                city: selection.foxpostAutomata.city,
+                zip: selection.foxpostAutomata.zip,
+                geolat: selection.foxpostAutomata.geolat,
+                geolng: selection.foxpostAutomata.geolng,
+                findme: selection.foxpostAutomata.findme,
+              }
             : null,
       },
 
@@ -1081,17 +1096,16 @@ const ProductConfigurator = () => {
 
                 <div className="rounded-xl border border-stroke bg-white p-4 dark:border-stroke-dark dark:bg-dark">
                   <p className="mb-3 text-sm text-body">
-                    Add meg a Foxpost automata nevét vagy azonosítóját. (Később térképes kiválasztóval bővíthető.)
+                    Válaszd ki a csomagautomatát a térképes keresőből:
                   </p>
-                  <input
-                    type="text"
-                    placeholder="Foxpost automata (név vagy azonosító)"
-                    value={selection.foxpostAutomata}
-                    onChange={(ev) => setSelection({
-                      ...selection,
-                      foxpostAutomata: ev.target.value,
-                    })}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                  <FoxpostSelector
+                    selected={selection.foxpostAutomata}
+                    onSelect={(automata) =>
+                      setSelection((prev) => ({
+                        ...prev,
+                        foxpostAutomata: automata,
+                      }))
+                    }
                   />
                 </div>
               </div>
@@ -1376,7 +1390,19 @@ const ProductConfigurator = () => {
                         {selection.billingAddress.door ? `, ${selection.billingAddress.door}` : ""}
                       </p>
                       {selection.foxpostAutomata && (
-                        <p className="text-sm text-body">Automata: {selection.foxpostAutomata}</p>
+                        <div className="mt-1">
+                          <p className="text-sm font-medium text-black dark:text-white">
+                            Automata: {selection.foxpostAutomata.name}
+                          </p>
+                          <p className="text-xs text-body">
+                            {selection.foxpostAutomata.zip} {selection.foxpostAutomata.city}, {selection.foxpostAutomata.address}
+                          </p>
+                          {selection.foxpostAutomata.findme && (
+                            <p className="text-xs text-body italic">
+                              📍 {selection.foxpostAutomata.findme}
+                            </p>
+                          )}
+                        </div>
                       )}
                     </>
                   )}

@@ -16,7 +16,8 @@
 6. [API dokumentáció](#api-dokumentáció)
 7. [Adatbázis séma](#adatbázis-séma)
 8. [Stripe integráció](#stripe-integráció)
-9. [Tesztelési checklist](#tesztelési-checklist)
+9. [Foxpost integráció](#foxpost-integráció)
+10. [Tesztelési checklist](#tesztelési-checklist)
 
 ---
 
@@ -279,21 +280,20 @@ Megjegyzés: előre beállított konfiguráció módban a szenzorok és a burkol
       "floor": null,
       "door": null
     },
-    "foxpostAutomata": "FOXP-LIFE-001"
-  },
-  "payment": {
-    "mode": "utalas"
-  },
-  "colors": {
-    "dobozSzin": { "id": "sarga", "name": "Sárga" },
-    "tetoSzin": { "id": "sarga", "name": "Sárga" }
-  },
-  "subtotal": 37500,
-  "vatPercent": 27,
-  "vatAmount": 10125,
-  "total": 47625,
-  "currency": "HUF",
-  "createdAt": "2026-02-04T10:30:00.000Z",
+    "foxpostAutomata": "BP Nyugati 115 csomagautomata",
+    "foxpostAutomataDetails": {
+      "place_id": "115",
+      "operator_id": "FP-HU-BUD-0115",
+      "name": "BP Nyugati 115 csomagautomata",
+      "address": "1062 Budapest, Teréz krt. 55.",
+      "city": "Budapest",
+      "zip": "1062",
+      "geolat": "47.5100",
+      "geolng": "19.0630",
+      "findme": "A Nyugati pályaudvar mellett"
+    ---
+
+    *Dokumentáció generálva: 2026. február 9.*
   "locale": "hu-HU",
   "presetId": "akvarium",
   "presetLabel": "Akvárium",
@@ -311,7 +311,7 @@ Megjegyzés: előre beállított konfiguráció módban a szenzorok és a burkol
 | `anyag` | object | Burok anyag: `{ id, name, price, quantity }` |
 | `doboz` | object | Doboz típus: `{ id, name, price, quantity }` |
 | `tapellatas` | object | Tápellátás: `{ id, name, price, quantity }` |
-| `shipping` | object | Szállítás: `{ mode, shippingAddress?, billingSame?, billingAddress, foxpostAutomata? }` |
+| `shipping` | object | Szállítás: `{ mode, shippingAddress?, billingSame?, billingAddress, foxpostAutomata?, foxpostAutomataDetails? }` |
 | `payment` | object | Fizetés: `{ mode }` |
 | `colors` | object | `{ dobozSzin: { id, name }, tetoSzin: { id, name } }` |
 | `subtotal` | number | Nettó összeg (Ft) |
@@ -377,7 +377,15 @@ A backend **MINDEN** eredeti mezőt visszaad, plusz a számított értékeket:
         "floor": null,
         "door": null
       },
-      "foxpostAutomata": "FOXP-LIFE-001"
+      "foxpostAutomata": "BP Nyugati 115 csomagautomata",
+      "foxpostAutomataDetails": {
+        "place_id": "115",
+        "operator_id": "FP-HU-BUD-0115",
+        "name": "BP Nyugati 115 csomagautomata",
+        "address": "1062 Budapest, Teréz krt. 55.",
+        "city": "Budapest",
+        "zip": "1062"
+      }
     },
     "payment": {
       "mode": "utalas"
@@ -416,14 +424,15 @@ export interface OrderItem {
   quantity: number;
 }
 
-export interface ColorSelection {
-  id: string;
-  name: string;
-}
-
 export interface OrderColors {
-  dobozSzin: ColorSelection;
-  tetoSzin: ColorSelection;
+  dobozSzin: {
+    id: string;
+    name: string;
+  };
+  tetoSzin: {
+    id: string;
+    name: string;
+  };
 }
 
 export interface OrderPayload {
@@ -457,13 +466,25 @@ export interface OrderPayload {
       door?: string | null;
     };
     foxpostAutomata?: string | null;
+    /** Foxpost automata teljes adatokkal (APT Finder widgetből) */
+    foxpostAutomataDetails?: {
+      place_id: string;
+      operator_id: string;
+      name: string;
+      address: string;
+      city: string;
+      zip: string;
+      geolat?: string;
+      geolng?: string;
+      findme?: string;
+    } | null;
   };
   payment: {
     mode: "utalas" | "stripe";
   };
   tapellatas: OrderItem;
-  locale: string;
-  currency: string;
+  locale: "hu-HU";
+  currency: "HUF";
   createdAt: string;
 
   // Preset meta (opcionális)
@@ -729,6 +750,146 @@ lineItems.push({
 
 ---
 
+## Foxpost integráció
+
+### Összefoglaló
+
+A Foxpost integráció lehetővé teszi, hogy a felhasználó a rendelés "Szállítás" lépésében
+egy **térképes automata-keresőből** válasszon csomagautomatát.
+
+**Dokumentáció forrás:** https://foxpost.hu/uzleti-partnereknek/integracios-segedlet/webapi-integracio
+
+### Architektúra
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  FRONTEND (kliens)                                            │
+│                                                               │
+│  ProductConfigurator.tsx                                      │
+│       │                                                       │
+│       └─── FoxpostSelector.tsx                                │
+│                 │                                             │
+│                 ├── iframe: cdn.foxpost.hu/apt-finder/v1/app/ │
+│                 │     (Foxpost hivatalos APT Finder widget)   │
+│                 │                                             │
+│                 └── window.postMessage ← automata adatok      │
+│                       (operator_id, name, address, stb.)      │
+│                                                               │
+│  Kiválasztott automata → foxpostAutomataDetails (OrderPayload)│
+└──────────────────────────────────────────────────────────────┘
+          │
+          ▼
+┌──────────────────────────────────────────────────────────────┐
+│  BACKEND (szerver)                                            │
+│                                                               │
+│  src/app/api/foxpost/route.ts                                │
+│       │                                                       │
+│       ├── POST /api/foxpost → Foxpost csomag létrehozása     │
+│       │     (destination = operator_id)                       │
+│       │                                                       │
+│       └── GET /api/foxpost  → Automata lista (foxplus.json)  │
+│                                                               │
+│  Foxpost WebAPI (Basic Auth + Api-key header)                │
+│  Éles:    https://webapi.foxpost.hu/api                      │
+│  Sandbox: https://webapi-test.foxpost.hu/api                 │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Frontend – FoxpostSelector komponens
+
+**Fájl:** `src/components/Vasarlas/FoxpostSelector.tsx`
+
+- A Foxpost hivatalos **APT Finder** widgetjét tölti be iframe-ben
+- Widget URL: `https://cdn.foxpost.hu/apt-finder/v1/app/?lang=hu&country=HU&noHeader=1&...`
+- A felhasználó a térképen keres/kiválaszt egy automatát
+- A widget `postMessage`-en küldi vissza a kiválasztott automatát
+- Biztonsági ellenőrzés: csak `cdn.foxpost.hu` / `foxpost.hu` origin elfogadva
+- A kiválasztott automata adatai megjelennek kártyaként (név, cím, kültéri/beltéri, telítettség)
+
+**Kiválasztott automata mezők:**
+
+| Mező | Leírás |
+|------|--------|
+| `place_id` | Automata ID (régi, Packeta kompatibilis) |
+| `operator_id` | Automata ID (**ezt kell API-nak küldeni** mint `destination`) |
+| `name` | Automata neve |
+| `address` | Teljes cím |
+| `city` | Település |
+| `zip` | Irányítószám |
+| `geolat` / `geolng` | GPS koordináták |
+| `findme` | Megtalálhatóság (pl. "A Nyugati pályaudvar mellett") |
+| `load` | Telítettség: `normal loaded`, `medium loaded`, `overloaded` |
+| `apmType` | Gyártó: Cleveron / Keba / Rollkon / Rotte |
+| `isOutdoor` | Kültéri-e (boolean) |
+
+### Backend – Foxpost API route
+
+**Fájl:** `src/app/api/foxpost/route.ts`
+
+#### POST /api/foxpost – Csomag létrehozása
+
+A rendelés feldolgozásakor a backend ezzel hozza létre a csomagot a Foxpost rendszerében.
+
+**Request body:**
+```json
+{
+  "destination": "FP-HU-BUD-0115",
+  "recipientName": "Kiss Péter",
+  "recipientPhone": "+36201234567",
+  "recipientEmail": "pelda@email.com",
+  "size": "M",
+  "cod": 0,
+  "comment": "Szenzor csomag",
+  "refCode": "SZ24-ORD-00123"
+}
+```
+
+**Foxpost válasz (201 Created):**
+```json
+{
+  "success": true,
+  "parcels": [{ "clFoxId": "CLFOX...", "destination": "FP-HU-BUD-0115", "sendType": "APM", ... }]
+}
+```
+
+#### GET /api/foxpost – Automata lista
+
+Proxy a `https://cdn.foxpost.hu/foxplus.json` fájlhoz (1 óra cache).
+Használható saját térkép megoldáshoz ha nem az iframe widgetet használjuk.
+
+### Környezeti változók
+
+```env
+# .env
+# Foxpost WebAPI (szerver oldali – NEM NEXT_PUBLIC_!)
+FOXPOST_API_URL=https://webapi-test.foxpost.hu/api    # Sandbox
+# FOXPOST_API_URL=https://webapi.foxpost.hu/api       # Éles
+FOXPOST_API_USERNAME=                                   # foxpost.hu -> Beállítások
+FOXPOST_API_PASSWORD=                                   # foxpost.hu -> Beállítások
+FOXPOST_API_KEY=                                        # foxpost.hu -> Beállítások -> API kulcs
+```
+
+### Foxpost üzleti partner regisztráció (senior dev feladata)
+
+1. Regisztráció: https://foxpost.hu/uzleti-partner-regisztracio
+2. Bejelentkezés: foxpost.hu → Üzleti partnereknek
+3. Beállítások: https://foxpost.hu/beallitasok → API kulcs generálás
+4. Sandbox hozzáférés kérése: `b2chelpdesk@foxpost.hu`
+5. `.env` kitöltése a kapott adatokkal
+6. Tesztelés sandbox-ban (`isWeb: false` paraméterrel)
+7. Éles környezetre váltás: `FOXPOST_API_URL=https://webapi.foxpost.hu/api`
+
+### Fontos megjegyzések
+
+- A **frontend** NEM kommunikál közvetlenül a Foxpost WebAPI-val (credentials nem kerülnek kliens oldalra)
+- Az APT Finder widget **iframe-ben** fut, nincs szükség API kulcsra hozzá
+- A `destination` mező értéke az `operator_id` a foxplus.json-ből. Ha `operator_id` üres → `place_id`-t kell használni
+- Telefon validáció regex: `^(\+36|36)(20|30|31|70|50|51)\d{7}$`
+- A `size` mező (XS/S/M/L/XL) a raktárban pontosításra kerül, bátran küldhető "M"
+- A `postMessage` formátum widget-verziótól függ – szükség esetén a `parseMessagePayload()` módosítandó
+
+---
+
 ## Tesztelési checklist
 
 ### Frontend ✅
@@ -744,7 +905,18 @@ lineItems.push({
 - [x] Tápellátás választás működik
 - [x] Összesítés helyes árakat mutat
 - [x] Szállítási adatok megadása kötelező (mód + cím + Foxpost automata ha szükséges)
+- [x] Foxpost automata választó (térképes iframe widget) megnyílik és bezáródik
+- [x] Kiválasztott automata adatai megjelennek a szállítás lépésben és az összesítésben
+- [x] foxpostAutomataDetails bekerül a rendelés JSON-ba
 - [x] ÁFA kalkuláció helyes (27%)
+
+### Foxpost TODO ⏳
+
+- [ ] Foxpost üzleti partner regisztráció
+- [ ] FOXPOST_API_* .env változók kitöltése
+- [ ] Sandbox tesztelés (csomag létrehozás)
+- [ ] postMessage formátum ellenőrzése az APT Finder widgettel
+- [ ] Éles Foxpost API URL váltás
 - [x] Megrendelés gomb elküldi a JSON-t
 - [x] Toast üzenet megjelenik
 - [x] Console-ban látható a válasz
@@ -791,26 +963,15 @@ EMAIL_FROM=info@szenzor24.hu
 | Fájl | Leírás |
 |------|--------|
 | `src/app/(site)/vasarlas/page.tsx` | Rendelés oldal (/vasarlas) |
-| `src/components/Vasarlas/ProductConfigurator.tsx` | 7 lépéses konfigurátor + preset mód |
-| `src/types/order.ts` | TypeScript típusok |
-| `src/app/api/order/route.ts` | Lokális API referencia/validáció (frontend jelenleg külső API-ra küld) |
+| `src/components/Vasarlas/ProductConfigurator.tsx` | 9 lépéses konfigurátor + preset mód |
+| `src/components/Vasarlas/FoxpostSelector.tsx` | Foxpost automata választó (iframe APT Finder widget) |
+| `src/types/order.ts` | TypeScript típusok (incl. FoxpostAutomataInfo) |
+| `src/app/api/order/route.ts` | Lokális API referencia/validáció |
+| `src/app/api/foxpost/route.ts` | Foxpost WebAPI szerver-oldali route (csomaglétrehozás + automata lista) |
 | `src/lib/orderEmail.ts` | Rendelés visszaigazoló email template |
 | `src/lib/email.ts` | Nodemailer konfiguráció |
 | `src/components/HeroArea/index.tsx` | Főoldali "Rendelés" CTA |
 | `src/components/Header/index.tsx` | Fejléc "Rendelés" menüpont |
 
 ---
-
-## Kapcsolattartás
-
-Ha kérdés van a frontend működésével kapcsolatban, nézd meg:
-1. A böngésző konzolt (F12 → Console)
-2. A Network tabot a request/response-ért
-3. Ezt a dokumentációt
-
-**Frontend fejlesztő:** Péter (szenzor24.hu)  
-**Backend fejlesztő:** [Név] (rendszer.szenzor24.hu)
-
----
-
 *Dokumentáció generálva: 2026. február 9.*

@@ -28,12 +28,33 @@ export interface ShippingAddress {
   door?: string | null;
 }
 
+/**
+ * Foxpost automata adatai a rendelésben.
+ * operator_id: a célautomata kódja (Foxpost API "destination" mező)
+ * Ha operator_id üres, place_id-t kell használni.
+ * Forrás: https://cdn.foxpost.hu/foxplus.json
+ */
+export interface FoxpostAutomataInfo {
+  place_id: string;
+  operator_id: string;
+  name: string;
+  address: string;
+  city: string;
+  zip: string;
+  geolat?: string;
+  geolng?: string;
+  findme?: string;
+}
+
 export interface ShippingDetails {
   mode: "foxpost" | "hazhoz";
   shippingAddress?: ShippingAddress | null;
   billingSame?: boolean;
   billingAddress: ShippingAddress;
+  /** Foxpost automata - régi string formátum (backwards compat) */
   foxpostAutomata?: string | null;
+  /** Foxpost automata - teljes adatokkal (az APT finder widgetből) */
+  foxpostAutomataDetails?: FoxpostAutomataInfo | null;
 }
 
 export interface PaymentDetails {
@@ -123,7 +144,18 @@ export interface OrderPayload {
       "floor": null,
       "door": null
     },
-    "foxpostAutomata": "FOXP-LIFE-001"
+    "foxpostAutomata": "BP Nyugati 115 csomagautomata",
+    "foxpostAutomataDetails": {
+      "place_id": "115",
+      "operator_id": "FP-HU-BUD-0115",
+      "name": "BP Nyugati 115 csomagautomata",
+      "address": "1062 Budapest, Teréz krt. 55.",
+      "city": "Budapest",
+      "zip": "1062",
+      "geolat": "47.5100",
+      "geolng": "19.0630",
+      "findme": "A Nyugati pályaudvar mellett"
+    }
   },
   "payment": {
     "mode": "utalas"
