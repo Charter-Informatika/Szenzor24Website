@@ -38,6 +38,13 @@ const szenzorok = [
     imageUrl: "/images/szenzorok/homersekletsensor.png",
   },
   {
+    id: "paratartalom",
+    name: "Páratartalom szenzor",
+    description: "Páratartalom mérés",
+    price: 4500,
+    imageUrl: "/images/szenzorok/htu21.png",
+  },
+  {
     id: "feny",
     name: "Fény szenzor",
     description: "Fényerősség mérő szenzor",
@@ -64,6 +71,20 @@ const szenzorok = [
     description: "SENSORION precíziós hőmérséklet szenzor",
     price: 9000,
     imageUrl: "/images/szenzorok/levegominoseg.png",
+  },
+  {
+    id: "o2",
+    name: "O2 szenzor",
+    description: "Oldott oxigén mérés",
+    price: 8000,
+    imageUrl: "/images/szenzorok/gassensor.png",
+  },
+  {
+    id: "co2",
+    name: "CO2 szenzor",
+    description: "CO2 szint mérés",
+    price: 8500,
+    imageUrl: "/images/szenzorok/gassensor.png",
   },
 ];
 
@@ -161,6 +182,20 @@ const tapellatasok = [
 // Burok anyag típusok (PLACEHOLDER - árak és típusok később pontosítandók)
 const anyagok = [
   {
+    id: "normal_burkolat",
+    name: "Normál burkolat",
+    description: "Alap burkolat (PLACEHOLDER - ár később pontosítandó)",
+    price: 0,
+    icon: "🧱",
+  },
+  {
+    id: "vizallo_burkolat",
+    name: "Vízálló burkolat",
+    description: "Nedves környezethez (PLACEHOLDER - ár később pontosítandó)",
+    price: 2500,
+    icon: "💧",
+  },
+  {
     id: "sima_pla",
     name: "Sima PLA",
     description: "Alap PLA anyag, beltéri használatra",
@@ -190,12 +225,31 @@ const anyagok = [
   },
 ];
 
-type StepId = "szenzor" | "anyag" | "doboz" | "szin" | "tapellatas" | "osszesites";
+// Javasolt konfigurációk
+const presetOptions = [
+  {
+    id: "huto",
+    label: "Hűtőhöz",
+    description: "Hő + páratartalom szenzor, normál burkolat",
+    szenzorok: ["homerseklet", "paratartalom"],
+    anyagId: "normal_burkolat",
+  },
+  {
+    id: "akvarium",
+    label: "Akváriumhoz",
+    description: "Hő + O2 + CO2 szenzor, vízálló burkolat",
+    szenzorok: ["homerseklet", "o2", "co2"],
+    anyagId: "vizallo_burkolat",
+  },
+];
+
+type StepId = "mod" | "szenzor" | "anyag" | "doboz" | "szin" | "tapellatas" | "osszesites";
+type ConfigMode = "preset" | "custom";
 
 const MAX_SZENZOROK = 2;
 
 interface Selection {
-  szenzorok: string[]; // Max 2 szenzor
+  szenzorok: string[]; // Custom max 2, preset limit
   anyag: string | null;
   doboz: string | null;
   dobozSzin: string;
@@ -205,7 +259,9 @@ interface Selection {
 
 const ProductConfigurator = () => {
   const { data: session } = useSession();
-  const [currentStep, setCurrentStep] = useState<StepId>("szenzor");
+  const [currentStep, setCurrentStep] = useState<StepId>("mod");
+  const [configMode, setConfigMode] = useState<ConfigMode | null>(null);
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const [selection, setSelection] = useState<Selection>({
     szenzorok: [],
     anyag: null,
@@ -228,13 +284,20 @@ const ProductConfigurator = () => {
       : getModelPath(selection.dobozSzin, selection.tetoSzin);
 
   const steps: { id: StepId; title: string; icon: string }[] = [
-    { id: "szenzor", title: "Szenzor", icon: "1" },
-    { id: "anyag", title: "Anyag", icon: "2" },
-    { id: "tapellatas", title: "Tápellátás", icon: "3" },
-    { id: "doboz", title: "Doboz", icon: "4" },
-    { id: "szin", title: "Szín", icon: "5" },
+    { id: "mod", title: "Mód", icon: "1" },
+    { id: "szenzor", title: "Szenzor", icon: "2" },
+    { id: "anyag", title: "Anyag", icon: "3" },
+    { id: "tapellatas", title: "Tápellátás", icon: "4" },
+    { id: "doboz", title: "Doboz", icon: "5" },
+    { id: "szin", title: "Szín", icon: "6" },
     { id: "osszesites", title: "Összesítés", icon: "✓" },
   ];
+
+  const selectedPreset = presetOptions.find((preset) => preset.id === selectedPresetId) ?? null;
+  const isPresetLocked = configMode === "preset" && Boolean(selectedPreset);
+  const maxSzenzorok = configMode === "preset"
+    ? (selectedPreset?.szenzorok.length ?? MAX_SZENZOROK)
+    : MAX_SZENZOROK;
 
   const calculateTotal = () => {
     let total = 0;
@@ -260,6 +323,10 @@ const ProductConfigurator = () => {
   };
 
   const toggleSzenzor = (szenzorId: string) => {
+    if (isPresetLocked) {
+      toast.error("A preset szenzorok nem módosíthatók.");
+      return;
+    }
     const isSelected = selection.szenzorok.includes(szenzorId);
     
     if (isSelected) {
@@ -269,9 +336,9 @@ const ProductConfigurator = () => {
         szenzorok: prev.szenzorok.filter((id) => id !== szenzorId),
       }));
     } else {
-      // Hozzáadás (max 2)
-      if (selection.szenzorok.length >= MAX_SZENZOROK) {
-        toast.error(`Maximum ${MAX_SZENZOROK} szenzort választhatsz!`);
+      // Hozzáadás (max limit a mód alapján)
+      if (selection.szenzorok.length >= maxSzenzorok) {
+        toast.error(`Maximum ${maxSzenzorok} szenzort választhatsz!`);
         return;
       }
       setSelection((prev) => ({
@@ -283,6 +350,10 @@ const ProductConfigurator = () => {
 
   const canProceed = () => {
     switch (currentStep) {
+      case "mod":
+        if (configMode === "preset") return Boolean(selectedPresetId);
+        if (configMode === "custom") return true;
+        return false;
       case "szenzor":
         return selection.szenzorok.length > 0; // Legalább 1 szenzor kell
       case "anyag":
@@ -389,6 +460,13 @@ const ProductConfigurator = () => {
       currency: "HUF",
       createdAt: new Date().toISOString(),
       locale: "hu-HU",
+      ...(configMode === "preset" && selectedPreset
+        ? {
+            presetId: selectedPreset.id,
+            presetLabel: selectedPreset.label,
+            presetMaxSzenzorok: selectedPreset.szenzorok.length,
+          }
+        : {}),
     };
 
     try {
@@ -407,13 +485,111 @@ const ProductConfigurator = () => {
     }
   };
 
+  const applyPreset = (presetId: string) => {
+    const preset = presetOptions.find((item) => item.id === presetId);
+    if (!preset) return;
+
+    setConfigMode("preset");
+    setSelectedPresetId(presetId);
+    setSelection((prev) => ({
+      ...prev,
+      szenzorok: preset.szenzorok,
+      anyag: preset.anyagId,
+    }));
+  };
+
+  const selectCustomMode = () => {
+    setConfigMode("custom");
+    setSelectedPresetId(null);
+    setSelection((prev) => ({
+      ...prev,
+      szenzorok: [],
+      anyag: null,
+    }));
+  };
+
   const renderStepContent = () => {
     switch (currentStep) {
+      case "mod":
+        return (
+          <div className="mx-auto max-w-5xl">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setConfigMode("preset")}
+                className={`rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg ${
+                  configMode === "preset"
+                    ? "border-primary bg-primary/10"
+                    : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                }`}
+              >
+                <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
+                  Javasolt konfiguráció
+                </h4>
+                <p className="text-sm text-body">
+                  Előre összeválogatott szenzorok és burok anyag. A tápellátást és a színeket továbbra is kiválaszthatod.
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={selectCustomMode}
+                className={`rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg ${
+                  configMode === "custom"
+                    ? "border-primary bg-primary/10"
+                    : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                }`}
+              >
+                <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
+                  Teljeskörű személyre szabás
+                </h4>
+                <p className="text-sm text-body">
+                  Egyedi konfiguráció a meglévő logika szerint.
+                </p>
+              </button>
+            </div>
+
+            {configMode === "preset" && (
+              <div className="mt-8">
+                <h4 className="mb-4 text-center text-lg font-semibold text-black dark:text-white">
+                  Válassz javasolt konfigurációt
+                </h4>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {presetOptions.map((preset) => (
+                    <button
+                      type="button"
+                      key={preset.id}
+                      onClick={() => applyPreset(preset.id)}
+                      className={`rounded-xl border-2 p-5 text-left transition-all hover:shadow-lg ${
+                        selectedPresetId === preset.id
+                          ? "border-primary bg-primary/10"
+                          : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                      }`}
+                    >
+                      <h5 className="mb-2 text-base font-semibold text-black dark:text-white">
+                        {preset.label}
+                      </h5>
+                      <p className="mb-2 text-sm text-body">{preset.description}</p>
+                      <p className="text-xs text-body">
+                        Szenzorok: {preset.szenzorok.length} db
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
       case "szenzor":
         return (
           <div>
+            {configMode === "preset" && selectedPreset && (
+              <p className="mb-2 text-center text-sm text-body">
+                Javasolt konfiguráció: {selectedPreset.label} (a szenzorok és a burkolat nem módosíthatók)
+              </p>
+            )}
             <p className="mb-4 text-center text-sm text-body">
-              Válassz max. {MAX_SZENZOROK} szenzort! ({selection.szenzorok.length}/{MAX_SZENZOROK} kiválasztva)
+              Válassz max. {maxSzenzorok} szenzort! ({selection.szenzorok.length}/{maxSzenzorok} kiválasztva)
             </p>
             <div className="mx-auto max-w-5xl grid grid-cols-2 gap-3 sm:grid-cols-4">
               {szenzorok.map((szenzor) => {
@@ -421,12 +597,12 @@ const ProductConfigurator = () => {
                 return (
                   <div
                     key={szenzor.id}
-                    onClick={() => toggleSzenzor(szenzor.id)}
-                    className={`cursor-pointer rounded-xl border-2 p-4 transition-all hover:shadow-lg ${
+                    onClick={isPresetLocked ? undefined : () => toggleSzenzor(szenzor.id)}
+                    className={`rounded-xl border-2 p-4 transition-all ${
                       isSelected
                         ? "border-primary bg-primary/10"
                         : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
-                    }`}
+                    } ${isPresetLocked ? "cursor-not-allowed opacity-80" : "cursor-pointer hover:shadow-lg"}`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-lg bg-slate-100 p-2 dark:bg-slate-800 sm:h-24 sm:w-24">
@@ -463,6 +639,11 @@ const ProductConfigurator = () => {
       case "anyag":
         return (
           <div>
+            {isPresetLocked && selectedPreset && (
+              <p className="mb-4 text-center text-sm text-body">
+                A burkolat a(z) {selectedPreset.label} presethez kötött, nem módosítható.
+              </p>
+            )}
             <p className="mb-4 text-center text-sm text-body">
               Válaszd ki a burok anyagát! (PLACEHOLDER - árak és típusok később pontosítandók)
             </p>
@@ -470,12 +651,12 @@ const ProductConfigurator = () => {
               {anyagok.map((anyag) => (
                 <div
                   key={anyag.id}
-                  onClick={() => setSelection({ ...selection, anyag: anyag.id })}
-                  className={`cursor-pointer rounded-xl border-2 p-6 transition-all hover:shadow-lg ${
+                  onClick={isPresetLocked ? undefined : () => setSelection({ ...selection, anyag: anyag.id })}
+                  className={`rounded-xl border-2 p-6 transition-all ${
                     selection.anyag === anyag.id
                       ? "border-primary bg-primary/10"
                       : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
-                  }`}
+                  } ${isPresetLocked ? "cursor-not-allowed opacity-80" : "cursor-pointer hover:shadow-lg"}`}
                 >
                   <div className="mb-3 text-4xl">{anyag.icon}</div>
                   <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
@@ -737,8 +918,12 @@ const ProductConfigurator = () => {
 
   const getStepTitle = () => {
     switch (currentStep) {
+      case "mod":
+        return "Válassz módot!";
       case "szenzor":
         return "Válassz szenzort!";
+      case "anyag":
+        return "Válassz anyagot!";
       case "doboz":
         return "Válassz dobozt!";
       case "szin":
@@ -824,9 +1009,9 @@ const ProductConfigurator = () => {
         <div className="flex items-center justify-between">
           <button
             onClick={prevStep}
-            disabled={currentStep === "szenzor"}
+            disabled={currentStep === "mod"}
             className={`rounded-lg px-6 py-3 font-medium transition-all ${
-              currentStep === "szenzor"
+              currentStep === "mod"
                 ? "cursor-not-allowed bg-gray-200 text-gray-400 dark:bg-gray-700"
                 : "bg-gray-200 text-black hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
             }`}

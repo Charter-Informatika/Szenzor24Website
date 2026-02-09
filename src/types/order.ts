@@ -44,6 +44,11 @@ export interface OrderPayload {
   currency: "HUF";
   createdAt: string;     // ISO 8601 timestamp
   locale: "hu-HU";
+
+  // Preset meta (opcionális)
+  presetId?: string;
+  presetLabel?: string;
+  presetMaxSzenzorok?: number;
 }
 
 // Példa JSON amit a frontend küld a backendnek:

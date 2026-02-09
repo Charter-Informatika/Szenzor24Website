@@ -23,7 +23,10 @@
 ## Összefoglaló
 
 A rendelés funkció lehetővé teszi a felhasználók számára, hogy egyedi szenzor-csomagot állítsanak össze:
-- Maximum 2 szenzor kiválasztása
+- Custom módban maximum 2 szenzor kiválasztása
+- Javasolt konfiguráció esetén a preset limit érvényes (pl. 3 szenzor)
+- Preset csak szenzorokat és burkot állít be, tápellátás és színek továbbra is választandók
+- Preset választásakor a szenzorok és a burkolat nem szerkeszthetők
 - Burok anyag típus választás (PLA, UV álló PLA, stb.)
 - Doboz típus választás
 - Doboz és tető szín választás (3D előnézettel)
@@ -53,34 +56,42 @@ A rendelés oldalra a főoldali "Rendelés" CTA-val és a fejléc menüponttal l
 - Ha nincs bejelentkezve → átirányítás `/auth/signin?callbackUrl=/vasarlas`
 - Sikeres bejelentkezés után visszakerül a `/vasarlas` oldalra
 
-### 6 lépéses konfigurátor
+### 7 lépéses konfigurátor
 
 | Lépés | Név | Leírás |
 |-------|-----|--------|
-| 1 | Szenzorok | Max 2 szenzor kiválasztása (checkbox multi-select) |
-| 2 | Anyag | Burok anyag típusa (Sima PLA, UV álló PLA, ABS, PETG) |
-| 3 | Doboz | Doboz típus (műanyag/fém/rozsdamentes) |
-| 4 | Színek | Doboz szín + tető szín (3D előnézet) |
-| 5 | Tápellátás | Akkumulátoros/Vezetékes/Napelemes |
-| 6 | Összesítés | Végleges rendelés áttekintés + "Megrendelés" gomb |
+| 1 | Mód | Javasolt konfiguráció vagy Teljeskörű személyre szabás |
+| 2 | Szenzorok | Custom: max 2 szenzor, preset: preset limit |
+| 3 | Anyag | Burok anyag típusa (Normál, Vízálló, PLA, UV álló PLA, ABS, PETG) |
+| 4 | Tápellátás | Akkumulátoros/Vezetékes/Napelemes |
+| 5 | Doboz | Doboz típus (műanyag/fém/rozsdamentes) |
+| 6 | Színek | Doboz szín + tető szín (3D előnézet) |
+| 7 | Összesítés | Végleges rendelés áttekintés + "Megrendelés" gomb |
 
 ### Elérhető opciók
 
-#### Szenzorok (max 2 választható)
+#### Szenzorok (custom max 2, preset limit érvényes)
 | ID | Név | Leírás | Ár |
 |----|-----|--------|-----|
 | `htu21d` | HTU21D | Hőmérséklet és páratartalom szenzor | 5 000 Ft |
 | `mpu6050` | MPU-6050 | 6 tengelyes gyorsulásmérő és giroszkóp | 6 000 Ft |
 | `gaz` | Gáz szenzor | Általános gáz érzékelő | 7 000 Ft |
 | `homerseklet` | Hőmérséklet szenzor | Precíz hőmérséklet mérés | 4 500 Ft |
+| `paratartalom` | Páratartalom szenzor | Páratartalom mérés | 4 500 Ft |
 | `feny` | Fény szenzor | Fényerősség mérő szenzor | 4 000 Ft |
 | `hidrogen` | Hidrogén szenzor | Hidrogén gáz érzékelő | 8 000 Ft |
 | `metan` | Metán szenzor | Metán gáz érzékelő | 7 500 Ft |
 | `sensorion` | SENSORION | SENSORION precíziós hőmérséklet szenzor | 9 000 Ft |
+| `o2` | O2 szenzor | Oldott oxigén mérés | 8 000 Ft |
+| `co2` | CO2 szenzor | CO2 szint mérés | 8 500 Ft |
+
+Megjegyzés: az új szenzorok és burkolatok árai jelenleg PLACEHOLDER értékek.
 
 #### Burok anyag típusok (PLACEHOLDER - árak később pontosítandók)
 | ID | Név | Leírás | Ár |
 |----|-----|--------|-----|
+| `normal_burkolat` | Normál burkolat | Alap burkolat | Alap ár (0 Ft) |
+| `vizallo_burkolat` | Vízálló burkolat | Nedves környezethez | +2 500 Ft |
 | `sima_pla` | Sima PLA | Alap PLA anyag, beltéri használatra | Alap ár (0 Ft) |
 | `uv_allo_pla` | UV álló PLA | UV sugárzásnak ellenálló, kültéri használatra | +1 500 Ft |
 | `abs` | ABS | Hőálló, ütésálló műanyag | +2 000 Ft |
@@ -120,6 +131,14 @@ A rendelés oldalra a főoldali "Rendelés" CTA-val és a fejléc menüponttal l
 | `vezetekes` | Vezetékes | 230V AC adapter, folyamatos üzem | 2 500 Ft |
 | `napelemes` | Napelemes | Napelem + akkumulátor kombináció | 12 000 Ft |
 
+#### Javasolt konfigurációk
+| ID | Név | Szenzorok | Burok anyag |
+|----|-----|-----------|-------------|
+| `huto` | Hűtőhöz | Hő + páratartalom | Normál burkolat (`normal_burkolat`) |
+| `akvarium` | Akváriumhoz | Hő + O2 + CO2 | Vízálló burkolat (`vizallo_burkolat`) |
+
+Megjegyzés: preset módban a szenzorok és a burkolat nem módosíthatók.
+
 ### 3D Előnézet
 - **Technológia:** Google Model Viewer (`@google/model-viewer`)
 - **GLB fájlok helye:** `/public/images/hero/{doboz_szin}/{doboz_szin}_{teto_szin}.glb`
@@ -149,22 +168,28 @@ A rendelés oldalra a főoldali "Rendelés" CTA-val és a fejléc menüponttal l
 │     │           │                                                │
 │     └─────┬─────┘                                               │
 │           ▼                                                      │
-│  3. Szenzor választás (1-2 db)                                  │
+│  3. Mód választás (Ajánlott / Teljeskörű)                       │
 │           │                                                      │
 │           ▼                                                      │
-│  4. Doboz típus választás                                       │
+│  4. Szenzor választás (custom max 2 / preset limit)             │
 │           │                                                      │
 │           ▼                                                      │
-│  5. Szín választás (3D előnézet)                                │
+│  5. Anyag választás (presetnél előre beállítva)                 │
 │           │                                                      │
 │           ▼                                                      │
 │  6. Tápellátás választás                                        │
 │           │                                                      │
 │           ▼                                                      │
-│  7. Összesítés + "Megrendelés" gomb                             │
+│  7. Doboz típus választás                                       │
 │           │                                                      │
 │           ▼                                                      │
-│  8. POST http://192.168.88.210:3000/api/orders/create             │
+│  8. Szín választás (3D előnézet)                                │
+│           │                                                      │
+│           ▼                                                      │
+│  9. Összesítés + "Megrendelés" gomb                             │
+│           │                                                      │
+│           ▼                                                      │
+│  10. POST http://192.168.88.210:3000/api/orders/create            │
 │           │                                                      │
 │           ▼                                                      │
 │  ┌────────────────────────────────────┐                         │
@@ -173,13 +198,13 @@ A rendelés oldalra a főoldali "Rendelés" CTA-val és a fejléc menüponttal l
 │  └────────────────────────────────────┘                         │
 │           │                                                      │
 │           ▼                                                      │
-│  9. [TODO] Stripe fizetési oldal                                │
+│  11. [TODO] Stripe fizetési oldal                               │
 │           │                                                      │
 │           ▼                                                      │
-│  10. [TODO] Webhook → DB mentés                                 │
+│  12. [TODO] Webhook → DB mentés                                 │
 │           │                                                      │
 │           ▼                                                      │
-│  11. [TODO] Visszairányítás + email                             │
+│  13. [TODO] Visszairányítás + email                             │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -196,13 +221,14 @@ A rendelés oldalra a főoldali "Rendelés" CTA-val és a fejléc menüponttal l
   "userEmail": "charterinformatikus@gmail.com",
   "userName": "Kiss Péter",
   "szenzorok": [
-    { "id": "htu21d", "name": "HTU21D", "price": 5000, "quantity": 1 },
-    { "id": "mpu6050", "name": "MPU-6050", "price": 6000, "quantity": 1 }
+    { "id": "homerseklet", "name": "Hőmérséklet szenzor", "price": 4500, "quantity": 1 },
+    { "id": "o2", "name": "O2 szenzor", "price": 8000, "quantity": 1 },
+    { "id": "co2", "name": "CO2 szenzor", "price": 8500, "quantity": 1 }
   ],
   "anyag": {
-    "id": "uv_allo_pla",
-    "name": "UV álló PLA",
-    "price": 1500,
+    "id": "vizallo_burkolat",
+    "name": "Vízálló burkolat",
+    "price": 2500,
     "quantity": 1
   },
   "doboz": {
@@ -221,13 +247,16 @@ A rendelés oldalra a főoldali "Rendelés" CTA-val és a fejléc menüponttal l
     "dobozSzin": { "id": "sarga", "name": "Sárga" },
     "tetoSzin": { "id": "sarga", "name": "Sárga" }
   },
-  "subtotal": 26500,
+  "subtotal": 37500,
   "vatPercent": 27,
-  "vatAmount": 7155,
-  "total": 33655,
+  "vatAmount": 10125,
+  "total": 47625,
   "currency": "HUF",
   "createdAt": "2026-02-04T10:30:00.000Z",
-  "locale": "hu-HU"
+  "locale": "hu-HU",
+  "presetId": "akvarium",
+  "presetLabel": "Akváriumhoz",
+  "presetMaxSzenzorok": 3
 }
 ```
 
@@ -237,7 +266,7 @@ A rendelés oldalra a főoldali "Rendelés" CTA-val és a fejléc menüponttal l
 | `userId` | string | Bejelentkezett felhasználó ID-ja |
 | `userEmail` | string | Felhasználó email címe |
 | `userName` | string | Megrendelő neve (session-ből) |
-| `szenzorok` | array | 1-2 elem, mindegyik: `{ id, name, price, quantity }` |
+| `szenzorok` | array | Custom: 1-2 elem, preset: preset limit |
 | `anyag` | object | Burok anyag: `{ id, name, price, quantity }` |
 | `doboz` | object | Doboz típus: `{ id, name, price, quantity }` |
 | `tapellatas` | object | Tápellátás: `{ id, name, price, quantity }` |
@@ -249,6 +278,9 @@ A rendelés oldalra a főoldali "Rendelés" CTA-val és a fejléc menüponttal l
 | `currency` | string | Pénznem ("HUF") |
 | `createdAt` | string | ISO 8601 időbélyeg |
 | `locale` | string | Nyelv/régió ("hu-HU") |
+| `presetId` | string | Opcionális preset azonosító (pl. `akvarium`) |
+| `presetLabel` | string | Opcionális preset megnevezés |
+| `presetMaxSzenzorok` | number | Opcionális preset limit |
 
 ### API válasz (amit a backend visszaad)
 
@@ -263,13 +295,14 @@ A backend **MINDEN** eredeti mezőt visszaad, plusz a számított értékeket:
     "userEmail": "charterinformatikus@gmail.com",
     "userName": "Kiss Péter",
     "szenzorok": [
-      { "id": "htu21d", "name": "HTU21D", "price": 5000, "quantity": 1 },
-      { "id": "mpu6050", "name": "MPU-6050", "price": 6000, "quantity": 1 }
+      { "id": "homerseklet", "name": "Hőmérséklet szenzor", "price": 4500, "quantity": 1 },
+      { "id": "o2", "name": "O2 szenzor", "price": 8000, "quantity": 1 },
+      { "id": "co2", "name": "CO2 szenzor", "price": 8500, "quantity": 1 }
     ],
     "anyag": {
-      "id": "uv_allo_pla",
-      "name": "UV álló PLA",
-      "price": 1500,
+      "id": "vizallo_burkolat",
+      "name": "Vízálló burkolat",
+      "price": 2500,
       "quantity": 1
     },
     "doboz": {
@@ -288,13 +321,16 @@ A backend **MINDEN** eredeti mezőt visszaad, plusz a számított értékeket:
       "price": 12000,
       "quantity": 1
     },
-    "subtotal": 26500,
+    "subtotal": 37500,
     "vatPercent": 27,
-    "vatAmount": 7155,
-    "total": 33655,
+    "vatAmount": 10125,
+    "total": 47625,
     "locale": "hu-HU",
     "currency": "HUF",
-    "createdAt": "2026-02-04T10:30:00.000Z"
+    "createdAt": "2026-02-04T10:30:00.000Z",
+    "presetId": "akvarium",
+    "presetLabel": "Akváriumhoz",
+    "presetMaxSzenzorok": 3
   }
 }
 ```
@@ -302,10 +338,10 @@ A backend **MINDEN** eredeti mezőt visszaad, plusz a számított értékeket:
 **Számított mezők (backend számolja):**
 | Mező | Leírás | Példa |
 |------|--------|-------|
-| `subtotal` | Nettó összeg (szenzorok + anyag + doboz + tápellátás) | 26 500 Ft |
+| `subtotal` | Nettó összeg (szenzorok + anyag + doboz + tápellátás) | 37 500 Ft |
 | `vatPercent` | ÁFA kulcs | 27% |
-| `vatAmount` | ÁFA összeg (subtotal × 0.27) | 7 155 Ft |
-| `total` | Bruttó végösszeg (subtotal + vatAmount) | 33 655 Ft |
+| `vatAmount` | ÁFA összeg (subtotal × 0.27) | 10 125 Ft |
+| `total` | Bruttó végösszeg (subtotal + vatAmount) | 47 625 Ft |
 
 ### TypeScript típusok
 
@@ -333,7 +369,7 @@ export interface OrderPayload {
   userId: string;
   userEmail: string;
   userName: string;          // Megrendelő neve
-  szenzorok: OrderItem[];
+  szenzorok: OrderItem[];     // Custom max 2, preset limit
   anyag: OrderItem;          // Burok anyag típusa
   eszkoz?: OrderItem;        // OPCIONÁLIS - jelenleg nem használt
   doboz: OrderItem;
@@ -342,6 +378,11 @@ export interface OrderPayload {
   locale: string;
   currency: string;
   createdAt: string;
+
+  // Preset meta (opcionális)
+  presetId?: string;
+  presetLabel?: string;
+  presetMaxSzenzorok?: number;
 }
 ```
 
@@ -501,11 +542,13 @@ Cookie: next-auth.session-token=...
 |------|---------|
 | `userId` | Kötelező, string |
 | `userEmail` | Kötelező, valid email |
-| `szenzorok` | Kötelező, 1-2 elem |
+| `szenzorok` | Kötelező, custom: 1-2 elem, preset: preset limit |
 | `doboz` | Kötelező, id + name + price + quantity |
 | `colors` | Kötelező, dobozSzin + tetoSzin |
 | `tapellatas` | Kötelező, id + name + price + quantity |
 | `eszkoz` | **OPCIONÁLIS** |
+| `presetId` | OPCIONÁLIS, preset azonosító |
+| `presetMaxSzenzorok` | OPCIONÁLIS, preset limit |
 
 ---
 
@@ -602,7 +645,8 @@ lineItems.push({
 
 - [x] Bejelentkezés nélkül átirányít signin-ra
 - [x] Bejelentkezés után visszakerül /vasarlas-ra
-- [x] Szenzor választás működik (max 2)
+- [x] Szenzor választás működik (custom max 2)
+- [x] Javasolt konfigurációk működnek (preset limit)
 - [x] Anyag választás működik (PLA típusok)
 - [x] Doboz választás működik
 - [x] Szín választás működik
@@ -656,7 +700,7 @@ EMAIL_FROM=info@szenzor24.hu
 | Fájl | Leírás |
 |------|--------|
 | `src/app/(site)/vasarlas/page.tsx` | Rendelés oldal (/vasarlas) |
-| `src/components/Vasarlas/ProductConfigurator.tsx` | 6 lépéses konfigurátor |
+| `src/components/Vasarlas/ProductConfigurator.tsx` | 7 lépéses konfigurátor + preset mód |
 | `src/types/order.ts` | TypeScript típusok |
 | `src/app/api/order/route.ts` | Lokális API referencia/validáció (frontend jelenleg külső API-ra küld) |
 | `src/lib/orderEmail.ts` | Rendelés visszaigazoló email template |
