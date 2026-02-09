@@ -627,8 +627,14 @@ const ProductConfigurator = () => {
         : {}),
     };
 
+    const orderApiUrl = process.env.NEXT_PUBLIC_ORDER_API_URL;
+    if (!orderApiUrl) {
+      toast.error("Hiányzó API URL (NEXT_PUBLIC_ORDER_API_URL)");
+      return;
+    }
+
     try {
-      const { data } = await axios.post("http://192.168.88.210:3000/api/orders/create", orderPayload);
+      const { data } = await axios.post(orderApiUrl, orderPayload);
       
       if (data.url) {
         // Stripe checkout URL - redirect

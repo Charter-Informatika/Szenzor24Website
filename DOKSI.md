@@ -35,7 +35,7 @@ A rendelés funkció lehetővé teszi a felhasználók számára, hogy egyedi sz
 - Fizetési mód kiválasztás
 - Automatikus ár kalkuláció ÁFA-val
 
-**Jelenlegi állapot:** A frontend teljesen működőképes, a rendelés JSON formátumban elkészül és elküldésre kerül a `http://192.168.88.210:3000/api/orders/create` végpontra (rendszer.szenzor24.hu backend). Az email-t a szenzor24.hu API még elküldi a megrendelőnek.
+**Jelenlegi állapot:** A frontend teljesen működőképes, a rendelés JSON formátumban elkészül és elküldésre kerül a `NEXT_PUBLIC_ORDER_API_URL` végpontra (rendszer.szenzor24.hu backend). Az email-t a szenzor24.hu API még elküldi a megrendelőnek.
 
 ---
 
@@ -44,7 +44,7 @@ A rendelés funkció lehetővé teszi a felhasználók számára, hogy egyedi sz
 ### Elérési út
 - **URL:** `/vasarlas`
 - **Komponens:** `src/components/Vasarlas/ProductConfigurator.tsx`
-- **API route:** `http://192.168.88.210:3000/api/orders/create`
+- **API route:** `NEXT_PUBLIC_ORDER_API_URL`
 
 ### Belépési pont
 A rendelés oldalra a főoldali "Rendelés" CTA-val és a fejléc menüponttal lehet eljutni:
@@ -212,7 +212,7 @@ Megjegyzés: előre beállított konfiguráció módban a szenzorok és a burkol
 │  11. Összesítés + "Megrendelés" gomb                            │
 │           │                                                      │
 │           ▼                                                      │
-│  12. POST http://192.168.88.210:3000/api/orders/create           │
+│  12. POST NEXT_PUBLIC_ORDER_API_URL                              │
 │           │                                                      │
 │           ▼                                                      │
 │  ┌────────────────────────────────────┐                         │
@@ -589,7 +589,7 @@ Sikeres fizetés után:
 
 ## API dokumentáció
 
-### POST http://192.168.88.210:3000/api/orders/create
+### POST NEXT_PUBLIC_ORDER_API_URL
 
 **Request Headers:**
 ```
@@ -675,6 +675,7 @@ model User {
 
 ```env
 # .env.local
+NEXT_PUBLIC_ORDER_API_URL=https://rendszer.szenzor24.hu/api/orders/create
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
