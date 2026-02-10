@@ -1647,10 +1647,25 @@ const ProductConfigurator = () => {
               const stepIndex = steps.findIndex((s) => s.id === currentStep);
               const isActive = step.id === currentStep;
               const isCompleted = index < stepIndex;
+              const isBlockedStep =
+                isPresetLocked && (step.id === "szenzor" || step.id === "anyag");
 
               return (
                 <React.Fragment key={step.id}>
-                  <div className="flex flex-col items-center">
+                  <div
+                    onClick={() => {
+                      if (index < stepIndex && !isBlockedStep) {
+                        setCurrentStep(step.id);
+                      }
+                    }}
+                    className={`flex flex-col items-center ${
+                      isBlockedStep
+                        ? "cursor-not-allowed"
+                        : index < stepIndex
+                          ? "cursor-pointer"
+                          : "cursor-default"
+                    }`}
+                  >
                     <div
                       className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold transition-all ${
                         isActive
