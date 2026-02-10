@@ -385,12 +385,15 @@ const ProductConfigurator = () => {
 
   const selectedPreset = presetOptions.find((preset) => preset.id === selectedPresetId) ?? null;
   const isPresetLocked = configMode === "preset" && Boolean(selectedPreset);
+  const hiddenSteps = isPresetLocked ? new Set<StepId>(["szenzor", "anyag"]) : null;
+  const visibleSteps = steps.filter((step) => !hiddenSteps?.has(step.id));
   const maxSzenzorok = configMode === "preset"
     ? (selectedPreset?.szenzorok.length ?? MAX_SZENZOROK)
     : MAX_SZENZOROK;
   const visibleSzenzorok = isPresetLocked && selectedPreset
     ? szenzorok.filter((szenzor) => selectedPreset.szenzorok.includes(szenzor.id))
     : szenzorok;
+
 
   const calculateSubtotal = () => {
     let total = 0;
@@ -503,16 +506,28 @@ const ProductConfigurator = () => {
   };
 
   const nextStep = () => {
-    const stepIndex = steps.findIndex((s) => s.id === currentStep);
-    if (stepIndex < steps.length - 1 && canProceed()) {
-      setCurrentStep(steps[stepIndex + 1].id);
+    const stepIndex = visibleSteps.findIndex((s) => s.id === currentStep);
+    if (stepIndex === -1) {
+      if (visibleSteps.length > 0) {
+        setCurrentStep(visibleSteps[0].id);
+      }
+      return;
+    }
+    if (stepIndex < visibleSteps.length - 1 && canProceed()) {
+      setCurrentStep(visibleSteps[stepIndex + 1].id);
     }
   };
 
   const prevStep = () => {
-    const stepIndex = steps.findIndex((s) => s.id === currentStep);
+    const stepIndex = visibleSteps.findIndex((s) => s.id === currentStep);
+    if (stepIndex === -1) {
+      if (visibleSteps.length > 0) {
+        setCurrentStep(visibleSteps[0].id);
+      }
+      return;
+    }
     if (stepIndex > 0) {
-      setCurrentStep(steps[stepIndex - 1].id);
+      setCurrentStep(visibleSteps[stepIndex - 1].id);
     }
   };
 
@@ -735,63 +750,39 @@ const ProductConfigurator = () => {
       case "mod":
         return (
           <div className="mx-auto max-w-5xl">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => setConfigMode("preset")}
-                className={`rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg ${
-                  configMode === "preset"
-                    ? "border-primary bg-primary/10"
-                    : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
-                }`}
-              >
-                <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
-                  Előre beállított konfiguráció
-                </h4>
-                <p className="text-sm text-body">
-                  Előre összeválogatott szenzorok és burok anyag. A tápellátást és a színeket továbbra is kiválaszthatod.
-                </p>
-              </button>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              {presetOptions.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => applyPreset(preset.id)}
+                  className={`rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg ${
+                    configMode === "preset" && selectedPresetId === preset.id
+                      ? "border-primary bg-primary/10"
+                      : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                  }`}
+                >
+                  <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
+                    {preset.label}
+                  </h4>
+                  <p className="text-sm text-body">{preset.description}</p>
+                </button>
+              ))}
+            </div>
 
+            <div className="mt-8 flex justify-center">
               <button
                 type="button"
                 onClick={selectCustomMode}
-                className={`rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg ${
+                className={`w-full max-w-sm rounded-2xl border-2 px-6 py-4 text-center text-base font-semibold transition-all hover:shadow-lg ${
                   configMode === "custom"
-                    ? "border-primary bg-primary/10"
-                    : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                    ? "border-primary bg-primary/10 text-black dark:text-white"
+                    : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark text-black dark:text-white"
                 }`}
               >
-                <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
-                  Teljeskörű személyre szabás
-                </h4>
-                <p className="text-sm text-body">
-                  Egyedi konfiguráció a meglévő logika szerint.
-                </p>
+                Teljeskörű személyre szabás
               </button>
             </div>
-
-            {configMode === "preset" && (
-              <div className="mt-8">
-                <h4 className="mb-4 text-center text-lg font-semibold text-black dark:text-white">
-                  Válassz konfigurációt
-                </h4>
-                <select
-                  value={selectedPresetId ?? ""}
-                  onChange={(event) => applyPreset(event.target.value)}
-                  className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
-                >
-                  <option value="" disabled>
-                    Válassz konfigurációt...
-                  </option>
-                  {presetOptions.map((preset) => (
-                    <option key={preset.id} value={preset.id}>
-                      {preset.label} - {preset.description}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
           </div>
         );
       case "szenzor":
@@ -1519,6 +1510,25 @@ const ProductConfigurator = () => {
     }
   };
 
+  const selectedSzenzorNames = selection.szenzorok
+    .map((id) => szenzorok.find((s) => s.id === id)?.name)
+    .filter(Boolean) as string[];
+  const selectedAnyagName = anyagok.find((a) => a.id === selection.anyag)?.name ?? "-";
+  const selectedDobozName = dobozok.find((d) => d.id === selection.doboz)?.name ?? "-";
+  const selectedTapName = tapellatasok.find((t) => t.id === selection.tapellatas)?.name ?? "-";
+  const selectedDobozSzinName = dobozSzinek.find((s) => s.id === selection.dobozSzin)?.name ?? "-";
+  const selectedTetoSzinName = tetoSzinek.find((s) => s.id === selection.tetoSzin)?.name ?? "-";
+  const shippingLabel = selection.shippingMode === "foxpost"
+    ? "Foxpost automata"
+    : selection.shippingMode === "hazhoz"
+      ? "Házhozszállítás"
+      : "-";
+  const paymentLabel = selection.paymentMode === "utalas"
+    ? "Utalás"
+    : selection.paymentMode === "stripe"
+      ? "Stripe"
+      : "-";
+
   return (
     <section className="relative z-10">
       <div className="container">
@@ -1584,8 +1594,66 @@ const ProductConfigurator = () => {
           {getStepTitle()}
         </h3>
 
-        {/* Lépés tartalma */}
-        <div className="mb-10">{renderStepContent()}</div>
+        {/* Lépés tartalma + oldalsó összegzés */}
+        <div className="mb-10 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div>{renderStepContent()}</div>
+          <aside className="h-fit rounded-xl border-2 border-stroke bg-white p-5 dark:border-stroke-dark dark:bg-dark lg:sticky lg:top-24">
+            <h4 className="mb-4 text-lg font-semibold text-black dark:text-white">
+              Folyamatkövető
+            </h4>
+            <div className="space-y-4 text-sm">
+              <div>
+                <p className="font-medium text-black dark:text-white">Mód</p>
+                <p className="text-body">
+                  {configMode === "preset"
+                    ? `Preset: ${selectedPreset?.label ?? "-"}`
+                    : configMode === "custom"
+                      ? "Teljeskörű személyre szabás"
+                      : "-"}
+                </p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Szenzorok</p>
+                {selectedSzenzorNames.length > 0 ? (
+                  <ul className="mt-1 list-disc pl-5 text-body">
+                    {selectedSzenzorNames.map((name) => (
+                      <li key={name}>{name}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-body">-</p>
+                )}
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Burok anyaga</p>
+                <p className="text-body">{selectedAnyagName}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Doboz</p>
+                <p className="text-body">{selectedDobozName}</p>
+                <p className="text-body">Színek: {selectedDobozSzinName} / {selectedTetoSzinName}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Tápellátás</p>
+                <p className="text-body">{selectedTapName}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Szállítás</p>
+                <p className="text-body">{shippingLabel}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Fizetés</p>
+                <p className="text-body">{paymentLabel}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Bruttó végösszeg</p>
+                <p className="text-lg font-semibold text-primary">
+                  {calculateGrandTotal().toLocaleString("hu-HU")} Ft
+                </p>
+              </div>
+            </div>
+          </aside>
+        </div>
 
         {/* Navigációs gombok */}
         <div className="flex items-center justify-between">
