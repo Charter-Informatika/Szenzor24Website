@@ -134,7 +134,7 @@ const HeroArea = () => {
                   <a
                     href="#pricing"
                     onClick={scrollToPricing}
-                    className="inline-flex items-center justify-center rounded-lg bg-blue-600/20 border-2 border-blue-500/60 px-5 py-3 text-sm text-blue-200 hover:bg-blue-500 hover:text-white hover:border-transparent hover:scale-[1.02] transition-all duration-200"
+                    className="inline-flex items-center justify-center rounded-lg bg-blue-500/10 border-2 border-blue-400/40 px-5 py-3 text-sm text-blue-600 dark:bg-blue-600/20 dark:border-blue-500/60 dark:text-blue-200 hover:bg-blue-500 hover:text-white hover:border-transparent hover:scale-[1.02] transition-all duration-200"
                   >
                     Csomagok
                   </a>

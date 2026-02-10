@@ -1,6 +1,6 @@
 # Rendelés Funkció Dokumentáció
 
-**Utolsó frissítés:** 2026. február 9.  
+**Utolsó frissítés:** 2026. február 10.  
 **Branch:** `dev_style`  
 **Státusz:** Frontend kész ✅ | Backend integráció TODO ⏳
 
@@ -25,16 +25,18 @@
 
 A rendelés funkció lehetővé teszi a felhasználók számára, hogy egyedi szenzor-csomagot állítsanak össze:
 - Custom módban maximum 2 szenzor kiválasztása
-- Előre beállított konfiguráció esetén a konfigurációhoz tartozó limit érvényes (pl. 3 szenzor)
-- Előre beállított konfiguráció csak szenzorokat és burkot állít be, tápellátás és színek továbbra is választandók
-- Előre beállított konfiguráció választásakor a szenzorok és a burkolat nem szerkeszthetők
-- Előre beállított konfiguráció módban a Szenzor lépés csak a kiválasztott konfiguráció szenzorait mutatja
-- Burok anyag típus választás (PLA, UV álló PLA, stb.)
+- 16 db előre beállított konfiguráció (preset) közül választhat a felhasználó
+- Előre beállított konfiguráció esetén a konfigurációhoz tartozó szenzor-szám érvényes (1–3 szenzor)
+- Előre beállított konfiguráció csak szenzorokat és burkot állít be; tápellátás, doboz, szín, előfizetés továbbra is választandók
+- Előre beállított konfiguráció választásakor a Szenzor és Anyag lépések automatikusan átugrásra kerülnek (a progress bar-on zölden/kész-ként jelennek meg)
+- A preset-zárolt lépések nem kattinthatók (cursor-not-allowed)
+- Burok anyag típus választás (Normál, Vízálló, PLA, UV álló PLA, ABS, PETG)
 - Doboz típus választás
 - Doboz és tető szín választás (3D előnézettel)
 - Tápellátás típus választás (vezetékes v. akkus)
+- Előfizetés választás (Ingyenes / Havi / Éves)
 - Fizetési mód kiválasztás
-- Automatikus ár kalkuláció ÁFA-val
+- Automatikus ár kalkuláció ÁFA-val (előfizetés bruttóként, ÁFA nélkül kezelve)
 
 **Jelenlegi állapot:** A frontend teljesen működőképes, a rendelés JSON formátumban elkészül és elküldésre kerül a `NEXT_PUBLIC_ORDER_API_URL` végpontra (rendszer.szenzor24.hu backend). Az email-t a szenzor24.hu API még elküldi a megrendelőnek.
 
@@ -59,19 +61,28 @@ A rendelés oldalra a főoldali "Rendelés" CTA-val és a fejléc menüponttal l
 - Ha nincs bejelentkezve → átirányítás `/auth/signin?callbackUrl=/vasarlas`
 - Sikeres bejelentkezés után visszakerül a `/vasarlas` oldalra
 
-### 9 lépéses konfigurátor
+### 10 lépéses konfigurátor
 
-| Lépés | Név | Leírás |
-|-------|-----|--------|
-| 1 | Mód | Előre beállított konfiguráció vagy Teljeskörű személyre szabás |
-| 2 | Szenzorok | Custom: max 2 szenzor, konfiguráció limit |
-| 3 | Anyag | Burok anyag típusa (Normál, Vízálló, PLA, UV álló PLA, ABS, PETG) |
-| 4 | Tápellátás | Akkumulátoros/Vezetékes |
-| 5 | Doboz | Doboz típus (műanyag/fém/rozsdamentes) |
-| 6 | Színek | Doboz szín + tető szín (3D előnézet) |
-| 7 | Szállítás | Szállítási mód + cím megadása |
-| 8 | Fizetés | Fizetési mód kiválasztása |
-| 9 | Összesítés | Végleges rendelés áttekintés + "Megrendelés" gomb |
+| Lépés | Ikon | Név | StepId | Leírás |
+|-------|------|-----|--------|--------|
+| 1 | 1 | Mód | `mod` | Előre beállított konfiguráció (preset kártyák) vagy Teljeskörű személyre szabás |
+| 2 | 2 | Szenzor | `szenzor` | Custom: max 2 szenzor; preset: átugorva (zöld/kész) |
+| 3 | 3 | Anyag | `anyag` | Burok anyag típusa; preset: átugorva (zöld/kész) |
+| 4 | 4 | Tápellátás | `tapellatas` | Akkumulátoros/Vezetékes |
+| 5 | 5 | Doboz | `doboz` | Doboz típus (műanyag/fém/rozsdamentes) |
+| 6 | 6 | Szín | `szin` | Doboz szín + tető szín (3D előnézet) |
+| 7 | 7 | Előfizetés | `elofizetes` | Ingyenes / Havi / Éves |
+| 8 | 8 | Szállítás | `szallitas` | Szállítási mód + cím megadása |
+| 9 | 9 | Fizetés | `fizetes` | Fizetési mód kiválasztása |
+| 10 | ✓ | Összesítés | `osszesites` | Végleges rendelés áttekintés + "Megrendelés" gomb |
+
+### UI/UX jellemzők
+
+- **Mód lépés**: 16 preset kártya 2 oszlopos grid-ben + alul középre igazított "Teljeskörű személyre szabás" gomb
+- **Preset mód**: Szenzor és Anyag lépések átugrásra kerülnek (nem navigálható), de a progress bar-on zölden/kész-ként megjelennek
+- **Progress bar**: Kattintható visszafelé navigációhoz (csak a már meglátogatott lépésekre); preset-zárolt lépések `cursor-not-allowed` stílusúak és nem kattinthatók
+- **Folyamatkövető**: Jobb oldali sidebar panel mutatja az összes aktuális kiválasztást valós időben
+- **Összesítés lépés**: Nettó, ÁFA, szállítás, előfizetés (ÁFA-t tartalmaz) sorok + "Bruttó összeg" végösszeg megjelenítés
 
 ### Elérhető opciók
 
@@ -149,13 +160,36 @@ Megjegyzés: Foxpost esetén a címmezők a számlázási címet jelentik. Házh
 | `utalas` | Utalás | Díjbekérő / előre utalás |
 | `stripe` | Stripe | Bankkártyás fizetés |
 
-#### Előre beállított konfigurációk
+#### Előre beállított konfigurációk (16 db)
 | ID | Név | Szenzorok | Burok anyag |
 |----|-----|-----------|-------------|
 | `huto` | Hűtő | Hő + páratartalom | Normál burkolat (`normal_burkolat`) |
 | `akvarium` | Akvárium | Hő + O2 + CO2 | Vízálló burkolat (`vizallo_burkolat`) |
+| `hutokamra` | Hűtőkamra | SENSORION + páratartalom | Normál burkolat (`normal_burkolat`) |
+| `hideglanc_monitor` | Hideglánc monitor | SENSORION + MPU-6050 | PETG (`petg`) |
+| `gyogyszertarolo` | Gyógyszertároló | SENSORION + páratartalom | ABS (`abs`) |
+| `raktar_kornyezetfigyelo` | Raktár környezetfigyelő | HTU21D + MPU-6050 | PETG (`petg`) |
+| `server_szoba_monitor` | Server szoba monitor | SENSORION + CO2 | ABS (`abs`) |
+| `iroda_levegominoseg` | Iroda levegőminőség | CO2 + HTU21D | Sima PLA (`sima_pla`) |
+| `tanterem_levegofigyelo` | Tanterem levegőfigyelő | CO2 + hőmérséklet | Sima PLA (`sima_pla`) |
+| `kazan_biztonsag` | Kazánház biztonság | Gáz + O2 | ABS (`abs`) |
+| `garazs_gazfigyelo` | Garázs gázfigyelő | Gáz + CO2 | PETG (`petg`) |
+| `akku_tolto_helyiseg` | Akkumulátor töltő helyiség | Hidrogén + hőmérséklet | ABS (`abs`) |
+| `allattarto_telep` | Állattartó telep levegőfigyelő | Metán + CO2 + O2 | Vízálló burkolat (`vizallo_burkolat`) |
+| `logisztikai_csomagfigyelo` | Logisztikai csomagfigyelő | MPU-6050 + hőmérséklet | PETG (`petg`) |
+| `szallitasi_sokkfigyelo` | Szállítási sokkfigyelő | MPU-6050 | PETG (`petg`) |
+| `tarolo_kontener` | Tároló konténer monitor | Hőmérséklet + MPU-6050 | PETG (`petg`) |
 
-Megjegyzés: előre beállított konfiguráció módban a szenzorok és a burkolat nem módosíthatók.
+Megjegyzés: előre beállított konfiguráció módban a szenzorok és a burkolat nem módosíthatók, a Szenzor és Anyag lépések automatikusan kihagyásra kerülnek (a progress bar-on zöld pipa jelöli őket).
+
+#### Előfizetés opciók
+| ID | Név | Leírás | Ár (bruttó, ÁFA-t tartalmaz) |
+|----|-----|--------|------|
+| `ingyenes` | Ingyenes | Alap csomag | 0 Ft |
+| `havi` | Havi | Havi előfizetés | 1 000 Ft |
+| `eves` | Éves | Éves előfizetés | 10 000 Ft |
+
+Megjegyzés: az előfizetés díja **bruttó összeg** (ÁFA-t tartalmaz), nem kerül bele az ÁFA alapba, és a bruttó végösszeghez külön sorként adódik hozzá.
 
 ### 3D Előnézet
 - **Technológia:** Google Model Viewer (`@google/model-viewer`)
@@ -186,14 +220,19 @@ Megjegyzés: előre beállított konfiguráció módban a szenzorok és a burkol
 │     │           │                                                │
 │     └─────┬─────┘                                               │
 │           ▼                                                      │
-│  3. Mód választás (Előre beállított / Teljeskörű)               │
+│  3. Mód választás (Preset kártya / Teljeskörű)                  │
 │           │                                                      │
-│           ▼                                                      │
-│  4. Szenzor választás (custom max 2 / konfiguráció limit)       │
-│           │                                                      │
-│           ▼                                                      │
-│  5. Anyag választás (konfigurációnál előre beállítva)           │
-│           │                                                      │
+│     ┌─────┴─────┐                                               │
+│     │           │                                                │
+│  Preset      Custom                                              │
+│     │           │                                                │
+│     │           ▼                                                │
+│     │    4. Szenzor választás (max 2)                            │
+│     │           │                                                │
+│     │           ▼                                                │
+│     │    5. Anyag választás                                      │
+│     │           │                                                │
+│     └─────┬─────┘  (preset: 4-5 átugorva, zölden jelölve)      │
 │           ▼                                                      │
 │  6. Tápellátás választás                                        │
 │           │                                                      │
@@ -204,16 +243,19 @@ Megjegyzés: előre beállított konfiguráció módban a szenzorok és a burkol
 │  8. Szín választás (3D előnézet)                                │
 │           │                                                      │
 │           ▼                                                      │
-│  9. Szállítás mód + cím                                         │
+│  9. Előfizetés választás (Ingyenes/Havi/Éves)                  │
 │           │                                                      │
 │           ▼                                                      │
-│  10. Fizetési mód                                               │
+│  10. Szállítás mód + cím                                        │
 │           │                                                      │
 │           ▼                                                      │
-│  11. Összesítés + "Megrendelés" gomb                            │
+│  11. Fizetési mód                                               │
 │           │                                                      │
 │           ▼                                                      │
-│  12. POST NEXT_PUBLIC_ORDER_API_URL                              │
+│  12. Összesítés + "Megrendelés" gomb                            │
+│           │                                                      │
+│           ▼                                                      │
+│  13. POST NEXT_PUBLIC_ORDER_API_URL                              │
 │           │                                                      │
 │           ▼                                                      │
 │  ┌────────────────────────────────────┐                         │
@@ -222,13 +264,13 @@ Megjegyzés: előre beállított konfiguráció módban a szenzorok és a burkol
 │  └────────────────────────────────────┘                         │
 │           │                                                      │
 │           ▼                                                      │
-│  13. [TODO] Stripe fizetési oldal                               │
+│  14. [TODO] Stripe fizetési oldal                               │
 │           │                                                      │
 │           ▼                                                      │
-│  14. [TODO] Webhook → DB mentés                                 │
+│  15. [TODO] Webhook → DB mentés                                 │
 │           │                                                      │
 │           ▼                                                      │
-│  15. [TODO] Visszairányítás + email                             │
+│  16. [TODO] Visszairányítás + email                             │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -267,6 +309,12 @@ Megjegyzés: előre beállított konfiguráció módban a szenzorok és a burkol
     "price": 2500,
     "quantity": 1
   },
+  "elofizetes": {
+    "id": "havi",
+    "name": "Havi",
+    "price": 1000,
+    "quantity": 1
+  },
   "shipping": {
     "mode": "foxpost",
     "shippingAddress": null,
@@ -291,9 +339,22 @@ Megjegyzés: előre beállított konfiguráció módban a szenzorok és a burkol
       "geolat": "47.5100",
       "geolng": "19.0630",
       "findme": "A Nyugati pályaudvar mellett"
-    ---
-
-    *Dokumentáció generálva: 2026. február 9.*
+    }
+  },
+  "payment": {
+    "mode": "utalas"
+  },
+  "colors": {
+    "dobozSzin": { "id": "sarga", "name": "Sárga" },
+    "tetoSzin": { "id": "sarga", "name": "Sárga" }
+  },
+  "subtotal": 27500,
+  "vatPercent": 27,
+  "vatAmount": 7425,
+  "shippingFee": 0,
+  "total": 35925,
+  "currency": "HUF",
+  "createdAt": "2026-02-10T10:30:00.000Z",
   "locale": "hu-HU",
   "presetId": "akvarium",
   "presetLabel": "Akvárium",
@@ -307,23 +368,25 @@ Megjegyzés: előre beállított konfiguráció módban a szenzorok és a burkol
 | `userId` | string | Bejelentkezett felhasználó ID-ja |
 | `userEmail` | string | Felhasználó email címe |
 | `userName` | string | Megrendelő neve (session-ből) |
-| `szenzorok` | array | Custom: 1-2 elem, konfiguráció limit |
+| `szenzorok` | array | Custom: 1-2 elem, preset: preset szenzor-szám |
 | `anyag` | object | Burok anyag: `{ id, name, price, quantity }` |
 | `doboz` | object | Doboz típus: `{ id, name, price, quantity }` |
 | `tapellatas` | object | Tápellátás: `{ id, name, price, quantity }` |
+| `elofizetes` | object? | Előfizetés (opcionális): `{ id, name, price, quantity }` — bruttó ár (ÁFA-t tartalmaz) |
 | `shipping` | object | Szállítás: `{ mode, shippingAddress?, billingSame?, billingAddress, foxpostAutomata?, foxpostAutomataDetails? }` |
 | `payment` | object | Fizetés: `{ mode }` |
 | `colors` | object | `{ dobozSzin: { id, name }, tetoSzin: { id, name } }` |
-| `subtotal` | number | Nettó összeg (Ft) |
+| `subtotal` | number | Nettó összeg (Ft) — szenzorok + anyag + doboz + tápellátás (előfizetés NÉLKÜL) |
 | `vatPercent` | number | ÁFA kulcs (27) |
-| `vatAmount` | number | ÁFA összeg (Ft) |
-| `total` | number | Bruttó végösszeg (Ft) |
+| `vatAmount` | number | ÁFA összeg (Ft) — subtotal × 27% |
+| `shippingFee` | number | Szállítási díj (Ft) — ÁFA-mentes, jelenleg 0 (PLACEHOLDER) |
+| `total` | number | Bruttó végösszeg (Ft) — subtotal + vatAmount + shippingFee + elofizetes.price |
 | `currency` | string | Pénznem ("HUF") |
 | `createdAt` | string | ISO 8601 időbélyeg |
 | `locale` | string | Nyelv/régió ("hu-HU") |
-| `presetId` | string | Opcionális preset azonosító (pl. `akvarium`) |
-| `presetLabel` | string | Opcionális preset megnevezés |
-| `presetMaxSzenzorok` | number | Opcionális preset limit |
+| `presetId` | string? | Opcionális preset azonosító (pl. `akvarium`) |
+| `presetLabel` | string? | Opcionális preset megnevezés |
+| `presetMaxSzenzorok` | number? | Opcionális preset szenzor-szám |
 
 ### API válasz (amit a backend visszaad)
 
@@ -364,6 +427,12 @@ A backend **MINDEN** eredeti mezőt visszaad, plusz a számított értékeket:
       "price": 2500,
       "quantity": 1
     },
+    "elofizetes": {
+      "id": "havi",
+      "name": "Havi",
+      "price": 1000,
+      "quantity": 1
+    },
     "shipping": {
       "mode": "foxpost",
       "shippingAddress": null,
@@ -390,13 +459,14 @@ A backend **MINDEN** eredeti mezőt visszaad, plusz a számított értékeket:
     "payment": {
       "mode": "utalas"
     },
-    "subtotal": 37500,
+    "subtotal": 27500,
     "vatPercent": 27,
-    "vatAmount": 10125,
-    "total": 47625,
+    "vatAmount": 7425,
+    "shippingFee": 0,
+    "total": 35925,
     "locale": "hu-HU",
     "currency": "HUF",
-    "createdAt": "2026-02-04T10:30:00.000Z",
+    "createdAt": "2026-02-10T10:30:00.000Z",
     "presetId": "akvarium",
     "presetLabel": "Akvárium",
     "presetMaxSzenzorok": 3
@@ -407,10 +477,18 @@ A backend **MINDEN** eredeti mezőt visszaad, plusz a számított értékeket:
 **Számított mezők (backend számolja):**
 | Mező | Leírás | Példa |
 |------|--------|-------|
-| `subtotal` | Nettó összeg (szenzorok + anyag + doboz + tápellátás) | 37 500 Ft |
+| `subtotal` | Nettó összeg (szenzorok + anyag + doboz + tápellátás) — előfizetés NÉLKÜL | 27 500 Ft |
 | `vatPercent` | ÁFA kulcs | 27% |
-| `vatAmount` | ÁFA összeg (subtotal × 0.27) | 10 125 Ft |
-| `total` | Bruttó végösszeg (subtotal + vatAmount) | 47 625 Ft |
+| `vatAmount` | ÁFA összeg (subtotal × 0.27) | 7 425 Ft |
+| `shippingFee` | Szállítási díj (ÁFA-mentes, jelenleg PLACEHOLDER 0 Ft) | 0 Ft |
+| `total` | Bruttó végösszeg (subtotal + vatAmount + shippingFee + elofizetesTotal) | 35 925 Ft |
+
+**ÁFA kalkuláció logika:**
+- `subtotal` = szenzorok árak összege + anyag ár + doboz ár + tápellátás ár
+- `vatAmount` = Math.round(subtotal × vatPercent / 100)
+- Az **előfizetés** díja bruttóként kezelendő (ÁFA-t már tartalmaz), ezért NEM része a subtotal-nak és NEM kerül rá plusz ÁFA
+- A **szállítási díj** ÁFA-mentes (jelenleg 0 Ft placeholder)
+- `total` = subtotal + vatAmount + shippingFee + elofizetesTotal
 
 ### TypeScript típusok
 
@@ -435,57 +513,67 @@ export interface OrderColors {
   };
 }
 
+export interface ShippingAddress {
+  zip: string;
+  city: string;
+  street: string;
+  houseNumber: string;
+  stair?: string | null;
+  floor?: string | null;
+  door?: string | null;
+}
+
+export interface FoxpostAutomataInfo {
+  place_id: string;
+  operator_id: string;
+  name: string;
+  address: string;
+  city: string;
+  zip: string;
+  geolat?: string;
+  geolng?: string;
+  findme?: string;
+}
+
+export interface ShippingDetails {
+  mode: "foxpost" | "hazhoz";
+  shippingAddress?: ShippingAddress | null;
+  billingSame?: boolean;
+  billingAddress: ShippingAddress;
+  foxpostAutomata?: string | null;
+  foxpostAutomataDetails?: FoxpostAutomataInfo | null;
+}
+
+export interface PaymentDetails {
+  mode: "utalas" | "stripe";
+}
+
 export interface OrderPayload {
   userId: string;
   userEmail: string;
   userName: string;          // Megrendelő neve
+
   szenzorok: OrderItem[];     // Custom max 2, preset limit
-  anyag: OrderItem;          // Burok anyag típusa
   eszkoz?: OrderItem;        // OPCIONÁLIS - jelenleg nem használt
+  anyag: OrderItem;          // Burok anyag típusa
   doboz: OrderItem;
-  colors: OrderColors;
-  shipping: {
-    mode: "foxpost" | "hazhoz";
-    shippingAddress?: {
-      zip: string;
-      city: string;
-      street: string;
-      houseNumber: string;
-      stair?: string | null;
-      floor?: string | null;
-      door?: string | null;
-    } | null;
-    billingSame?: boolean;
-    billingAddress: {
-      zip: string;
-      city: string;
-      street: string;
-      houseNumber: string;
-      stair?: string | null;
-      floor?: string | null;
-      door?: string | null;
-    };
-    foxpostAutomata?: string | null;
-    /** Foxpost automata teljes adatokkal (APT Finder widgetből) */
-    foxpostAutomataDetails?: {
-      place_id: string;
-      operator_id: string;
-      name: string;
-      address: string;
-      city: string;
-      zip: string;
-      geolat?: string;
-      geolng?: string;
-      findme?: string;
-    } | null;
-  };
-  payment: {
-    mode: "utalas" | "stripe";
-  };
   tapellatas: OrderItem;
-  locale: "hu-HU";
+  elofizetes?: OrderItem;    // OPCIONÁLIS - előfizetés díja (bruttó, ÁFA-t tartalmaz)
+
+  colors: OrderColors;
+  shipping: ShippingDetails;
+  payment: PaymentDetails;
+
+  // Összesítés
+  subtotal: number;      // Nettó összeg (ÁFA nélkül, előfizetés nélkül)
+  vatPercent: number;    // ÁFA százalék (pl. 27)
+  vatAmount: number;     // ÁFA összeg
+  shippingFee: number;   // Szállítási díj (ÁFA-mentes)
+  total: number;         // Bruttó végösszeg (subtotal + ÁFA + szállítás + előfizetés)
+
   currency: "HUF";
-  createdAt: string;
+  createdAt: string;     // ISO 8601 timestamp
+  locale: "hu-HU";
 
   // Preset meta (opcionális)
   presetId?: string;
@@ -560,6 +648,9 @@ model Order {
   
   // Rendelés adatok
   szenzorokJson      String   @db.Text  // JSON string
+  anyagId            String
+  anyagName          String
+  anyagPrice         Int
   eszkozName         String?
   eszkozPrice        Int?
   dobozName          String
@@ -569,11 +660,17 @@ model Order {
   tapellatasName     String
   tapellatasPrice    Int
   
+  // Előfizetés (bruttó ár, ÁFA-t tartalmaz)
+  elofizetesId       String?  // "ingyenes" | "havi" | "eves"
+  elofizetesName     String?
+  elofizetesPrice    Int?     // Bruttó ár (Ft)
+  
   // Összegek
-  subtotal           Int
+  subtotal           Int      // Nettó (előfizetés nélkül)
   vatPercent         Int      @default(27)
   vatAmount          Int
-  total              Int
+  shippingFee        Int      @default(0) // ÁFA-mentes
+  total              Int      // subtotal + vatAmount + shippingFee + elofizetesPrice
   currency           String   @default("HUF")
   
   // Szállítás
@@ -581,6 +678,10 @@ model Order {
   shippingAddress    String?  @db.Text
   shippingStatus     String   @default("pending") // pending, processing, shipped, delivered
   trackingNumber     String?
+  
+  // Preset meta
+  presetId           String?
+  presetLabel        String?
   
   // Időbélyegek
   createdAt          DateTime @default(now())
@@ -650,15 +751,17 @@ Cookie: next-auth.session-token=...
 |------|---------|
 | `userId` | Kötelező, string |
 | `userEmail` | Kötelező, valid email |
-| `szenzorok` | Kötelező, custom: 1-2 elem, konfiguráció limit |
+| `szenzorok` | Kötelező, custom: 1-2 elem, preset: preset szenzor-szám |
+| `anyag` | Kötelező, id + name + price + quantity |
 | `doboz` | Kötelező, id + name + price + quantity |
 | `colors` | Kötelező, dobozSzin + tetoSzin |
 | `tapellatas` | Kötelező, id + name + price + quantity |
+| `elofizetes` | **OPCIONÁLIS**, id + name + price + quantity (bruttó ár) |
 | `shipping` | Kötelező, mode + billingAddress + (hazhoz esetén shippingAddress) + (foxpost esetén foxpostAutomata) |
 | `payment` | Kötelező, mode |
 | `eszkoz` | **OPCIONÁLIS** |
 | `presetId` | OPCIONÁLIS, preset azonosító |
-| `presetMaxSzenzorok` | OPCIONÁLIS, preset limit |
+| `presetMaxSzenzorok` | OPCIONÁLIS, preset szenzor-szám |
 
 ---
 
@@ -725,6 +828,18 @@ for (const szenzor of body.szenzorok) {
   });
 }
 
+// Anyag (burok)
+if (body.anyag.price > 0) {
+  lineItems.push({
+    price_data: {
+      currency: 'huf',
+      product_data: { name: `Burok: ${body.anyag.name}` },
+      unit_amount: body.anyag.price * 100,
+    },
+    quantity: 1,
+  });
+}
+
 // Doboz
 lineItems.push({
   price_data: {
@@ -746,7 +861,26 @@ lineItems.push({
   },
   quantity: 1,
 });
+
+// Előfizetés (bruttó, ha nem ingyenes)
+if (body.elofizetes && body.elofizetes.price > 0) {
+  lineItems.push({
+    price_data: {
+      currency: 'huf',
+      product_data: { name: `Előfizetés: ${body.elofizetes.name}` },
+      unit_amount: body.elofizetes.price * 100,
+    },
+    quantity: 1,
+  });
+}
 ```
+
+### Ismert backend teendők / hiányosságok
+
+| Probléma | Leírás | Prioritás |
+|----------|--------|-----------|
+| Szállítási díjak placeholder | `SZALLITASI_ARAK` jelenleg `{ foxpost: 0, hazhoz: 0 }` — éles értékek szükségesek | ⚠️ Közepes |
+| Szenzorok/anyagok árai placeholder | Több szenzor és anyag ára PLACEHOLDER — végleges árak szükségesek | ⚠️ Közepes |
 
 ---
 
@@ -897,18 +1031,24 @@ FOXPOST_API_KEY=                                        # foxpost.hu -> Beállí
 - [x] Bejelentkezés nélkül átirányít signin-ra
 - [x] Bejelentkezés után visszakerül /vasarlas-ra
 - [x] Szenzor választás működik (custom max 2)
-- [x] Előre beállított konfigurációk működnek (preset limit)
-- [x] Anyag választás működik (PLA típusok)
+- [x] 16 db előre beállított konfiguráció (preset kártyák) működnek
+- [x] Preset módban Szenzor és Anyag lépések átugrásra kerülnek
+- [x] Preset-zárolt lépések nem kattinthatók (cursor-not-allowed)
+- [x] Anyag választás működik (6 típus: Normál, Vízálló, PLA, UV álló PLA, ABS, PETG)
 - [x] Doboz választás működik
 - [x] Szín választás működik
 - [x] 3D előnézet betölt minden kombinációra
 - [x] Tápellátás választás működik
-- [x] Összesítés helyes árakat mutat
+- [x] Előfizetés választás működik (Ingyenes / Havi / Éves)
+- [x] Előfizetés bruttóként kezelve (nincs dupla ÁFA)
+- [x] Összesítés helyes árakat mutat (Nettó, ÁFA, Szállítás, Előfizetés, Bruttó összeg)
+- [x] Progress bar kattintható (visszafelé navigáció)
+- [x] Folyamatkövető sidebar mutatja az aktuális kiválasztásokat
 - [x] Szállítási adatok megadása kötelező (mód + cím + Foxpost automata ha szükséges)
 - [x] Foxpost automata választó (térképes iframe widget) megnyílik és bezáródik
 - [x] Kiválasztott automata adatai megjelennek a szállítás lépésben és az összesítésben
 - [x] foxpostAutomataDetails bekerül a rendelés JSON-ba
-- [x] ÁFA kalkuláció helyes (27%)
+- [x] ÁFA kalkuláció helyes (27%, egyszeri, előfizetés nem része az ÁFA alapnak)
 
 ### Foxpost TODO ⏳
 
@@ -963,15 +1103,16 @@ EMAIL_FROM=info@szenzor24.hu
 | Fájl | Leírás |
 |------|--------|
 | `src/app/(site)/vasarlas/page.tsx` | Rendelés oldal (/vasarlas) |
-| `src/components/Vasarlas/ProductConfigurator.tsx` | 9 lépéses konfigurátor + preset mód |
+| `src/components/Vasarlas/ProductConfigurator.tsx` | 10 lépéses konfigurátor + 16 preset + előfizetés + folyamatkövető |
 | `src/components/Vasarlas/FoxpostSelector.tsx` | Foxpost automata választó (iframe APT Finder widget) |
-| `src/types/order.ts` | TypeScript típusok (incl. FoxpostAutomataInfo) |
-| `src/app/api/order/route.ts` | Lokális API referencia/validáció |
+| `src/types/order.ts` | TypeScript típusok (incl. FoxpostAutomataInfo, elofizetes) |
+| `src/app/api/order/route.ts` | Lokális API referencia/validáció (ÁFA kalkuláció, előfizetés bruttó kezelés) |
 | `src/app/api/foxpost/route.ts` | Foxpost WebAPI szerver-oldali route (csomaglétrehozás + automata lista) |
 | `src/lib/orderEmail.ts` | Rendelés visszaigazoló email template |
 | `src/lib/email.ts` | Nodemailer konfiguráció |
+| `src/lib/modelPaths.ts` | 3D modell elérési utak (akkus model path) |
 | `src/components/HeroArea/index.tsx` | Főoldali "Rendelés" CTA |
 | `src/components/Header/index.tsx` | Fejléc "Rendelés" menüpont |
 
 ---
-*Dokumentáció generálva: 2026. február 9.*
+*Dokumentáció generálva: 2026. február 10.*

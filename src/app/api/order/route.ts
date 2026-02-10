@@ -8,6 +8,20 @@ import { sendOrderConfirmationEmail } from "@/lib/orderEmail";
 const PRESET_SENSOR_LIMITS: Record<string, number> = {
   huto: 2,
   akvarium: 3,
+  hutokamra: 2,
+  hideglanc_monitor: 2,
+  gyogyszertarolo: 2,
+  raktar_kornyezetfigyelo: 2,
+  server_szoba_monitor: 2,
+  iroda_levegominoseg: 2,
+  tanterem_levegofigyelo: 2,
+  kazan_biztonsag: 2,
+  garazs_gazfigyelo: 2,
+  akku_tolto_helyiseg: 2,
+  allattarto_telep: 3,
+  logisztikai_csomagfigyelo: 2,
+  szallitasi_sokkfigyelo: 1,
+  tarolo_kontener: 2,
 };
 
 /*
@@ -56,7 +70,8 @@ model Order {
   subtotal        Int                             // Nettó összeg (ÁFA nélkül)
   vatPercent      Int       @default(27)          // ÁFA százalék
   vatAmount       Int                             // ÁFA összeg
-  total           Int                             // Bruttó végösszeg
+  shippingFee     Int                             // Szállítási díj (ÁFA-mentes)
+  total           Int                             // Bruttó végösszeg (ÁFA + szállítás)
   currency        String    @default("HUF")
   
   // Stripe
@@ -124,6 +139,7 @@ BEJÖVŐ JSON STRUKTÚRA (body) - 2026-02-04 frissítve:
   "subtotal": 15000,
   "vatPercent": 27,
   "vatAmount": 4050,
+  "shippingFee": 0,
   "total": 19050,
   "currency": "HUF",
   "locale": "hu-HU",
@@ -262,6 +278,9 @@ export async function POST(request: Request) {
     const szenzorokTotal = body.szenzorok.reduce((sum, sz) => sum + sz.price * sz.quantity, 0);
     const anyagTotal = body.anyag.price * body.anyag.quantity;
     const eszkozTotal = body.eszkoz ? body.eszkoz.price * body.eszkoz.quantity : 0;
+    const elofizetesTotal = body.elofizetes
+      ? body.elofizetes.price * body.elofizetes.quantity
+      : 0;
     const calculatedSubtotal =
       szenzorokTotal +
       anyagTotal +
@@ -269,8 +288,9 @@ export async function POST(request: Request) {
       body.doboz.price * body.doboz.quantity +
       body.tapellatas.price * body.tapellatas.quantity;
 
+    const shippingFee = typeof body.shippingFee === "number" ? body.shippingFee : 0;
     const vatAmount = Math.round(calculatedSubtotal * (body.vatPercent / 100));
-    const total = calculatedSubtotal + vatAmount;
+    const total = calculatedSubtotal + vatAmount + shippingFee + elofizetesTotal;
 
     // TODO: Backend - Stripe Checkout Session létrehozása
     /*
@@ -370,6 +390,7 @@ export async function POST(request: Request) {
       ...body,
       subtotal: calculatedSubtotal,
       vatAmount: vatAmount,
+      shippingFee: shippingFee,
       total: total,
     };
 

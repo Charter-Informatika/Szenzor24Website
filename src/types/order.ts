@@ -73,6 +73,7 @@ export interface OrderPayload {
   doboz: OrderItem;
   anyag: OrderItem;       // Burok anyag típusa (PLA, UV álló PLA, stb.)
   tapellatas: OrderItem;
+  elofizetes?: OrderItem; // Opcionális - előfizetés díja
 
   // Színek (nem befolyásolja az árat)
   colors: OrderColors;
@@ -87,7 +88,8 @@ export interface OrderPayload {
   subtotal: number;      // Nettó összeg (ÁFA nélkül)
   vatPercent: number;    // ÁFA százalék (pl. 27)
   vatAmount: number;     // ÁFA összeg
-  total: number;         // Bruttó összeg (ÁFA-val)
+  shippingFee: number;   // Szállítási díj (ÁFA-mentes)
+  total: number;         // Bruttó végösszeg (ÁFA + szállítás)
 
   // Meta
   currency: "HUF";
@@ -175,6 +177,7 @@ export interface OrderPayload {
   "subtotal": 38500,
   "vatPercent": 27,
   "vatAmount": 10395,
+  "shippingFee": 0,
   "total": 48895,
   
   "currency": "HUF",

@@ -201,6 +201,14 @@ const szallitasiModok = [
   },
 ] as const;
 
+// PLACEHOLDER - allitsd be a vegleges szallitasi dijakat (HUF)
+const SZALLITASI_ARAK = {
+  foxpost: 0,
+  hazhoz: 0,
+} as const;
+
+const VAT_PERCENT = 27;
+
 // Fizetési módok
 const fizetesiModok = [
   {
@@ -212,6 +220,27 @@ const fizetesiModok = [
     id: "stripe",
     name: "Stripe",
     description: "Bankkártyás fizetés",
+  },
+] as const;
+
+const elofizetesek = [
+  {
+    id: "ingyenes",
+    name: "Ingyenes",
+    description: "Alap csomag",
+    price: 0,
+  },
+  {
+    id: "havi",
+    name: "Havi",
+    description: "Havi előfizetés",
+    price: 1000,
+  },
+  {
+    id: "eves",
+    name: "Éves",
+    description: "Éves előfizetés",
+    price: 10000,
   },
 ] as const;
 
@@ -277,9 +306,107 @@ const presetOptions = [
     szenzorok: ["homerseklet", "o2", "co2"],
     anyagId: "vizallo_burkolat",
   },
+  {
+    id: "hutokamra",
+    label: "Hűtőkamra",
+    description: "SENSORION hőmérséklet + páratartalom, normál burkolat",
+    szenzorok: ["sensorion", "paratartalom"],
+    anyagId: "normal_burkolat",
+  },
+  {
+    id: "hideglanc_monitor",
+    label: "Hideglánc monitor",
+    description: "SENSORION hőmérséklet + MPU-6050, PETG",
+    szenzorok: ["sensorion", "mpu6050"],
+    anyagId: "petg",
+  },
+  {
+    id: "gyogyszertarolo",
+    label: "Gyógyszertároló",
+    description: "SENSORION hőmérséklet + páratartalom, ABS",
+    szenzorok: ["sensorion", "paratartalom"],
+    anyagId: "abs",
+  },
+  {
+    id: "raktar_kornyezetfigyelo",
+    label: "Raktár környezetfigyelő",
+    description: "HTU21D + MPU-6050, PETG",
+    szenzorok: ["htu21d", "mpu6050"],
+    anyagId: "petg",
+  },
+  {
+    id: "server_szoba_monitor",
+    label: "Server szoba monitor",
+    description: "SENSORION hőmérséklet + CO2, ABS",
+    szenzorok: ["sensorion", "co2"],
+    anyagId: "abs",
+  },
+  {
+    id: "iroda_levegominoseg",
+    label: "Iroda levegőminőség",
+    description: "CO2 + HTU21D, Sima PLA",
+    szenzorok: ["co2", "htu21d"],
+    anyagId: "sima_pla",
+  },
+  {
+    id: "tanterem_levegofigyelo",
+    label: "Tanterem levegőfigyelő",
+    description: "CO2 + hőmérséklet, Sima PLA",
+    szenzorok: ["co2", "homerseklet"],
+    anyagId: "sima_pla",
+  },
+  {
+    id: "kazan_biztonsag",
+    label: "Kazánház biztonság",
+    description: "Gáz + O2, ABS",
+    szenzorok: ["gaz", "o2"],
+    anyagId: "abs",
+  },
+  {
+    id: "garazs_gazfigyelo",
+    label: "Garázs gázfigyelő",
+    description: "Gáz + CO2, PETG",
+    szenzorok: ["gaz", "co2"],
+    anyagId: "petg",
+  },
+  {
+    id: "akku_tolto_helyiseg",
+    label: "Akkumulátor töltő helyiség",
+    description: "Hidrogén + hőmérséklet, ABS",
+    szenzorok: ["hidrogen", "homerseklet"],
+    anyagId: "abs",
+  },
+  {
+    id: "allattarto_telep",
+    label: "Állattartó telep levegőfigyelő",
+    description: "Metán + CO2 + O2, vízálló burkolat",
+    szenzorok: ["metan", "co2", "o2"],
+    anyagId: "vizallo_burkolat",
+  },
+  {
+    id: "logisztikai_csomagfigyelo",
+    label: "Logisztikai csomagfigyelő",
+    description: "MPU-6050 + hőmérséklet, PETG",
+    szenzorok: ["mpu6050", "homerseklet"],
+    anyagId: "petg",
+  },
+  {
+    id: "szallitasi_sokkfigyelo",
+    label: "Szállítási sokkfigyelő",
+    description: "MPU-6050, PETG",
+    szenzorok: ["mpu6050"],
+    anyagId: "petg",
+  },
+  {
+    id: "tarolo_kontener",
+    label: "Tároló konténer monitor",
+    description: "Hőmérséklet + MPU-6050, PETG",
+    szenzorok: ["homerseklet", "mpu6050"],
+    anyagId: "petg",
+  },
 ];
 
-type StepId = "mod" | "szenzor" | "anyag" | "doboz" | "szin" | "tapellatas" | "szallitas" | "fizetes" | "osszesites";
+type StepId = "mod" | "szenzor" | "anyag" | "doboz" | "szin" | "tapellatas" | "elofizetes" | "szallitas" | "fizetes" | "osszesites";
 type ConfigMode = "preset" | "custom";
 
 const MAX_SZENZOROK = 2;
@@ -291,6 +418,7 @@ interface Selection {
   dobozSzin: string;
   tetoSzin: string;
   tapellatas: string | null;
+  elofizetes: "ingyenes" | "havi" | "eves" | null;
   shippingMode: "foxpost" | "hazhoz" | null;
   paymentMode: "utalas" | "stripe" | null;
   shippingAddress: {
@@ -327,6 +455,7 @@ const ProductConfigurator = () => {
     dobozSzin: "zold",
     tetoSzin: "feher",
     tapellatas: null,
+    elofizetes: null,
     shippingMode: null,
     paymentMode: null,
     shippingAddress: {
@@ -370,13 +499,16 @@ const ProductConfigurator = () => {
     { id: "tapellatas", title: "Tápellátás", icon: "4" },
     { id: "doboz", title: "Doboz", icon: "5" },
     { id: "szin", title: "Szín", icon: "6" },
-    { id: "szallitas", title: "Szállítás", icon: "7" },
-    { id: "fizetes", title: "Fizetés", icon: "8" },
+    { id: "elofizetes", title: "Előfizetés", icon: "7" },
+    { id: "szallitas", title: "Szállítás", icon: "8" },
+    { id: "fizetes", title: "Fizetés", icon: "9" },
     { id: "osszesites", title: "Összesítés", icon: "✓" },
   ];
 
   const selectedPreset = presetOptions.find((preset) => preset.id === selectedPresetId) ?? null;
   const isPresetLocked = configMode === "preset" && Boolean(selectedPreset);
+  const hiddenSteps = isPresetLocked ? new Set<StepId>(["szenzor", "anyag"]) : null;
+  const visibleSteps = steps.filter((step) => !hiddenSteps?.has(step.id));
   const maxSzenzorok = configMode === "preset"
     ? (selectedPreset?.szenzorok.length ?? MAX_SZENZOROK)
     : MAX_SZENZOROK;
@@ -384,7 +516,8 @@ const ProductConfigurator = () => {
     ? szenzorok.filter((szenzor) => selectedPreset.szenzorok.includes(szenzor.id))
     : szenzorok;
 
-  const calculateTotal = () => {
+
+  const calculateSubtotal = () => {
     let total = 0;
     // Több szenzor összege
     for (const szenzorId of selection.szenzorok) {
@@ -405,6 +538,24 @@ const ProductConfigurator = () => {
       if (tap) total += tap.price;
     }
     return total;
+  };
+
+  const calculateSubscriptionFee = () => {
+    if (!selection.elofizetes) return 0;
+    const elofizetes = elofizetesek.find((e) => e.id === selection.elofizetes);
+    return elofizetes ? elofizetes.price : 0;
+  };
+
+  const getShippingFee = () =>
+    selection.shippingMode ? SZALLITASI_ARAK[selection.shippingMode] : 0;
+
+  const calculateVatAmount = (subtotal: number) =>
+    Math.round(subtotal * (VAT_PERCENT / 100));
+
+  const calculateGrandTotal = () => {
+    const subtotal = calculateSubtotal();
+    const vatAmount = calculateVatAmount(subtotal);
+    return subtotal + vatAmount + getShippingFee() + calculateSubscriptionFee();
   };
 
   const isAddressComplete = (address: Selection["shippingAddress"]) =>
@@ -471,6 +622,8 @@ const ProductConfigurator = () => {
         return true; // Szín mindig van alapértelmezett
       case "tapellatas":
         return selection.tapellatas !== null;
+      case "elofizetes":
+        return selection.elofizetes !== null;
       case "szallitas":
         return isShippingValid();
       case "fizetes":
@@ -483,16 +636,28 @@ const ProductConfigurator = () => {
   };
 
   const nextStep = () => {
-    const stepIndex = steps.findIndex((s) => s.id === currentStep);
-    if (stepIndex < steps.length - 1 && canProceed()) {
-      setCurrentStep(steps[stepIndex + 1].id);
+    const stepIndex = visibleSteps.findIndex((s) => s.id === currentStep);
+    if (stepIndex === -1) {
+      if (visibleSteps.length > 0) {
+        setCurrentStep(visibleSteps[0].id);
+      }
+      return;
+    }
+    if (stepIndex < visibleSteps.length - 1 && canProceed()) {
+      setCurrentStep(visibleSteps[stepIndex + 1].id);
     }
   };
 
   const prevStep = () => {
-    const stepIndex = steps.findIndex((s) => s.id === currentStep);
+    const stepIndex = visibleSteps.findIndex((s) => s.id === currentStep);
+    if (stepIndex === -1) {
+      if (visibleSteps.length > 0) {
+        setCurrentStep(visibleSteps[0].id);
+      }
+      return;
+    }
     if (stepIndex > 0) {
-      setCurrentStep(steps[stepIndex - 1].id);
+      setCurrentStep(visibleSteps[stepIndex - 1].id);
     }
   };
 
@@ -509,6 +674,10 @@ const ProductConfigurator = () => {
     const selectedAnyag = anyagok.find((a) => a.id === selection.anyag);
     const selectedDoboz = dobozok.find((d) => d.id === selection.doboz);
     const selectedTap = tapellatasok.find((t) => t.id === selection.tapellatas);
+    const selectedElofizetes =
+      elofizetesek.find((e) => e.id === selection.elofizetes) ??
+      elofizetesek.find((e) => e.id === "ingyenes") ??
+      null;
     const selectedDobozSzin = dobozSzinek.find((s) => s.id === selection.dobozSzin);
     const selectedTetoSzin = tetoSzinek.find((s) => s.id === selection.tetoSzin);
 
@@ -527,10 +696,12 @@ const ProductConfigurator = () => {
       return;
     }
 
-    const subtotal = calculateTotal();
-    const vatPercent = 27;
-    const vatAmount = Math.round(subtotal * (vatPercent / 100));
-    const total = subtotal + vatAmount;
+    const subtotal = calculateSubtotal();
+    const subscriptionFee = calculateSubscriptionFee();
+    const vatPercent = VAT_PERCENT;
+    const vatAmount = calculateVatAmount(subtotal);
+    const shippingFee = getShippingFee();
+    const total = subtotal + vatAmount + shippingFee + subscriptionFee;
 
     const orderPayload: OrderPayload = {
       userId: (session.user as any).id || "unknown",
@@ -561,6 +732,19 @@ const ProductConfigurator = () => {
         price: selectedTap.price,
         quantity: 1,
       },
+      elofizetes: selectedElofizetes
+        ? {
+            id: selectedElofizetes.id,
+            name: selectedElofizetes.name,
+            price: selectedElofizetes.price,
+            quantity: 1,
+          }
+        : {
+            id: "ingyenes",
+            name: "Ingyenes",
+            price: 0,
+            quantity: 1,
+          },
 
       colors: {
         dobozSzin: {
@@ -635,6 +819,7 @@ const ProductConfigurator = () => {
       subtotal,
       vatPercent,
       vatAmount,
+      shippingFee,
       total,
 
       currency: "HUF",
@@ -713,63 +898,39 @@ const ProductConfigurator = () => {
       case "mod":
         return (
           <div className="mx-auto max-w-5xl">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => setConfigMode("preset")}
-                className={`rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg ${
-                  configMode === "preset"
-                    ? "border-primary bg-primary/10"
-                    : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
-                }`}
-              >
-                <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
-                  Előre beállított konfiguráció
-                </h4>
-                <p className="text-sm text-body">
-                  Előre összeválogatott szenzorok és burok anyag. A tápellátást és a színeket továbbra is kiválaszthatod.
-                </p>
-              </button>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              {presetOptions.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => applyPreset(preset.id)}
+                  className={`rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg ${
+                    configMode === "preset" && selectedPresetId === preset.id
+                      ? "border-primary bg-primary/10"
+                      : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                  }`}
+                >
+                  <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
+                    {preset.label}
+                  </h4>
+                  <p className="text-sm text-body">{preset.description}</p>
+                </button>
+              ))}
+            </div>
 
+            <div className="mt-8 flex justify-center">
               <button
                 type="button"
                 onClick={selectCustomMode}
-                className={`rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg ${
+                className={`w-full max-w-sm rounded-2xl border-2 px-6 py-4 text-center text-base font-semibold transition-all hover:shadow-lg ${
                   configMode === "custom"
-                    ? "border-primary bg-primary/10"
-                    : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                    ? "border-primary bg-primary/10 text-black dark:text-white"
+                    : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark text-black dark:text-white"
                 }`}
               >
-                <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
-                  Teljeskörű személyre szabás
-                </h4>
-                <p className="text-sm text-body">
-                  Egyedi konfiguráció a meglévő logika szerint.
-                </p>
+                Teljeskörű személyre szabás
               </button>
             </div>
-
-            {configMode === "preset" && (
-              <div className="mt-8">
-                <h4 className="mb-4 text-center text-lg font-semibold text-black dark:text-white">
-                  Válassz konfigurációt
-                </h4>
-                <select
-                  value={selectedPresetId ?? ""}
-                  onChange={(event) => applyPreset(event.target.value)}
-                  className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
-                >
-                  <option value="" disabled>
-                    Válassz konfigurációt...
-                  </option>
-                  {presetOptions.map((preset) => (
-                    <option key={preset.id} value={preset.id}>
-                      {preset.label} - {preset.description}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
           </div>
         );
       case "szenzor":
@@ -1010,6 +1171,34 @@ const ProductConfigurator = () => {
                     {tap.price.toLocaleString("hu-HU")} Ft
                   </p>
                 </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "elofizetes":
+        return (
+          <div className="mx-auto max-w-4xl">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {elofizetesek.map((plan) => (
+                <button
+                  type="button"
+                  key={plan.id}
+                  onClick={() => setSelection({ ...selection, elofizetes: plan.id })}
+                  className={`rounded-xl border-2 p-6 text-left transition-all hover:shadow-lg ${
+                    selection.elofizetes === plan.id
+                      ? "border-primary bg-primary/10"
+                      : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                  }`}
+                >
+                  <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
+                    {plan.name}
+                  </h4>
+                  <p className="mb-3 text-sm text-body">{plan.description}</p>
+                  <p className="text-xl font-bold text-primary">
+                    {plan.price === 0 ? "0 Ft" : `${plan.price.toLocaleString("hu-HU")} Ft`}
+                  </p>
+                </button>
               ))}
             </div>
           </div>
@@ -1283,9 +1472,15 @@ const ProductConfigurator = () => {
         const selectedAnyagOssz = anyagok.find((a) => a.id === selection.anyag);
         const selectedDoboz = dobozok.find((d) => d.id === selection.doboz);
         const selectedTap = tapellatasok.find((t) => t.id === selection.tapellatas);
+        const selectedElofizetes = elofizetesek.find((e) => e.id === selection.elofizetes);
         const selectedDobozSzin = dobozSzinek.find((s) => s.id === selection.dobozSzin);
         const selectedTetoSzin = tetoSzinek.find((s) => s.id === selection.tetoSzin);
         const szenzorokTotal = selectedSzenzorokList.reduce((sum, sz) => sum + (sz?.price || 0), 0);
+        const subtotal = calculateSubtotal();
+        const vatAmount = calculateVatAmount(subtotal);
+        const shippingFee = getShippingFee();
+        const subscriptionFee = calculateSubscriptionFee();
+        const total = subtotal + vatAmount + shippingFee + subscriptionFee;
 
         return (
           <div className="mx-auto max-w-2xl">
@@ -1364,10 +1559,29 @@ const ProductConfigurator = () => {
                   </p>
                 </div>
 
+                <div className="flex items-center justify-between border-b border-stroke pb-3 dark:border-stroke-dark">
+                  <div>
+                    <p className="font-medium text-black dark:text-white">
+                      {selectedElofizetes?.name ?? "-"}
+                    </p>
+                    <p className="text-sm text-body">Előfizetés</p>
+                  </div>
+                  <p className="font-semibold text-black dark:text-white">
+                    {selectedElofizetes
+                      ? selectedElofizetes.price === 0
+                        ? "0 Ft"
+                        : `${selectedElofizetes.price.toLocaleString("hu-HU")} Ft`
+                      : "-"}
+                  </p>
+                </div>
+
                 <div className="border-b border-stroke pb-3 dark:border-stroke-dark">
                   <p className="mb-2 text-sm font-medium text-body">Szállítás</p>
                   <p className="font-medium text-black dark:text-white">
                     {selection.shippingMode === "foxpost" ? "Foxpost automata" : "Házhozszállítás"}
+                  </p>
+                  <p className="text-sm text-body">
+                    Szállítási díj (ÁFA-mentes): {shippingFee.toLocaleString("hu-HU")} Ft
                   </p>
 
                   {selection.shippingMode === "hazhoz" && (
@@ -1422,13 +1636,38 @@ const ProductConfigurator = () => {
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-3">
-                  <p className="text-xl font-bold text-black dark:text-white">Összesen:</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {calculateTotal().toLocaleString("hu-HU")} Ft
-                  </p>
+                <div className="space-y-2 border-t border-stroke pt-3 dark:border-stroke-dark">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-body">Nettó összeg:</p>
+                    <p className="font-semibold text-black dark:text-white">
+                      {subtotal.toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-body">ÁFA ({VAT_PERCENT}%):</p>
+                    <p className="font-semibold text-black dark:text-white">
+                      {vatAmount.toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-body">Szállítás (ÁFA-mentes):</p>
+                    <p className="font-semibold text-black dark:text-white">
+                      {shippingFee.toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-body">Előfizetés (ÁFA-t tartalmaz):</p>
+                    <p className="font-semibold text-black dark:text-white">
+                      {subscriptionFee.toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between pt-2">
+                    <p className="text-xl font-bold text-black dark:text-white">Bruttó összeg:</p>
+                    <p className="text-2xl font-bold text-primary">
+                      {total.toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
                 </div>
-                <p className="text-right text-sm text-body">+ ÁFA</p>
               </div>
 
               <button
@@ -1460,6 +1699,8 @@ const ProductConfigurator = () => {
         return "Válassz színt!";
       case "tapellatas":
         return "Akkumulátoros vagy vezetékes?";
+      case "elofizetes":
+        return "Válassz előfizetést!";
       case "szallitas":
         return "Add meg a szállítást!";
       case "fizetes":
@@ -1470,6 +1711,26 @@ const ProductConfigurator = () => {
         return "";
     }
   };
+
+  const selectedSzenzorNames = selection.szenzorok
+    .map((id) => szenzorok.find((s) => s.id === id)?.name)
+    .filter(Boolean) as string[];
+  const selectedAnyagName = anyagok.find((a) => a.id === selection.anyag)?.name ?? "-";
+  const selectedDobozName = dobozok.find((d) => d.id === selection.doboz)?.name ?? "-";
+  const selectedTapName = tapellatasok.find((t) => t.id === selection.tapellatas)?.name ?? "-";
+  const selectedElofizetesName = elofizetesek.find((e) => e.id === selection.elofizetes)?.name ?? "-";
+  const selectedDobozSzinName = dobozSzinek.find((s) => s.id === selection.dobozSzin)?.name ?? "-";
+  const selectedTetoSzinName = tetoSzinek.find((s) => s.id === selection.tetoSzin)?.name ?? "-";
+  const shippingLabel = selection.shippingMode === "foxpost"
+    ? "Foxpost automata"
+    : selection.shippingMode === "hazhoz"
+      ? "Házhozszállítás"
+      : "-";
+  const paymentLabel = selection.paymentMode === "utalas"
+    ? "Utalás"
+    : selection.paymentMode === "stripe"
+      ? "Stripe"
+      : "-";
 
   return (
     <section className="relative z-10">
@@ -1491,10 +1752,25 @@ const ProductConfigurator = () => {
               const stepIndex = steps.findIndex((s) => s.id === currentStep);
               const isActive = step.id === currentStep;
               const isCompleted = index < stepIndex;
+              const isBlockedStep =
+                isPresetLocked && (step.id === "szenzor" || step.id === "anyag");
 
               return (
                 <React.Fragment key={step.id}>
-                  <div className="flex flex-col items-center">
+                  <div
+                    onClick={() => {
+                      if (index < stepIndex && !isBlockedStep) {
+                        setCurrentStep(step.id);
+                      }
+                    }}
+                    className={`flex flex-col items-center ${
+                      isBlockedStep
+                        ? "cursor-not-allowed"
+                        : index < stepIndex
+                          ? "cursor-pointer"
+                          : "cursor-default"
+                    }`}
+                  >
                     <div
                       className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold transition-all ${
                         isActive
@@ -1536,8 +1812,70 @@ const ProductConfigurator = () => {
           {getStepTitle()}
         </h3>
 
-        {/* Lépés tartalma */}
-        <div className="mb-10">{renderStepContent()}</div>
+        {/* Lépés tartalma + oldalsó összegzés */}
+        <div className="mb-10 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div>{renderStepContent()}</div>
+          <aside className="h-fit rounded-xl border-2 border-stroke bg-white p-5 dark:border-stroke-dark dark:bg-dark lg:sticky lg:top-24">
+            <h4 className="mb-4 text-lg font-semibold text-black dark:text-white">
+              Folyamatkövető
+            </h4>
+            <div className="space-y-4 text-sm">
+              <div>
+                <p className="font-medium text-black dark:text-white">Mód</p>
+                <p className="text-body">
+                  {configMode === "preset"
+                    ? `Preset: ${selectedPreset?.label ?? "-"}`
+                    : configMode === "custom"
+                      ? "Teljeskörű személyre szabás"
+                      : "-"}
+                </p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Szenzorok</p>
+                {selectedSzenzorNames.length > 0 ? (
+                  <ul className="mt-1 list-disc pl-5 text-body">
+                    {selectedSzenzorNames.map((name) => (
+                      <li key={name}>{name}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-body">-</p>
+                )}
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Burok anyaga</p>
+                <p className="text-body">{selectedAnyagName}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Doboz</p>
+                <p className="text-body">{selectedDobozName}</p>
+                <p className="text-body">Színek: {selectedDobozSzinName} / {selectedTetoSzinName}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Tápellátás</p>
+                <p className="text-body">{selectedTapName}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Előfizetés</p>
+                <p className="text-body">{selectedElofizetesName}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Szállítás</p>
+                <p className="text-body">{shippingLabel}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Fizetés</p>
+                <p className="text-body">{paymentLabel}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Bruttó végösszeg</p>
+                <p className="text-lg font-semibold text-primary">
+                  {calculateGrandTotal().toLocaleString("hu-HU")} Ft
+                </p>
+              </div>
+            </div>
+          </aside>
+        </div>
 
         {/* Navigációs gombok */}
         <div className="flex items-center justify-between">
@@ -1555,9 +1893,9 @@ const ProductConfigurator = () => {
 
           {/* Aktuális ár */}
           <div className="text-center">
-            <p className="text-sm text-body">Jelenlegi összeg:</p>
+            <p className="text-sm text-body">Jelenlegi végösszeg:</p>
             <p className="text-2xl font-bold text-primary">
-              {calculateTotal().toLocaleString("hu-HU")} Ft
+              {calculateGrandTotal().toLocaleString("hu-HU")} Ft
             </p>
           </div>
 
