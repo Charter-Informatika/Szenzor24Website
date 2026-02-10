@@ -201,6 +201,14 @@ const szallitasiModok = [
   },
 ] as const;
 
+// PLACEHOLDER - allitsd be a vegleges szallitasi dijakat (HUF)
+const SZALLITASI_ARAK = {
+  foxpost: 0,
+  hazhoz: 0,
+} as const;
+
+const VAT_PERCENT = 27;
+
 // Fizetési módok
 const fizetesiModok = [
   {
@@ -384,7 +392,7 @@ const ProductConfigurator = () => {
     ? szenzorok.filter((szenzor) => selectedPreset.szenzorok.includes(szenzor.id))
     : szenzorok;
 
-  const calculateTotal = () => {
+  const calculateSubtotal = () => {
     let total = 0;
     // Több szenzor összege
     for (const szenzorId of selection.szenzorok) {
@@ -405,6 +413,18 @@ const ProductConfigurator = () => {
       if (tap) total += tap.price;
     }
     return total;
+  };
+
+  const getShippingFee = () =>
+    selection.shippingMode ? SZALLITASI_ARAK[selection.shippingMode] : 0;
+
+  const calculateVatAmount = (subtotal: number) =>
+    Math.round(subtotal * (VAT_PERCENT / 100));
+
+  const calculateGrandTotal = () => {
+    const subtotal = calculateSubtotal();
+    const vatAmount = calculateVatAmount(subtotal);
+    return subtotal + vatAmount + getShippingFee();
   };
 
   const isAddressComplete = (address: Selection["shippingAddress"]) =>
@@ -527,10 +547,11 @@ const ProductConfigurator = () => {
       return;
     }
 
-    const subtotal = calculateTotal();
-    const vatPercent = 27;
-    const vatAmount = Math.round(subtotal * (vatPercent / 100));
-    const total = subtotal + vatAmount;
+    const subtotal = calculateSubtotal();
+    const vatPercent = VAT_PERCENT;
+    const vatAmount = calculateVatAmount(subtotal);
+    const shippingFee = getShippingFee();
+    const total = subtotal + vatAmount + shippingFee;
 
     const orderPayload: OrderPayload = {
       userId: (session.user as any).id || "unknown",
@@ -635,6 +656,7 @@ const ProductConfigurator = () => {
       subtotal,
       vatPercent,
       vatAmount,
+      shippingFee,
       total,
 
       currency: "HUF",
@@ -1286,6 +1308,10 @@ const ProductConfigurator = () => {
         const selectedDobozSzin = dobozSzinek.find((s) => s.id === selection.dobozSzin);
         const selectedTetoSzin = tetoSzinek.find((s) => s.id === selection.tetoSzin);
         const szenzorokTotal = selectedSzenzorokList.reduce((sum, sz) => sum + (sz?.price || 0), 0);
+        const subtotal = calculateSubtotal();
+        const vatAmount = calculateVatAmount(subtotal);
+        const shippingFee = getShippingFee();
+        const total = subtotal + vatAmount + shippingFee;
 
         return (
           <div className="mx-auto max-w-2xl">
@@ -1369,6 +1395,9 @@ const ProductConfigurator = () => {
                   <p className="font-medium text-black dark:text-white">
                     {selection.shippingMode === "foxpost" ? "Foxpost automata" : "Házhozszállítás"}
                   </p>
+                  <p className="text-sm text-body">
+                    Szállítási díj (ÁFA-mentes): {shippingFee.toLocaleString("hu-HU")} Ft
+                  </p>
 
                   {selection.shippingMode === "hazhoz" && (
                     <p className="text-sm text-body">
@@ -1422,13 +1451,32 @@ const ProductConfigurator = () => {
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-3">
-                  <p className="text-xl font-bold text-black dark:text-white">Összesen:</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {calculateTotal().toLocaleString("hu-HU")} Ft
-                  </p>
+                <div className="space-y-2 border-t border-stroke pt-3 dark:border-stroke-dark">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-body">Nettó összeg:</p>
+                    <p className="font-semibold text-black dark:text-white">
+                      {subtotal.toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-body">ÁFA ({VAT_PERCENT}%):</p>
+                    <p className="font-semibold text-black dark:text-white">
+                      {vatAmount.toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-body">Szállítás (ÁFA-mentes):</p>
+                    <p className="font-semibold text-black dark:text-white">
+                      {shippingFee.toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between pt-2">
+                    <p className="text-xl font-bold text-black dark:text-white">Bruttó összeg:</p>
+                    <p className="text-2xl font-bold text-primary">
+                      {total.toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
                 </div>
-                <p className="text-right text-sm text-body">+ ÁFA</p>
               </div>
 
               <button
@@ -1555,9 +1603,9 @@ const ProductConfigurator = () => {
 
           {/* Aktuális ár */}
           <div className="text-center">
-            <p className="text-sm text-body">Jelenlegi összeg:</p>
+            <p className="text-sm text-body">Jelenlegi végösszeg:</p>
             <p className="text-2xl font-bold text-primary">
-              {calculateTotal().toLocaleString("hu-HU")} Ft
+              {calculateGrandTotal().toLocaleString("hu-HU")} Ft
             </p>
           </div>
 

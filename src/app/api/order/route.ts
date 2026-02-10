@@ -56,7 +56,8 @@ model Order {
   subtotal        Int                             // Nettó összeg (ÁFA nélkül)
   vatPercent      Int       @default(27)          // ÁFA százalék
   vatAmount       Int                             // ÁFA összeg
-  total           Int                             // Bruttó végösszeg
+  shippingFee     Int                             // Szállítási díj (ÁFA-mentes)
+  total           Int                             // Bruttó végösszeg (ÁFA + szállítás)
   currency        String    @default("HUF")
   
   // Stripe
@@ -124,6 +125,7 @@ BEJÖVŐ JSON STRUKTÚRA (body) - 2026-02-04 frissítve:
   "subtotal": 15000,
   "vatPercent": 27,
   "vatAmount": 4050,
+  "shippingFee": 0,
   "total": 19050,
   "currency": "HUF",
   "locale": "hu-HU",
@@ -269,8 +271,9 @@ export async function POST(request: Request) {
       body.doboz.price * body.doboz.quantity +
       body.tapellatas.price * body.tapellatas.quantity;
 
+    const shippingFee = typeof body.shippingFee === "number" ? body.shippingFee : 0;
     const vatAmount = Math.round(calculatedSubtotal * (body.vatPercent / 100));
-    const total = calculatedSubtotal + vatAmount;
+    const total = calculatedSubtotal + vatAmount + shippingFee;
 
     // TODO: Backend - Stripe Checkout Session létrehozása
     /*
@@ -370,6 +373,7 @@ export async function POST(request: Request) {
       ...body,
       subtotal: calculatedSubtotal,
       vatAmount: vatAmount,
+      shippingFee: shippingFee,
       total: total,
     };
 
