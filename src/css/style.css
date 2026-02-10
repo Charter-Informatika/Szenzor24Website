@@ -220,8 +220,8 @@
   body {
     /* Use a soft cream background instead of pure white */
     background-color: var(--color-cream);
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+    /*padding-left: 1.5rem;
+    padding-right: 1.5rem;*/
     overflow-x: hidden;
   }
 
