@@ -264,6 +264,9 @@ export async function POST(request: Request) {
     const szenzorokTotal = body.szenzorok.reduce((sum, sz) => sum + sz.price * sz.quantity, 0);
     const anyagTotal = body.anyag.price * body.anyag.quantity;
     const eszkozTotal = body.eszkoz ? body.eszkoz.price * body.eszkoz.quantity : 0;
+    const elofizetesTotal = body.elofizetes
+      ? body.elofizetes.price * body.elofizetes.quantity
+      : 0;
     const calculatedSubtotal =
       szenzorokTotal +
       anyagTotal +
@@ -273,7 +276,7 @@ export async function POST(request: Request) {
 
     const shippingFee = typeof body.shippingFee === "number" ? body.shippingFee : 0;
     const vatAmount = Math.round(calculatedSubtotal * (body.vatPercent / 100));
-    const total = calculatedSubtotal + vatAmount + shippingFee;
+    const total = calculatedSubtotal + vatAmount + shippingFee + elofizetesTotal;
 
     // TODO: Backend - Stripe Checkout Session létrehozása
     /*

@@ -223,6 +223,27 @@ const fizetesiModok = [
   },
 ] as const;
 
+const elofizetesek = [
+  {
+    id: "ingyenes",
+    name: "Ingyenes",
+    description: "Alap csomag",
+    price: 0,
+  },
+  {
+    id: "havi",
+    name: "Havi",
+    description: "Havi előfizetés",
+    price: 1000,
+  },
+  {
+    id: "eves",
+    name: "Éves",
+    description: "Éves előfizetés",
+    price: 10000,
+  },
+] as const;
+
 // Burok anyag típusok (PLACEHOLDER - árak és típusok később pontosítandók)
 const anyagok = [
   {
@@ -385,7 +406,7 @@ const presetOptions = [
   },
 ];
 
-type StepId = "mod" | "szenzor" | "anyag" | "doboz" | "szin" | "tapellatas" | "szallitas" | "fizetes" | "osszesites";
+type StepId = "mod" | "szenzor" | "anyag" | "doboz" | "szin" | "tapellatas" | "elofizetes" | "szallitas" | "fizetes" | "osszesites";
 type ConfigMode = "preset" | "custom";
 
 const MAX_SZENZOROK = 2;
@@ -397,6 +418,7 @@ interface Selection {
   dobozSzin: string;
   tetoSzin: string;
   tapellatas: string | null;
+  elofizetes: "ingyenes" | "havi" | "eves" | null;
   shippingMode: "foxpost" | "hazhoz" | null;
   paymentMode: "utalas" | "stripe" | null;
   shippingAddress: {
@@ -433,6 +455,7 @@ const ProductConfigurator = () => {
     dobozSzin: "zold",
     tetoSzin: "feher",
     tapellatas: null,
+    elofizetes: null,
     shippingMode: null,
     paymentMode: null,
     shippingAddress: {
@@ -476,8 +499,9 @@ const ProductConfigurator = () => {
     { id: "tapellatas", title: "Tápellátás", icon: "4" },
     { id: "doboz", title: "Doboz", icon: "5" },
     { id: "szin", title: "Szín", icon: "6" },
-    { id: "szallitas", title: "Szállítás", icon: "7" },
-    { id: "fizetes", title: "Fizetés", icon: "8" },
+    { id: "elofizetes", title: "Előfizetés", icon: "7" },
+    { id: "szallitas", title: "Szállítás", icon: "8" },
+    { id: "fizetes", title: "Fizetés", icon: "9" },
     { id: "osszesites", title: "Összesítés", icon: "✓" },
   ];
 
@@ -516,6 +540,12 @@ const ProductConfigurator = () => {
     return total;
   };
 
+  const calculateSubscriptionFee = () => {
+    if (!selection.elofizetes) return 0;
+    const elofizetes = elofizetesek.find((e) => e.id === selection.elofizetes);
+    return elofizetes ? elofizetes.price : 0;
+  };
+
   const getShippingFee = () =>
     selection.shippingMode ? SZALLITASI_ARAK[selection.shippingMode] : 0;
 
@@ -525,7 +555,7 @@ const ProductConfigurator = () => {
   const calculateGrandTotal = () => {
     const subtotal = calculateSubtotal();
     const vatAmount = calculateVatAmount(subtotal);
-    return subtotal + vatAmount + getShippingFee();
+    return subtotal + vatAmount + getShippingFee() + calculateSubscriptionFee();
   };
 
   const isAddressComplete = (address: Selection["shippingAddress"]) =>
@@ -592,6 +622,8 @@ const ProductConfigurator = () => {
         return true; // Szín mindig van alapértelmezett
       case "tapellatas":
         return selection.tapellatas !== null;
+      case "elofizetes":
+        return selection.elofizetes !== null;
       case "szallitas":
         return isShippingValid();
       case "fizetes":
@@ -642,6 +674,7 @@ const ProductConfigurator = () => {
     const selectedAnyag = anyagok.find((a) => a.id === selection.anyag);
     const selectedDoboz = dobozok.find((d) => d.id === selection.doboz);
     const selectedTap = tapellatasok.find((t) => t.id === selection.tapellatas);
+    const selectedElofizetes = elofizetesek.find((e) => e.id === selection.elofizetes);
     const selectedDobozSzin = dobozSzinek.find((s) => s.id === selection.dobozSzin);
     const selectedTetoSzin = tetoSzinek.find((s) => s.id === selection.tetoSzin);
 
@@ -661,10 +694,11 @@ const ProductConfigurator = () => {
     }
 
     const subtotal = calculateSubtotal();
+    const subscriptionFee = calculateSubscriptionFee();
     const vatPercent = VAT_PERCENT;
     const vatAmount = calculateVatAmount(subtotal);
     const shippingFee = getShippingFee();
-    const total = subtotal + vatAmount + shippingFee;
+    const total = subtotal + vatAmount + shippingFee + subscriptionFee;
 
     const orderPayload: OrderPayload = {
       userId: (session.user as any).id || "unknown",
@@ -695,6 +729,16 @@ const ProductConfigurator = () => {
         price: selectedTap.price,
         quantity: 1,
       },
+      ...(selectedElofizetes
+        ? {
+            elofizetes: {
+              id: selectedElofizetes.id,
+              name: selectedElofizetes.name,
+              price: selectedElofizetes.price,
+              quantity: 1,
+            },
+          }
+        : {}),
 
       colors: {
         dobozSzin: {
@@ -1126,6 +1170,34 @@ const ProductConfigurator = () => {
           </div>
         );
 
+      case "elofizetes":
+        return (
+          <div className="mx-auto max-w-4xl">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {elofizetesek.map((plan) => (
+                <button
+                  type="button"
+                  key={plan.id}
+                  onClick={() => setSelection({ ...selection, elofizetes: plan.id })}
+                  className={`rounded-xl border-2 p-6 text-left transition-all hover:shadow-lg ${
+                    selection.elofizetes === plan.id
+                      ? "border-primary bg-primary/10"
+                      : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                  }`}
+                >
+                  <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
+                    {plan.name}
+                  </h4>
+                  <p className="mb-3 text-sm text-body">{plan.description}</p>
+                  <p className="text-xl font-bold text-primary">
+                    {plan.price === 0 ? "0 Ft" : `${plan.price.toLocaleString("hu-HU")} Ft`}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
       case "szallitas":
         return (
           <div className="mx-auto max-w-4xl space-y-6">
@@ -1394,13 +1466,15 @@ const ProductConfigurator = () => {
         const selectedAnyagOssz = anyagok.find((a) => a.id === selection.anyag);
         const selectedDoboz = dobozok.find((d) => d.id === selection.doboz);
         const selectedTap = tapellatasok.find((t) => t.id === selection.tapellatas);
+        const selectedElofizetes = elofizetesek.find((e) => e.id === selection.elofizetes);
         const selectedDobozSzin = dobozSzinek.find((s) => s.id === selection.dobozSzin);
         const selectedTetoSzin = tetoSzinek.find((s) => s.id === selection.tetoSzin);
         const szenzorokTotal = selectedSzenzorokList.reduce((sum, sz) => sum + (sz?.price || 0), 0);
         const subtotal = calculateSubtotal();
         const vatAmount = calculateVatAmount(subtotal);
         const shippingFee = getShippingFee();
-        const total = subtotal + vatAmount + shippingFee;
+        const subscriptionFee = calculateSubscriptionFee();
+        const total = subtotal + vatAmount + shippingFee + subscriptionFee;
 
         return (
           <div className="mx-auto max-w-2xl">
@@ -1476,6 +1550,22 @@ const ProductConfigurator = () => {
                   </div>
                   <p className="font-semibold text-black dark:text-white">
                     {selectedTap?.price.toLocaleString("hu-HU")} Ft
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between border-b border-stroke pb-3 dark:border-stroke-dark">
+                  <div>
+                    <p className="font-medium text-black dark:text-white">
+                      {selectedElofizetes?.name ?? "-"}
+                    </p>
+                    <p className="text-sm text-body">Előfizetés</p>
+                  </div>
+                  <p className="font-semibold text-black dark:text-white">
+                    {selectedElofizetes
+                      ? selectedElofizetes.price === 0
+                        ? "0 Ft"
+                        : `${selectedElofizetes.price.toLocaleString("hu-HU")} Ft`
+                      : "-"}
                   </p>
                 </div>
 
@@ -1559,6 +1649,12 @@ const ProductConfigurator = () => {
                       {shippingFee.toLocaleString("hu-HU")} Ft
                     </p>
                   </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-body">Előfizetés (ÁFA-t tartalmaz):</p>
+                    <p className="font-semibold text-black dark:text-white">
+                      {subscriptionFee.toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
                   <div className="flex items-center justify-between pt-2">
                     <p className="text-xl font-bold text-black dark:text-white">Bruttó összeg:</p>
                     <p className="text-2xl font-bold text-primary">
@@ -1597,6 +1693,8 @@ const ProductConfigurator = () => {
         return "Válassz színt!";
       case "tapellatas":
         return "Akkumulátoros vagy vezetékes?";
+      case "elofizetes":
+        return "Válassz előfizetést!";
       case "szallitas":
         return "Add meg a szállítást!";
       case "fizetes":
@@ -1614,6 +1712,7 @@ const ProductConfigurator = () => {
   const selectedAnyagName = anyagok.find((a) => a.id === selection.anyag)?.name ?? "-";
   const selectedDobozName = dobozok.find((d) => d.id === selection.doboz)?.name ?? "-";
   const selectedTapName = tapellatasok.find((t) => t.id === selection.tapellatas)?.name ?? "-";
+  const selectedElofizetesName = elofizetesek.find((e) => e.id === selection.elofizetes)?.name ?? "-";
   const selectedDobozSzinName = dobozSzinek.find((s) => s.id === selection.dobozSzin)?.name ?? "-";
   const selectedTetoSzinName = tetoSzinek.find((s) => s.id === selection.tetoSzin)?.name ?? "-";
   const shippingLabel = selection.shippingMode === "foxpost"
@@ -1749,6 +1848,10 @@ const ProductConfigurator = () => {
               <div>
                 <p className="font-medium text-black dark:text-white">Tápellátás</p>
                 <p className="text-body">{selectedTapName}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Előfizetés</p>
+                <p className="text-body">{selectedElofizetesName}</p>
               </div>
               <div>
                 <p className="font-medium text-black dark:text-white">Szállítás</p>
