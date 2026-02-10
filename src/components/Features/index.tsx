@@ -302,7 +302,7 @@ const Features = () => {
         </div>
 
         <div className="container max-w-[1320px]">
-          <div className="rounded-2xl bg-white px-4 py-6 sm:px-5 sm:pb-14 sm:pt-14 shadow-card dark:bg-dark dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-20 xl:px-10 relative overflow-hidden">
+          <div className="rounded-2xl bg-transparent px-4 py-6 sm:px-5 sm:pb-14 sm:pt-14 shadow-card dark:bg-transparent dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-20 xl:px-10 relative overflow-hidden">
             {/* Progress bar */}
             <div className="absolute bottom-0 left-0 h-1 bg-primary transition-all duration-100" style={{ width: `${progress}%` }} />
 

@@ -72,6 +72,13 @@
     border-color: var(--color-gray-200, currentColor);
   }
 
+  html,
+  body,
+  body * {
+    transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease,
+      fill 220ms ease, stroke 220ms ease;
+  }
+
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
