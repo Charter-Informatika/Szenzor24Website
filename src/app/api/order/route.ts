@@ -8,6 +8,20 @@ import { sendOrderConfirmationEmail } from "@/lib/orderEmail";
 const PRESET_SENSOR_LIMITS: Record<string, number> = {
   huto: 2,
   akvarium: 3,
+  hutokamra: 2,
+  hideglanc_monitor: 2,
+  gyogyszertarolo: 2,
+  raktar_kornyezetfigyelo: 2,
+  server_szoba_monitor: 2,
+  iroda_levegominoseg: 2,
+  tanterem_levegofigyelo: 2,
+  kazan_biztonsag: 2,
+  garazs_gazfigyelo: 2,
+  akku_tolto_helyiseg: 2,
+  allattarto_telep: 3,
+  logisztikai_csomagfigyelo: 2,
+  szallitasi_sokkfigyelo: 1,
+  tarolo_kontener: 2,
 };
 
 /*

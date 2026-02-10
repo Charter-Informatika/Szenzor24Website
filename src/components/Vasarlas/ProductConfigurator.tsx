@@ -674,7 +674,10 @@ const ProductConfigurator = () => {
     const selectedAnyag = anyagok.find((a) => a.id === selection.anyag);
     const selectedDoboz = dobozok.find((d) => d.id === selection.doboz);
     const selectedTap = tapellatasok.find((t) => t.id === selection.tapellatas);
-    const selectedElofizetes = elofizetesek.find((e) => e.id === selection.elofizetes);
+    const selectedElofizetes =
+      elofizetesek.find((e) => e.id === selection.elofizetes) ??
+      elofizetesek.find((e) => e.id === "ingyenes") ??
+      null;
     const selectedDobozSzin = dobozSzinek.find((s) => s.id === selection.dobozSzin);
     const selectedTetoSzin = tetoSzinek.find((s) => s.id === selection.tetoSzin);
 
@@ -729,16 +732,19 @@ const ProductConfigurator = () => {
         price: selectedTap.price,
         quantity: 1,
       },
-      ...(selectedElofizetes
+      elofizetes: selectedElofizetes
         ? {
-            elofizetes: {
-              id: selectedElofizetes.id,
-              name: selectedElofizetes.name,
-              price: selectedElofizetes.price,
-              quantity: 1,
-            },
+            id: selectedElofizetes.id,
+            name: selectedElofizetes.name,
+            price: selectedElofizetes.price,
+            quantity: 1,
           }
-        : {}),
+        : {
+            id: "ingyenes",
+            name: "Ingyenes",
+            price: 0,
+            quantity: 1,
+          },
 
       colors: {
         dobozSzin: {

@@ -879,7 +879,6 @@ if (body.elofizetes && body.elofizetes.price > 0) {
 
 | Probléma | Leírás | Prioritás |
 |----------|--------|-----------|
-| `PRESET_SENSOR_LIMITS` hiányos | A `route.ts` fájlban csak `huto: 2` és `akvarium: 3` van regisztrálva. A 14 új preset NEM szerepel, ezért a backend fallback-ként a `body.presetMaxSzenzorok` kliens-oldali értéket használja — ez elméletileg spoofable. | ⚠️ Közepes |
 | Szállítási díjak placeholder | `SZALLITASI_ARAK` jelenleg `{ foxpost: 0, hazhoz: 0 }` — éles értékek szükségesek | ⚠️ Közepes |
 | Szenzorok/anyagok árai placeholder | Több szenzor és anyag ára PLACEHOLDER — végleges árak szükségesek | ⚠️ Közepes |
 
