@@ -129,7 +129,7 @@ const HeroArea = () => {
                     href="/vasarlas"
                     className="inline-flex items-center justify-center rounded-2xl bg-primary px-10 py-5 text-xl font-extrabold uppercase tracking-wider text-white hover:scale-[1.04] transition-all duration-200 sm:px-16 sm:py-6 sm:text-2xl"
                   >
-                    Vásárlás
+                    Rendelés
                   </Link>
                   <a
                     href="#pricing"

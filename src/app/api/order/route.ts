@@ -5,6 +5,11 @@ import { getServerSession } from "next-auth";
 import { OrderPayload } from "@/types/order";
 import { sendOrderConfirmationEmail } from "@/lib/orderEmail";
 
+const PRESET_SENSOR_LIMITS: Record<string, number> = {
+  huto: 2,
+  akvarium: 3,
+};
+
 /*
 ================================================================================
 BACKEND KOLLÉGA - ADATBÁZIS SÉMA JAVASLAT (2026-02-04 frissítve)
@@ -25,7 +30,7 @@ model Order {
   userName        String                          // Megrendelő neve
   
   // Termékek - JSON formátumban vagy külön OrderItem tábla
-  szenzorokJson   Json                            // [{ id, name, price, quantity }] - max 3 elem
+  szenzorokJson   Json                            // [{ id, name, price, quantity }] - max 2 elem
   
   // Burok anyag (KÖTELEZŐ)
   anyagId         String                          // "sima_pla" | "uv_allo_pla" | "abs" | "petg"
@@ -86,7 +91,7 @@ BEJÖVŐ JSON STRUKTÚRA (body) - 2026-02-04 frissítve:
   "userId": "cml52vail000058c1ltq6lylg",
   "userEmail": "user@example.com",
   "userName": "Kiss Péter",                       // ÚJ - Megrendelő neve
-  "szenzorok": [                                  // KÖTELEZŐ - Max 3 elem!
+  "szenzorok": [                                  // KÖTELEZŐ - Custom: max 2 elem, preset: preset limit
     { "id": "htu21d", "name": "HTU21D", "price": 5000, "quantity": 1 },
     { "id": "mpu6050", "name": "MPU-6050", "price": 6000, "quantity": 1 }
   ],
@@ -98,20 +103,43 @@ BEJÖVŐ JSON STRUKTÚRA (body) - 2026-02-04 frissítve:
     "tetoSzin": { "id": "feher", "name": "Fehér" }
   },
   "tapellatas": { "id": "vezetekes", "name": "Vezetékes", "price": 2500, "quantity": 1 },
+  "shipping": {
+    "mode": "foxpost",
+    "shippingAddress": null,
+    "billingSame": true,
+    "billingAddress": {
+      "zip": "1138",
+      "city": "Budapest",
+      "street": "Váci út",
+      "houseNumber": "99",
+      "stair": null,
+      "floor": null,
+      "door": null
+    },
+    "foxpostAutomata": "FOXP-LIFE-001"
+  },
+   "payment": {
+     "mode": "utalas"
+   },
   "subtotal": 15000,
   "vatPercent": 27,
   "vatAmount": 4050,
   "total": 19050,
   "currency": "HUF",
   "locale": "hu-HU",
-  "createdAt": "2026-02-04T10:30:00.000Z"
+  "createdAt": "2026-02-04T10:30:00.000Z",
+  "presetId": "akvarium",                    // OPCIONÁLIS - preset azonosító
+  "presetLabel": "Akvárium",                // OPCIONÁLIS - preset megnevezés
+  "presetMaxSzenzorok": 3                     // OPCIONÁLIS - preset limit
 }
 
 ================================================================================
 SZENZOR ID-K:
-  - htu21d, mpu6050, gaz, homerseklet, feny, hidrogen, metan, sensorion
+  - htu21d, mpu6050, gaz, homerseklet, paratartalom, feny, hidrogen, metan, sensorion, o2, co2
 
 ANYAG ID-K (PLACEHOLDER - árak később pontosítandók):
+  - normal_burkolat (0 Ft - alap ár)
+  - vizallo_burkolat (+2500 Ft)
   - sima_pla (0 Ft - alap ár)
   - uv_allo_pla (+1500 Ft)
   - abs (+2000 Ft)
@@ -130,7 +158,12 @@ TETŐ SZÍN ID-K:
   - feher, sarga, kek, zold, piros, fekete
 
 TÁPELLÁTÁS ID-K:
-  - akkus, vezetekes, napelemes
+  - akkus, vezetekes
+
+SZÁLLÍTÁSI MÓDOK:
+  - foxpost, hazhoz
+FIZETÉSI MÓDOK:
+  - utalas, stripe
 ================================================================================
 */
 
@@ -152,17 +185,22 @@ export async function POST(request: Request) {
     // }
 
     // Validáció - kötelező mezők (eszkoz opcionális)
-    if (!body.szenzorok || body.szenzorok.length === 0 || !body.anyag || !body.doboz || !body.tapellatas) {
+      if (!body.szenzorok || body.szenzorok.length === 0 || !body.anyag || !body.doboz || !body.tapellatas || !body.shipping || !body.payment) {
       return NextResponse.json(
         { error: "Hiányzó termék adatok" },
         { status: 400 }
       );
     }
 
-    // Max 3 szenzor ellenőrzés
-    if (body.szenzorok.length > 3) {
+    const presetMax = body.presetId
+      ? (PRESET_SENSOR_LIMITS[body.presetId] ?? body.presetMaxSzenzorok)
+      : undefined;
+    const maxSzenzorok = presetMax ?? 2;
+
+    // Max szenzor ellenőrzés
+    if (body.szenzorok.length > maxSzenzorok) {
       return NextResponse.json(
-        { error: "Maximum 3 szenzor választható" },
+        { error: `Maximum ${maxSzenzorok} szenzor választható` },
         { status: 400 }
       );
     }
@@ -173,6 +211,52 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    if (!body.shipping || !body.shipping.mode || !body.shipping.billingAddress) {
+      return NextResponse.json(
+        { error: "Hiányzó szállítási adatok" },
+        { status: 400 }
+      );
+    }
+
+    const billing = body.shipping.billingAddress;
+    if (!billing.zip || !billing.city || !billing.street || !billing.houseNumber) {
+      return NextResponse.json(
+        { error: "Hiányos számlázási cím" },
+        { status: 400 }
+      );
+    }
+
+    if (body.shipping.mode === "hazhoz") {
+      if (!body.shipping.shippingAddress) {
+        return NextResponse.json(
+          { error: "Hiányos szállítási cím" },
+          { status: 400 }
+        );
+      }
+
+      const shipping = body.shipping.shippingAddress;
+      if (!shipping.zip || !shipping.city || !shipping.street || !shipping.houseNumber) {
+        return NextResponse.json(
+          { error: "Hiányos szállítási cím" },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (body.shipping.mode === "foxpost" && !body.shipping.foxpostAutomata) {
+      return NextResponse.json(
+        { error: "Hiányzó Foxpost automata" },
+        { status: 400 }
+      );
+    }
+
+      if (!body.payment.mode) {
+        return NextResponse.json(
+          { error: "Hiányzó fizetési mód" },
+          { status: 400 }
+        );
+      }
 
     // Összeg újraszámolás (biztonság kedvéért)
     const szenzorokTotal = body.szenzorok.reduce((sum, sz) => sum + sz.price * sz.quantity, 0);
@@ -192,7 +276,7 @@ export async function POST(request: Request) {
     /*
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
     
-    // Szenzorok line_items (max 3)
+    // Szenzorok line_items (max preset/custom)
     const szenzorLineItems = body.szenzorok.map((sz) => ({
       price_data: {
         currency: "huf",

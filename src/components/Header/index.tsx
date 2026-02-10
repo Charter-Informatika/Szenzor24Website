@@ -25,7 +25,7 @@ const menuData: Menu[] = [
     route: "/#pricing",
   },
   {
-    label: "Vásárlás",
+    label: "Rendelés",
     route: "/vasarlas",
   },
   {
