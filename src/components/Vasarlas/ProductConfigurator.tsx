@@ -419,6 +419,7 @@ interface Selection {
   tetoSzin: string;
   tapellatas: string | null;
   elofizetes: "ingyenes" | "havi" | "eves" | null;
+  quantity: number; // Megrendelt darabszám
   shippingMode: "foxpost" | "hazhoz" | null;
   paymentMode: "utalas" | "stripe" | null;
   shippingAddress: {
@@ -456,6 +457,7 @@ const ProductConfigurator = () => {
     tetoSzin: "feher",
     tapellatas: null,
     elofizetes: null,
+    quantity: 1,
     shippingMode: null,
     paymentMode: null,
     shippingAddress: {
@@ -537,7 +539,8 @@ const ProductConfigurator = () => {
       const tap = tapellatasok.find((t) => t.id === selection.tapellatas);
       if (tap) total += tap.price;
     }
-    return total;
+    // Szorzunk a darabszámmal
+    return total * selection.quantity;
   };
 
   const calculateSubscriptionFee = () => {
@@ -712,38 +715,38 @@ const ProductConfigurator = () => {
         id: sz!.id,
         name: sz!.name,
         price: sz!.price,
-        quantity: 1,
+        quantity: selection.quantity,
       })),
       anyag: {
         id: selectedAnyag.id,
         name: selectedAnyag.name,
         price: selectedAnyag.price,
-        quantity: 1,
+        quantity: selection.quantity,
       },
       doboz: {
         id: selectedDoboz.id,
         name: selectedDoboz.name,
         price: selectedDoboz.price,
-        quantity: 1,
+        quantity: selection.quantity,
       },
       tapellatas: {
         id: selectedTap.id,
         name: selectedTap.name,
         price: selectedTap.price,
-        quantity: 1,
+        quantity: selection.quantity,
       },
       elofizetes: selectedElofizetes
         ? {
             id: selectedElofizetes.id,
             name: selectedElofizetes.name,
             price: selectedElofizetes.price,
-            quantity: 1,
+            quantity: selection.quantity,
           }
         : {
             id: "ingyenes",
             name: "Ingyenes",
             price: 0,
-            quantity: 1,
+            quantity: selection.quantity,
           },
 
       colors: {
@@ -1573,6 +1576,55 @@ const ProductConfigurator = () => {
                         : `${selectedElofizetes.price.toLocaleString("hu-HU")} Ft`
                       : "-"}
                   </p>
+                </div>
+
+                {/* Darabszám */}
+                <div className="border-b border-stroke pb-3 dark:border-stroke-dark">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium text-black dark:text-white">
+                      Darabszám (db)
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() =>
+                          setSelection((prev) => ({
+                            ...prev,
+                            quantity: Math.max(1, prev.quantity - 1),
+                          }))
+                        }
+                        className="rounded border border-gray-300 bg-white px-3 py-2 text-black hover:bg-gray-100 dark:border-gray-600 dark:bg-dark dark:text-white dark:hover:bg-gray-800"
+                      >
+                        −
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        max="999"
+                        value={selection.quantity}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          if (!isNaN(value) && value >= 1 && value <= 999) {
+                            setSelection((prev) => ({
+                              ...prev,
+                              quantity: value,
+                            }));
+                          }
+                        }}
+                        className="w-20 rounded border border-gray-300 bg-white px-3 py-2 text-center text-black placeholder-gray-400 dark:border-gray-600 dark:bg-dark dark:text-white"
+                      />
+                      <button
+                        onClick={() =>
+                          setSelection((prev) => ({
+                            ...prev,
+                            quantity: Math.min(999, prev.quantity + 1),
+                          }))
+                        }
+                        className="rounded border border-gray-300 bg-white px-3 py-2 text-black hover:bg-gray-100 dark:border-gray-600 dark:bg-dark dark:text-white dark:hover:bg-gray-800"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="border-b border-stroke pb-3 dark:border-stroke-dark">
