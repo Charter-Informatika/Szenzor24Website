@@ -226,19 +226,19 @@ const elofizetesek = [
   {
     id: "ingyenes",
     name: "Ingyenes",
-    description: "Alap csomag",
+    description: "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 30 napos adatmegőrzés \n ❌ hőmérséklet naplózás \n ❌ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
     price: 0,
   },
   {
     id: "havi",
     name: "Havi",
-    description: "Havi előfizetés",
+    description: "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
     price: 1000,
   },
   {
     id: "eves",
     name: "Éves",
-    description: "Éves előfizetés",
+    description: "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
     price: 10000,
   },
 ] as const;
@@ -418,6 +418,7 @@ interface Selection {
   tetoSzin: string;
   tapellatas: string | null;
   elofizetes: "ingyenes" | "havi" | "eves" | null;
+  quantity: number; // Megrendelt darabszám
   shippingMode: "foxpost" | "hazhoz" | null;
   paymentMode: "utalas" | "stripe" | null;
   shippingAddress: {
@@ -455,6 +456,7 @@ const ProductConfigurator = () => {
     tetoSzin: "feher",
     tapellatas: null,
     elofizetes: null,
+    quantity: 1,
     shippingMode: null,
     paymentMode: null,
     shippingAddress: {
@@ -552,7 +554,8 @@ const ProductConfigurator = () => {
       const tap = tapellatasok.find((t) => t.id === selection.tapellatas);
       if (tap) total += tap.price;
     }
-    return total;
+    // Szorzunk a darabszámmal
+    return total * selection.quantity;
   };
 
   const calculateSubscriptionFee = () => {
@@ -727,38 +730,38 @@ const ProductConfigurator = () => {
         id: sz!.id,
         name: sz!.name,
         price: sz!.price,
-        quantity: 1,
+        quantity: selection.quantity,
       })),
       anyag: {
         id: selectedAnyag.id,
         name: selectedAnyag.name,
         price: selectedAnyag.price,
-        quantity: 1,
+        quantity: selection.quantity,
       },
       doboz: {
         id: selectedDoboz.id,
         name: selectedDoboz.name,
         price: selectedDoboz.price,
-        quantity: 1,
+        quantity: selection.quantity,
       },
       tapellatas: {
         id: selectedTap.id,
         name: selectedTap.name,
         price: selectedTap.price,
-        quantity: 1,
+        quantity: selection.quantity,
       },
       elofizetes: selectedElofizetes
         ? {
             id: selectedElofizetes.id,
             name: selectedElofizetes.name,
             price: selectedElofizetes.price,
-            quantity: 1,
+            quantity: selection.quantity,
           }
         : {
             id: "ingyenes",
             name: "Ingyenes",
             price: 0,
-            quantity: 1,
+            quantity: selection.quantity,
           },
 
       colors: {
@@ -1194,7 +1197,7 @@ const ProductConfigurator = () => {
       case "elofizetes":
         return (
           <div className="mx-auto max-w-4xl">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3 whitespace-pre-line">
               {elofizetesek.map((plan) => (
                 <button
                   type="button"
@@ -1206,7 +1209,7 @@ const ProductConfigurator = () => {
                       : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
                   }`}
                 >
-                  <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
+                  <h4 className="mb-2 text-lg font-semibold text-black dark:text-white text-center">
                     {plan.name}
                   </h4>
                   <p className="mb-3 text-sm text-body">{plan.description}</p>
@@ -1588,6 +1591,55 @@ const ProductConfigurator = () => {
                         : `${selectedElofizetes.price.toLocaleString("hu-HU")} Ft`
                       : "-"}
                   </p>
+                </div>
+
+                {/* Darabszám */}
+                <div className="border-b border-stroke pb-3 dark:border-stroke-dark">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium text-black dark:text-white">
+                      Darabszám (db)
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() =>
+                          setSelection((prev) => ({
+                            ...prev,
+                            quantity: Math.max(1, prev.quantity - 1),
+                          }))
+                        }
+                        className="rounded border border-gray-300 bg-white px-3 py-2 text-black hover:bg-gray-100 dark:border-gray-600 dark:bg-dark dark:text-white dark:hover:bg-gray-800"
+                      >
+                        −
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        max="999"
+                        value={selection.quantity}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          if (!isNaN(value) && value >= 1 && value <= 999) {
+                            setSelection((prev) => ({
+                              ...prev,
+                              quantity: value,
+                            }));
+                          }
+                        }}
+                        className="w-20 rounded border border-gray-300 bg-white px-3 py-2 text-center text-black placeholder-gray-400 dark:border-gray-600 dark:bg-dark dark:text-white"
+                      />
+                      <button
+                        onClick={() =>
+                          setSelection((prev) => ({
+                            ...prev,
+                            quantity: Math.min(999, prev.quantity + 1),
+                          }))
+                        }
+                        className="rounded border border-gray-300 bg-white px-3 py-2 text-black hover:bg-gray-100 dark:border-gray-600 dark:bg-dark dark:text-white dark:hover:bg-gray-800"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="border-b border-stroke pb-3 dark:border-stroke-dark">

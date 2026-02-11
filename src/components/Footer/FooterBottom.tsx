@@ -17,12 +17,12 @@ const FooterBottom = () => {
               <div className="mb-4 flex items-center justify-center md:mb-0 lg:justify-center">
                 {/* compact contact row: email - facebook - phone (facebook centered) */}
                 <div className="flex items-center space-x-6">
-                  <a href="mailto:info@okoshuto.hu" className="flex items-center space-x-2 text-base text-white whitespace-nowrap">
+                  <a href="mailto:info@szenzor24.hu" className="flex items-center space-x-2 text-base text-white whitespace-nowrap">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M3 6.5C3 5.67157 3.67157 5 4.5 5H19.5C20.3284 5 21 5.67157 21 6.5V17.5C21 18.3284 20.3284 19 19.5 19H4.5C3.67157 19 3 18.3284 3 17.5V6.5Z" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
                       <path d="M21 6.5L12 12.5L3 6.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                    <span className="whitespace-nowrap">info@okoshuto.hu</span>
+                    <span className="whitespace-nowrap">info@szenzor24.hu</span>
                   </a>
 
                   <Link
