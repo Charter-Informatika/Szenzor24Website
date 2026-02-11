@@ -65,7 +65,7 @@ const HeroArea = () => {
       // replace the model-viewer node with an image
       const parent = mv.parentElement;
       if (parent) {
-        parent.innerHTML = `<img src="/images/hero/hero-light.png" alt="Model not available" style="width:100%;height:400px;object-fit:contain"/>`;
+        parent.innerHTML = `<img src="/images/hero/fekete-szurke.glb" alt="Model not available" style="width:100%;height:400px;object-fit:contain"/>`;
       }
     };
 
@@ -182,7 +182,7 @@ const HeroArea = () => {
           {/* Highlighted section below 3D model */}
           <div className="mt-12 text-center max-w-2xl mx-auto px-4 flex flex-col items-center justify-center">
             <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-semibold text-blue-600 dark:text-blue-400 mb-4 whitespace-nowrap">
-              Okos hűtés. Kevesebb kockázat.
+              Okos mérés, biztos döntés.
             </h2>
             <p className="text-body text-base sm:text-lg md:text-xl leading-relaxed text-black dark:text-white">
               Automatikus felügyelet, pontos mérések és azonnali értesítések – hogy semmi ne érjen meglepetésként.
