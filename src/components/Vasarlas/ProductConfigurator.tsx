@@ -227,19 +227,19 @@ const elofizetesek = [
   {
     id: "ingyenes",
     name: "Ingyenes",
-    description: "Alap csomag",
+    description: "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 30 napos adatmegőrzés \n ❌ hőmérséklet naplózás \n ❌ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
     price: 0,
   },
   {
     id: "havi",
     name: "Havi",
-    description: "Havi előfizetés",
+    description: "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
     price: 1000,
   },
   {
     id: "eves",
     name: "Éves",
-    description: "Éves előfizetés",
+    description: "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
     price: 10000,
   },
 ] as const;
@@ -1179,7 +1179,7 @@ const ProductConfigurator = () => {
       case "elofizetes":
         return (
           <div className="mx-auto max-w-4xl">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3 whitespace-pre-line">
               {elofizetesek.map((plan) => (
                 <button
                   type="button"
@@ -1191,7 +1191,7 @@ const ProductConfigurator = () => {
                       : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
                   }`}
                 >
-                  <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
+                  <h4 className="mb-2 text-lg font-semibold text-black dark:text-white text-center">
                     {plan.name}
                   </h4>
                   <p className="mb-3 text-sm text-body">{plan.description}</p>
