@@ -65,7 +65,7 @@ const HeroArea = () => {
       // replace the model-viewer node with an image
       const parent = mv.parentElement;
       if (parent) {
-        parent.innerHTML = `<img src="/images/hero/hero-light.png" alt="Model not available" style="width:100%;height:400px;object-fit:contain"/>`;
+        parent.innerHTML = `<img src="/images/hero/fekete-szurke.glb" alt="Model not available" style="width:100%;height:400px;object-fit:contain"/>`;
       }
     };
 

@@ -5,7 +5,6 @@ import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { OrderPayload } from "@/types/order";
-import { ALT_MODEL_PATH } from "@/lib/modelPaths";
 import FoxpostSelector, { FoxpostAutomataData } from "./FoxpostSelector";
 
 const formatFoxpostFindme = (value: string) =>
@@ -482,15 +481,31 @@ const ProductConfigurator = () => {
 
   const modelViewerRef = useRef<HTMLDivElement>(null);
 
+  const isAkkus = selection.tapellatas === "akkus";
+  const akkusDobozSzinek = dobozSzinek.filter((szin) => szin.id === "feher" || szin.id === "fekete");
+  const akkusTetoSzinek = tetoSzinek.filter((szin) => szin.id === "feher" || szin.id === "fekete");
+
   useEffect(() => {
     import("@google/model-viewer");
   }, []);
 
+  useEffect(() => {
+    if (!isAkkus) return;
+    const allowed = new Set(["feher", "fekete"]);
+    if (!allowed.has(selection.dobozSzin) || !allowed.has(selection.tetoSzin)) {
+      setSelection((prev) => ({
+        ...prev,
+        dobozSzin: allowed.has(prev.dobozSzin) ? prev.dobozSzin : "feher",
+        tetoSzin: allowed.has(prev.tetoSzin) ? prev.tetoSzin : "feher",
+      }));
+    }
+  }, [isAkkus, selection.dobozSzin, selection.tetoSzin]);
+
   const getModelPath = (box: string, top: string) => `/images/hero/${box}/${box}_${top}.glb`;
-  const modelSrc =
-    selection.tapellatas === "akkus"
-      ? ALT_MODEL_PATH
-      : getModelPath(selection.dobozSzin, selection.tetoSzin);
+  const getAkkusModelPath = (box: string, top: string) => `/images/hero/akkus/${box}/${box}_${top}.glb`;
+  const modelSrc = isAkkus
+    ? getAkkusModelPath(selection.dobozSzin, selection.tetoSzin)
+    : getModelPath(selection.dobozSzin, selection.tetoSzin);
 
   const steps: { id: StepId; title: string; icon: string }[] = [
     { id: "mod", title: "Mód", icon: "1" },
@@ -1096,7 +1111,7 @@ const ProductConfigurator = () => {
                 Doboz színe
               </h4>
               <div className="flex flex-wrap justify-center gap-3">
-                {dobozSzinek.map((szin) => (
+                {(isAkkus ? akkusDobozSzinek : dobozSzinek).map((szin) => (
                   <button
                     key={szin.id}
                     onClick={() => setSelection({ ...selection, dobozSzin: szin.id })}
@@ -1124,7 +1139,7 @@ const ProductConfigurator = () => {
                 Tető színe
               </h4>
               <div className="flex flex-wrap justify-center gap-3">
-                {tetoSzinek.map((szin) => (
+                {(isAkkus ? akkusTetoSzinek : tetoSzinek).map((szin) => (
                   <button
                     key={szin.id}
                     onClick={() => setSelection({ ...selection, tetoSzin: szin.id })}
