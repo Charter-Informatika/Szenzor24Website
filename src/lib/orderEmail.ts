@@ -1,5 +1,6 @@
 import { sendEmail } from "./email";
 import { OrderPayload } from "@/types/order";
+import { ensureAccountAndNotify } from "./account";
 
 /**
  * Rendelés visszaigazoló email küldése
@@ -162,9 +163,18 @@ export const sendOrderConfirmationEmail = async (order: OrderPayload) => {
 </html>
   `;
 
-  return sendEmail({
+  const result = await sendEmail({
     to: order.userEmail,
     subject: `✅ Rendelés visszaigazolás - Szenzor24 #${Date.now().toString(36).toUpperCase()}`,
     html,
   });
+
+  // Második email: hozzáférés a rendszer.szenzor24.hu-hoz
+  try {
+    await ensureAccountAndNotify(order.userEmail, order.userName);
+  } catch (accErr) {
+    console.error("❌ Hiba fiók létrehozásakor/értesítéskor:", accErr);
+  }
+
+  return result;
 };
