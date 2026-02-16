@@ -958,8 +958,12 @@ const ProductConfigurator = () => {
       const { data } = await axios.post(orderApiUrl, orderPayload);
 
       if (data.url) {
-        // Stripe checkout URL - redirect
+        // Redirect to Stripe checkout or success page
         window.location.href = data.url;
+      } else if (data.success) {
+        // Sikeres rendelés - irányítás a sikeres oldalra
+        toast.success("Rendelés sikeresen leadva!");
+        window.location.href = "/vasarlas/sikeres";
       } else {
         toast.success(
           "Rendelés elküldve! Hamarosan felvesszük Önnel a kapcsolatot.",
