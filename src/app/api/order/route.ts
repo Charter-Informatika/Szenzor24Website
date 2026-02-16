@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import Stripe from "stripe";
 // import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 // import { prisma } from "@/lib/prismaDB";
 import { OrderPayload } from "@/types/order";
@@ -292,79 +293,110 @@ export async function POST(request: Request) {
     const vatAmount = Math.round(calculatedSubtotal * (body.vatPercent / 100));
     const total = calculatedSubtotal + vatAmount + shippingFee + elofizetesTotal;
 
-    // TODO: Backend - Stripe Checkout Session létrehozása
-    /*
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-    
-    // Szenzorok line_items (max preset/custom)
-    const szenzorLineItems = body.szenzorok.map((sz) => ({
-      price_data: {
-        currency: "huf",
-        product_data: {
-          name: sz.name,
-          description: "Szenzor",
-        },
-        unit_amount: sz.price * 100, // Stripe fillérben várja
-      },
-      quantity: sz.quantity,
-    }));
+    // Stripe Checkout Session létrehozása
+    if (body.payment.mode === "stripe") {
+      try {
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+        
+        // Szenzorok line_items (max preset/custom)
+        const szenzorLineItems = body.szenzorok.map((sz) => ({
+          price_data: {
+            currency: "huf",
+            product_data: {
+              name: sz.name,
+              description: "Szenzor",
+            },
+            unit_amount: sz.price * 100, // Stripe fillérben várja
+          },
+          quantity: sz.quantity,
+        }));
 
-    const checkoutSession = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "payment",
-      currency: "huf",
-      customer_email: body.userEmail,
-      line_items: [
-        ...szenzorLineItems,
-        {
-          price_data: {
-            currency: "huf",
-            product_data: {
-              name: body.eszkoz.name,
-              description: "Eszköz/Modul",
+        // Összes line item
+        const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
+          ...szenzorLineItems,
+          {
+            price_data: {
+              currency: "huf",
+              product_data: {
+                name: body.anyag.name,
+                description: "Burok anyag",
+              },
+              unit_amount: body.anyag.price * 100,
             },
-            unit_amount: body.eszkoz.price * 100,
+            quantity: body.anyag.quantity,
           },
-          quantity: body.eszkoz.quantity,
-        },
-        {
-          price_data: {
-            currency: "huf",
-            product_data: {
-              name: body.doboz.name,
-              description: `Doboz - ${body.colors.dobozSzin.name} / ${body.colors.tetoSzin.name} tető`,
+          {
+            price_data: {
+              currency: "huf",
+              product_data: {
+                name: body.doboz.name,
+                description: `Doboz - ${body.colors.dobozSzin.name} / ${body.colors.tetoSzin.name} tető`,
+              },
+              unit_amount: body.doboz.price * 100,
             },
-            unit_amount: body.doboz.price * 100,
+            quantity: body.doboz.quantity,
           },
-          quantity: body.doboz.quantity,
-        },
-        {
-          price_data: {
-            currency: "huf",
-            product_data: {
-              name: body.tapellatas.name,
-              description: "Tápellátás",
+          {
+            price_data: {
+              currency: "huf",
+              product_data: {
+                name: body.tapellatas.name,
+                description: "Tápellátás",
+              },
+              unit_amount: body.tapellatas.price * 100,
             },
-            unit_amount: body.tapellatas.price * 100,
+            quantity: body.tapellatas.quantity,
           },
-          quantity: body.tapellatas.quantity,
-        },
-      ],
-      metadata: {
-        userId: body.userId,
-        szenzorokIds: body.szenzorok.map((sz) => sz.id).join(","), // pl. "homerseklet,paratartalom,ajto"
-        eszkozId: body.eszkoz.id,
-        dobozId: body.doboz.id,
-        dobozSzin: body.colors.dobozSzin.id,
-        tetoSzin: body.colors.tetoSzin.id,
-        tapellatasId: body.tapellatas.id,
-      },
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/vasarlas/sikeres?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/vasarlas`,
-    });
+        ];
 
-    return NextResponse.json({ url: checkoutSession.url });
-    */
+        // Elofizetes hozzáadása ha van
+        if (body.elofizetes && body.elofizetes.price > 0) {
+          lineItems.push({
+            price_data: {
+              currency: "huf",
+              product_data: {
+                name: body.elofizetes.name,
+                description: "Előfizetés",
+              },
+              unit_amount: body.elofizetes.price * 100,
+            },
+            quantity: body.elofizetes.quantity,
+          });
+        }
+
+        const checkoutSession = await stripe.checkout.sessions.create({
+          payment_method_types: ["card"],
+          mode: "payment",
+          currency: "huf",
+          customer_email: body.userEmail,
+          line_items: lineItems,
+          metadata: {
+            userId: body.userId,
+            szenzorokIds: body.szenzorok.map((sz) => sz.id).join(","),
+            dobozId: body.doboz.id,
+            dobozSzin: body.colors.dobozSzin.id,
+            tetoSzin: body.colors.tetoSzin.id,
+            tapellatasId: body.tapellatas.id,
+            shippingMode: body.shipping.mode,
+            orderTotal: total.toString(),
+          },
+          success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/vasarlas/sikeres?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/vasarlas`,
+        });
+
+        return NextResponse.json({ 
+          success: true, 
+          url: checkoutSession.url,
+          sessionId: checkoutSession.id 
+        });
+      } catch (stripeError) {
+        console.error("Stripe error:", stripeError);
+        return NextResponse.json(
+          { error: "Stripe fizetési hiba" },
+          { status: 500 }
+        );
+      }
+    }
 
     // TODO: Backend - Rendelés mentése adatbázisba
     /*
@@ -403,12 +435,21 @@ export async function POST(request: Request) {
       // Email hiba nem blokkolja a rendelést
     }
 
-    // Placeholder válasz - Backend cseréli ki Stripe-ra
+    // Utalás módnál direkt az sikeres oldalra (mock)
+    if (body.payment.mode === "utalas") {
+      return NextResponse.json({
+        success: true,
+        message: "Rendelés fogadva - Banki átutalásra vár",
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/vasarlas/sikeres`,
+        order: orderWithCalculation,
+      });
+    }
+
+    // Placeholder válasz - ha egyik üzleti logika se fut
     return NextResponse.json({
       success: true,
-      message: "Rendelés fogadva - Stripe integráció TODO",
+      message: "Rendelés fogadva",
       order: orderWithCalculation,
-      // url: checkoutSession.url  // Backend uncomment-eli
     });
 
   } catch (error) {
