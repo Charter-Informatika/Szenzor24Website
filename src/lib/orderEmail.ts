@@ -6,11 +6,7 @@ import { OrderPayload } from "@/types/order";
  * - Sikeres vásárlás visszaigazolás
  * - Regisztráció ösztönzése a rendszer.szenzor24.hu-ra
  */
-export const sendOrderConfirmationEmail = async (order: OrderPayload & { 
-  subtotal: number; 
-  vatAmount: number; 
-  total: number; 
-}) => {
+export const sendOrderConfirmationEmail = async (order: OrderPayload) => {
   const szenzorokList = order.szenzorok
     .map((sz) => `<li>${sz.name} - ${sz.price.toLocaleString("hu-HU")} Ft</li>`)
     .join("");
@@ -95,6 +91,10 @@ export const sendOrderConfirmationEmail = async (order: OrderPayload & {
                       <tr>
                         <td style="color: #6b7280; padding: 5px 0;">ÁFA (${order.vatPercent}%):</td>
                         <td style="text-align: right; color: #1f2937; font-weight: 500;">${order.vatAmount.toLocaleString("hu-HU")} Ft</td>
+                      </tr>
+                      <tr>
+                        <td style="color: #6b7280; padding: 5px 0;">Szállítás (ÁFA-mentes):</td>
+                        <td style="text-align: right; color: #1f2937; font-weight: 500;">${order.shippingFee.toLocaleString("hu-HU")} Ft</td>
                       </tr>
                       <tr>
                         <td style="color: #1f2937; padding: 10px 0 0 0; font-size: 18px; font-weight: bold;">Összesen:</td>

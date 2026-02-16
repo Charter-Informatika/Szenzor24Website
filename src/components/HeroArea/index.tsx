@@ -65,7 +65,7 @@ const HeroArea = () => {
       // replace the model-viewer node with an image
       const parent = mv.parentElement;
       if (parent) {
-        parent.innerHTML = `<img src="/images/hero/hero-light.png" alt="Model not available" style="width:100%;height:400px;object-fit:contain"/>`;
+        parent.innerHTML = `<img src="/images/hero/fekete-szurke.glb" alt="Model not available" style="width:100%;height:400px;object-fit:contain"/>`;
       }
     };
 
@@ -129,12 +129,12 @@ const HeroArea = () => {
                     href="/vasarlas"
                     className="inline-flex items-center justify-center rounded-2xl bg-primary px-10 py-5 text-xl font-extrabold uppercase tracking-wider text-white hover:scale-[1.04] transition-all duration-200 sm:px-16 sm:py-6 sm:text-2xl"
                   >
-                    Vásárlás
+                    Rendelés
                   </Link>
                   <a
                     href="#pricing"
                     onClick={scrollToPricing}
-                    className="inline-flex items-center justify-center rounded-lg bg-blue-600/20 border-2 border-blue-500/60 px-5 py-3 text-sm text-blue-200 hover:bg-blue-500 hover:text-white hover:border-transparent hover:scale-[1.02] transition-all duration-200"
+                    className="inline-flex items-center justify-center rounded-lg bg-blue-500/10 border-2 border-blue-400/40 px-5 py-3 text-sm text-blue-600 dark:bg-blue-600/20 dark:border-blue-500/60 dark:text-blue-200 hover:bg-blue-500 hover:text-white hover:border-transparent hover:scale-[1.02] transition-all duration-200"
                   >
                     Csomagok
                   </a>
@@ -182,7 +182,7 @@ const HeroArea = () => {
           {/* Highlighted section below 3D model */}
           <div className="mt-12 text-center max-w-2xl mx-auto px-4 flex flex-col items-center justify-center">
             <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-semibold text-blue-600 dark:text-blue-400 mb-4 whitespace-nowrap">
-              Okos hűtés. Kevesebb kockázat.
+              Okos mérés, biztos döntés.
             </h2>
             <p className="text-body text-base sm:text-lg md:text-xl leading-relaxed text-black dark:text-white">
               Automatikus felügyelet, pontos mérések és azonnali értesítések – hogy semmi ne érjen meglepetésként.

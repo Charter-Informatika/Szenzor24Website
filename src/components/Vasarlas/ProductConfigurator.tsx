@@ -5,7 +5,14 @@ import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { OrderPayload } from "@/types/order";
-import { ALT_MODEL_PATH } from "@/lib/modelPaths";
+import FoxpostSelector, { FoxpostAutomataData } from "./FoxpostSelector";
+
+const formatFoxpostFindme = (value: string) =>
+  value
+    .replace(/<br\s*\/?\s*>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 
 // Szenzor típusok
 const szenzorok = [
@@ -38,6 +45,13 @@ const szenzorok = [
     imageUrl: "/images/szenzorok/homersekletsensor.png",
   },
   {
+    id: "paratartalom",
+    name: "Páratartalom szenzor",
+    description: "Páratartalom mérés",
+    price: 4500,
+    imageUrl: "/images/szenzorok/htu21.png",
+  },
+  {
     id: "feny",
     name: "Fény szenzor",
     description: "Fényerősség mérő szenzor",
@@ -64,6 +78,20 @@ const szenzorok = [
     description: "SENSORION precíziós hőmérséklet szenzor",
     price: 9000,
     imageUrl: "/images/szenzorok/levegominoseg.png",
+  },
+  {
+    id: "o2",
+    name: "O2 szenzor",
+    description: "Oldott oxigén mérés",
+    price: 8000,
+    imageUrl: "/images/szenzorok/gassensor.png",
+  },
+  {
+    id: "co2",
+    name: "CO2 szenzor",
+    description: "CO2 szint mérés",
+    price: 8500,
+    imageUrl: "/images/szenzorok/gassensor.png",
   },
 ];
 
@@ -158,8 +186,79 @@ const tapellatasok = [
   },
 ];
 
+// Szállítási módok
+const szallitasiModok = [
+  {
+    id: "foxpost",
+    name: "Foxpost automata",
+    description: "Csomagautomata átvétel",
+  },
+  {
+    id: "hazhoz",
+    name: "Házhozszállítás",
+    description: "Kézbesítés a megadott címre",
+  },
+] as const;
+
+// PLACEHOLDER - allitsd be a vegleges szallitasi dijakat (HUF)
+const SZALLITASI_ARAK = {
+  foxpost: 0,
+  hazhoz: 0,
+} as const;
+
+const VAT_PERCENT = 27;
+
+// Fizetési módok
+const fizetesiModok = [
+  {
+    id: "utalas",
+    name: "Utalás",
+    description: "Díjbekérő / előre utalás",
+  },
+  {
+    id: "stripe",
+    name: "Stripe",
+    description: "Bankkártyás fizetés",
+  },
+] as const;
+
+const elofizetesek = [
+  {
+    id: "ingyenes",
+    name: "Ingyenes",
+    description: "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 30 napos adatmegőrzés \n ❌ hőmérséklet naplózás \n ❌ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
+    price: 0,
+  },
+  {
+    id: "havi",
+    name: "Havi",
+    description: "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
+    price: 1000,
+  },
+  {
+    id: "eves",
+    name: "Éves",
+    description: "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
+    price: 10000,
+  },
+] as const;
+
 // Burok anyag típusok (PLACEHOLDER - árak és típusok később pontosítandók)
 const anyagok = [
+  {
+    id: "normal_burkolat",
+    name: "Normál burkolat",
+    description: "Alap burkolat (PLACEHOLDER - ár később pontosítandó)",
+    price: 0,
+    icon: "🧱",
+  },
+  {
+    id: "vizallo_burkolat",
+    name: "Vízálló burkolat",
+    description: "Nedves környezethez (PLACEHOLDER - ár később pontosítandó)",
+    price: 2500,
+    icon: "💧",
+  },
   {
     id: "sima_pla",
     name: "Sima PLA",
@@ -190,22 +289,165 @@ const anyagok = [
   },
 ];
 
-type StepId = "szenzor" | "anyag" | "doboz" | "szin" | "tapellatas" | "osszesites";
+// Javasolt konfigurációk
+const presetOptions = [
+  {
+    id: "huto",
+    label: "Hűtő",
+    description: "Hő + páratartalom szenzor, normál burkolat",
+    szenzorok: ["homerseklet", "paratartalom"],
+    anyagId: "normal_burkolat",
+  },
+  {
+    id: "akvarium",
+    label: "Akvárium",
+    description: "Hő + O2 + CO2 szenzor, vízálló burkolat",
+    szenzorok: ["homerseklet", "o2", "co2"],
+    anyagId: "vizallo_burkolat",
+  },
+  {
+    id: "hutokamra",
+    label: "Hűtőkamra",
+    description: "SENSORION hőmérséklet + páratartalom, normál burkolat",
+    szenzorok: ["sensorion", "paratartalom"],
+    anyagId: "normal_burkolat",
+  },
+  {
+    id: "hideglanc_monitor",
+    label: "Hideglánc monitor",
+    description: "SENSORION hőmérséklet + MPU-6050, PETG",
+    szenzorok: ["sensorion", "mpu6050"],
+    anyagId: "petg",
+  },
+  {
+    id: "gyogyszertarolo",
+    label: "Gyógyszertároló",
+    description: "SENSORION hőmérséklet + páratartalom, ABS",
+    szenzorok: ["sensorion", "paratartalom"],
+    anyagId: "abs",
+  },
+  {
+    id: "raktar_kornyezetfigyelo",
+    label: "Raktár környezetfigyelő",
+    description: "HTU21D + MPU-6050, PETG",
+    szenzorok: ["htu21d", "mpu6050"],
+    anyagId: "petg",
+  },
+  {
+    id: "server_szoba_monitor",
+    label: "Server szoba monitor",
+    description: "SENSORION hőmérséklet + CO2, ABS",
+    szenzorok: ["sensorion", "co2"],
+    anyagId: "abs",
+  },
+  {
+    id: "iroda_levegominoseg",
+    label: "Iroda levegőminőség",
+    description: "CO2 + HTU21D, Sima PLA",
+    szenzorok: ["co2", "htu21d"],
+    anyagId: "sima_pla",
+  },
+  {
+    id: "tanterem_levegofigyelo",
+    label: "Tanterem levegőfigyelő",
+    description: "CO2 + hőmérséklet, Sima PLA",
+    szenzorok: ["co2", "homerseklet"],
+    anyagId: "sima_pla",
+  },
+  {
+    id: "kazan_biztonsag",
+    label: "Kazánház biztonság",
+    description: "Gáz + O2, ABS",
+    szenzorok: ["gaz", "o2"],
+    anyagId: "abs",
+  },
+  {
+    id: "garazs_gazfigyelo",
+    label: "Garázs gázfigyelő",
+    description: "Gáz + CO2, PETG",
+    szenzorok: ["gaz", "co2"],
+    anyagId: "petg",
+  },
+  {
+    id: "akku_tolto_helyiseg",
+    label: "Akkumulátor töltő helyiség",
+    description: "Hidrogén + hőmérséklet, ABS",
+    szenzorok: ["hidrogen", "homerseklet"],
+    anyagId: "abs",
+  },
+  {
+    id: "allattarto_telep",
+    label: "Állattartó telep levegőfigyelő",
+    description: "Metán + CO2 + O2, vízálló burkolat",
+    szenzorok: ["metan", "co2", "o2"],
+    anyagId: "vizallo_burkolat",
+  },
+  {
+    id: "logisztikai_csomagfigyelo",
+    label: "Logisztikai csomagfigyelő",
+    description: "MPU-6050 + hőmérséklet, PETG",
+    szenzorok: ["mpu6050", "homerseklet"],
+    anyagId: "petg",
+  },
+  {
+    id: "szallitasi_sokkfigyelo",
+    label: "Szállítási sokkfigyelő",
+    description: "MPU-6050, PETG",
+    szenzorok: ["mpu6050"],
+    anyagId: "petg",
+  },
+  {
+    id: "tarolo_kontener",
+    label: "Tároló konténer monitor",
+    description: "Hőmérséklet + MPU-6050, PETG",
+    szenzorok: ["homerseklet", "mpu6050"],
+    anyagId: "petg",
+  },
+];
 
-const MAX_SZENZOROK = 3;
+type StepId = "mod" | "szenzor" | "anyag" | "doboz" | "szin" | "tapellatas" | "elofizetes" | "szallitas" | "fizetes" | "osszesites";
+type ConfigMode = "preset" | "custom";
+
+const MAX_SZENZOROK = 2;
 
 interface Selection {
-  szenzorok: string[]; // Max 3 szenzor
+  szenzorok: string[]; // Custom max 2, preset limit
   anyag: string | null;
   doboz: string | null;
   dobozSzin: string;
   tetoSzin: string;
   tapellatas: string | null;
+  elofizetes: "ingyenes" | "havi" | "eves" | null;
+  quantity: number; // Megrendelt darabszám
+  shippingMode: "foxpost" | "hazhoz" | null;
+  paymentMode: "utalas" | "stripe" | null;
+  shippingAddress: {
+    zip: string;
+    city: string;
+    street: string;
+    houseNumber: string;
+    stair: string;
+    floor: string;
+    door: string;
+  };
+  billingSame: boolean;
+  billingAddress: {
+    zip: string;
+    city: string;
+    street: string;
+    houseNumber: string;
+    stair: string;
+    floor: string;
+    door: string;
+  };
+  foxpostAutomata: FoxpostAutomataData | null;
 }
 
 const ProductConfigurator = () => {
   const { data: session } = useSession();
-  const [currentStep, setCurrentStep] = useState<StepId>("szenzor");
+  const [currentStep, setCurrentStep] = useState<StepId>("mod");
+  const [configMode, setConfigMode] = useState<ConfigMode | null>(null);
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const [selection, setSelection] = useState<Selection>({
     szenzorok: [],
     anyag: null,
@@ -213,30 +455,86 @@ const ProductConfigurator = () => {
     dobozSzin: "zold",
     tetoSzin: "feher",
     tapellatas: null,
+    elofizetes: null,
+    quantity: 1,
+    shippingMode: null,
+    paymentMode: null,
+    shippingAddress: {
+      zip: "",
+      city: "",
+      street: "",
+      houseNumber: "",
+      stair: "",
+      floor: "",
+      door: "",
+    },
+    billingSame: true,
+    billingAddress: {
+      zip: "",
+      city: "",
+      street: "",
+      houseNumber: "",
+      stair: "",
+      floor: "",
+      door: "",
+    },
+    foxpostAutomata: null,
   });
 
   const modelViewerRef = useRef<HTMLDivElement>(null);
+
+  const isAkkus = selection.tapellatas === "akkus";
+  const akkusDobozSzinek = dobozSzinek.filter((szin) => szin.id === "feher" || szin.id === "fekete");
+  const akkusTetoSzinek = tetoSzinek.filter((szin) => szin.id === "feher" || szin.id === "fekete");
 
   useEffect(() => {
     import("@google/model-viewer");
   }, []);
 
+  useEffect(() => {
+    if (!isAkkus) return;
+    const allowed = new Set(["feher", "fekete"]);
+    if (!allowed.has(selection.dobozSzin) || !allowed.has(selection.tetoSzin)) {
+      setSelection((prev) => ({
+        ...prev,
+        dobozSzin: allowed.has(prev.dobozSzin) ? prev.dobozSzin : "feher",
+        tetoSzin: allowed.has(prev.tetoSzin) ? prev.tetoSzin : "feher",
+      }));
+    }
+  }, [isAkkus, selection.dobozSzin, selection.tetoSzin]);
+
   const getModelPath = (box: string, top: string) => `/images/hero/${box}/${box}_${top}.glb`;
-  const modelSrc =
-    selection.tapellatas === "akkus"
-      ? ALT_MODEL_PATH
-      : getModelPath(selection.dobozSzin, selection.tetoSzin);
+  const getAkkusModelPath = (box: string, top: string) => `/images/hero/akkus/${box}/${box}_${top}.glb`;
+  const modelSrc = isAkkus
+    ? getAkkusModelPath(selection.dobozSzin, selection.tetoSzin)
+    : getModelPath(selection.dobozSzin, selection.tetoSzin);
 
   const steps: { id: StepId; title: string; icon: string }[] = [
-    { id: "szenzor", title: "Szenzor", icon: "1" },
-    { id: "anyag", title: "Anyag", icon: "2" },
-    { id: "tapellatas", title: "Tápellátás", icon: "3" },
-    { id: "doboz", title: "Doboz", icon: "4" },
-    { id: "szin", title: "Szín", icon: "5" },
+    { id: "mod", title: "Mód", icon: "1" },
+    { id: "szenzor", title: "Szenzor", icon: "2" },
+    { id: "anyag", title: "Anyag", icon: "3" },
+    { id: "tapellatas", title: "Tápellátás", icon: "4" },
+    { id: "doboz", title: "Doboz", icon: "5" },
+    { id: "szin", title: "Szín", icon: "6" },
+    { id: "elofizetes", title: "Előfizetés", icon: "7" },
+    { id: "szallitas", title: "Szállítás", icon: "8" },
+    { id: "fizetes", title: "Fizetés", icon: "9" },
     { id: "osszesites", title: "Összesítés", icon: "✓" },
   ];
 
-  const calculateTotal = () => {
+  const selectedPreset = presetOptions.find((preset) => preset.id === selectedPresetId) ?? null;
+  const isPresetLocked = configMode === "preset" && Boolean(selectedPreset);
+  const hiddenSteps = isPresetLocked ? new Set<StepId>(["szenzor", "anyag"]) : null;
+  const visibleSteps = steps.filter((step) => !hiddenSteps?.has(step.id));
+  const maxSzenzorok = configMode === "preset"
+    ? (selectedPreset?.szenzorok.length ?? MAX_SZENZOROK)
+    : MAX_SZENZOROK;
+  const visibleSzenzorok = isPresetLocked && selectedPreset
+    ? szenzorok.filter((szenzor) => selectedPreset.szenzorok.includes(szenzor.id))
+    : szenzorok;
+
+
+  const calculateSubtotal = () => {
     let total = 0;
     // Több szenzor összege
     for (const szenzorId of selection.szenzorok) {
@@ -256,10 +554,55 @@ const ProductConfigurator = () => {
       const tap = tapellatasok.find((t) => t.id === selection.tapellatas);
       if (tap) total += tap.price;
     }
-    return total;
+    // Szorzunk a darabszámmal
+    return total * selection.quantity;
+  };
+
+  const calculateSubscriptionFee = () => {
+    if (!selection.elofizetes) return 0;
+    const elofizetes = elofizetesek.find((e) => e.id === selection.elofizetes);
+    return elofizetes ? elofizetes.price : 0;
+  };
+
+  const getShippingFee = () =>
+    selection.shippingMode ? SZALLITASI_ARAK[selection.shippingMode] : 0;
+
+  const calculateVatAmount = (subtotal: number) =>
+    Math.round(subtotal * (VAT_PERCENT / 100));
+
+  const calculateGrandTotal = () => {
+    const subtotal = calculateSubtotal();
+    const vatAmount = calculateVatAmount(subtotal);
+    return subtotal + vatAmount + getShippingFee() + calculateSubscriptionFee();
+  };
+
+  const isAddressComplete = (address: Selection["shippingAddress"]) =>
+    Boolean(
+      address.zip.trim() &&
+      address.city.trim() &&
+      address.street.trim() &&
+      address.houseNumber.trim()
+    );
+
+  const isShippingValid = () => {
+    if (!selection.shippingMode) return false;
+
+    if (selection.shippingMode === "foxpost") {
+      if (!isAddressComplete(selection.billingAddress)) return false;
+      if (!selection.foxpostAutomata) return false;
+      return true;
+    }
+
+    if (!isAddressComplete(selection.shippingAddress)) return false;
+    if (!selection.billingSame && !isAddressComplete(selection.billingAddress)) return false;
+    return true;
   };
 
   const toggleSzenzor = (szenzorId: string) => {
+    if (isPresetLocked) {
+      toast.error("A preset szenzorok nem módosíthatók.");
+      return;
+    }
     const isSelected = selection.szenzorok.includes(szenzorId);
     
     if (isSelected) {
@@ -269,9 +612,9 @@ const ProductConfigurator = () => {
         szenzorok: prev.szenzorok.filter((id) => id !== szenzorId),
       }));
     } else {
-      // Hozzáadás (max 3)
-      if (selection.szenzorok.length >= MAX_SZENZOROK) {
-        toast.error(`Maximum ${MAX_SZENZOROK} szenzort választhatsz!`);
+      // Hozzáadás (max limit a mód alapján)
+      if (selection.szenzorok.length >= maxSzenzorok) {
+        toast.error(`Maximum ${maxSzenzorok} szenzort választhatsz!`);
         return;
       }
       setSelection((prev) => ({
@@ -283,6 +626,10 @@ const ProductConfigurator = () => {
 
   const canProceed = () => {
     switch (currentStep) {
+      case "mod":
+        if (configMode === "preset") return Boolean(selectedPresetId);
+        if (configMode === "custom") return true;
+        return false;
       case "szenzor":
         return selection.szenzorok.length > 0; // Legalább 1 szenzor kell
       case "anyag":
@@ -293,6 +640,12 @@ const ProductConfigurator = () => {
         return true; // Szín mindig van alapértelmezett
       case "tapellatas":
         return selection.tapellatas !== null;
+      case "elofizetes":
+        return selection.elofizetes !== null;
+      case "szallitas":
+        return isShippingValid();
+      case "fizetes":
+        return selection.paymentMode !== null;
       case "osszesites":
         return true;
       default:
@@ -301,16 +654,28 @@ const ProductConfigurator = () => {
   };
 
   const nextStep = () => {
-    const stepIndex = steps.findIndex((s) => s.id === currentStep);
-    if (stepIndex < steps.length - 1 && canProceed()) {
-      setCurrentStep(steps[stepIndex + 1].id);
+    const stepIndex = visibleSteps.findIndex((s) => s.id === currentStep);
+    if (stepIndex === -1) {
+      if (visibleSteps.length > 0) {
+        setCurrentStep(visibleSteps[0].id);
+      }
+      return;
+    }
+    if (stepIndex < visibleSteps.length - 1 && canProceed()) {
+      setCurrentStep(visibleSteps[stepIndex + 1].id);
     }
   };
 
   const prevStep = () => {
-    const stepIndex = steps.findIndex((s) => s.id === currentStep);
+    const stepIndex = visibleSteps.findIndex((s) => s.id === currentStep);
+    if (stepIndex === -1) {
+      if (visibleSteps.length > 0) {
+        setCurrentStep(visibleSteps[0].id);
+      }
+      return;
+    }
     if (stepIndex > 0) {
-      setCurrentStep(steps[stepIndex - 1].id);
+      setCurrentStep(visibleSteps[stepIndex - 1].id);
     }
   };
 
@@ -327,6 +692,10 @@ const ProductConfigurator = () => {
     const selectedAnyag = anyagok.find((a) => a.id === selection.anyag);
     const selectedDoboz = dobozok.find((d) => d.id === selection.doboz);
     const selectedTap = tapellatasok.find((t) => t.id === selection.tapellatas);
+    const selectedElofizetes =
+      elofizetesek.find((e) => e.id === selection.elofizetes) ??
+      elofizetesek.find((e) => e.id === "ingyenes") ??
+      null;
     const selectedDobozSzin = dobozSzinek.find((s) => s.id === selection.dobozSzin);
     const selectedTetoSzin = tetoSzinek.find((s) => s.id === selection.tetoSzin);
 
@@ -335,10 +704,22 @@ const ProductConfigurator = () => {
       return;
     }
 
-    const subtotal = calculateTotal();
-    const vatPercent = 27;
-    const vatAmount = Math.round(subtotal * (vatPercent / 100));
-    const total = subtotal + vatAmount;
+    if (!isShippingValid()) {
+      toast.error("Hiányzó szállítási adatok!");
+      return;
+    }
+
+    if (!selection.paymentMode) {
+      toast.error("Hiányzó fizetési mód!");
+      return;
+    }
+
+    const subtotal = calculateSubtotal();
+    const subscriptionFee = calculateSubscriptionFee();
+    const vatPercent = VAT_PERCENT;
+    const vatAmount = calculateVatAmount(subtotal);
+    const shippingFee = getShippingFee();
+    const total = subtotal + vatAmount + shippingFee + subscriptionFee;
 
     const orderPayload: OrderPayload = {
       userId: (session.user as any).id || "unknown",
@@ -349,26 +730,39 @@ const ProductConfigurator = () => {
         id: sz!.id,
         name: sz!.name,
         price: sz!.price,
-        quantity: 1,
+        quantity: selection.quantity,
       })),
       anyag: {
         id: selectedAnyag.id,
         name: selectedAnyag.name,
         price: selectedAnyag.price,
-        quantity: 1,
+        quantity: selection.quantity,
       },
       doboz: {
         id: selectedDoboz.id,
         name: selectedDoboz.name,
         price: selectedDoboz.price,
-        quantity: 1,
+        quantity: selection.quantity,
       },
       tapellatas: {
         id: selectedTap.id,
         name: selectedTap.name,
         price: selectedTap.price,
-        quantity: 1,
+        quantity: selection.quantity,
       },
+      elofizetes: selectedElofizetes
+        ? {
+            id: selectedElofizetes.id,
+            name: selectedElofizetes.name,
+            price: selectedElofizetes.price,
+            quantity: selection.quantity,
+          }
+        : {
+            id: "ingyenes",
+            name: "Ingyenes",
+            price: 0,
+            quantity: selection.quantity,
+          },
 
       colors: {
         dobozSzin: {
@@ -381,18 +775,91 @@ const ProductConfigurator = () => {
         },
       },
 
+      shipping: {
+        mode: selection.shippingMode!,
+        shippingAddress:
+          selection.shippingMode === "hazhoz"
+            ? {
+                zip: selection.shippingAddress.zip.trim(),
+                city: selection.shippingAddress.city.trim(),
+                street: selection.shippingAddress.street.trim(),
+                houseNumber: selection.shippingAddress.houseNumber.trim(),
+                stair: selection.shippingAddress.stair.trim() || null,
+                floor: selection.shippingAddress.floor.trim() || null,
+                door: selection.shippingAddress.door.trim() || null,
+              }
+            : null,
+        billingSame: selection.shippingMode === "hazhoz" ? selection.billingSame : true,
+        billingAddress:
+          selection.shippingMode === "hazhoz" && selection.billingSame
+            ? {
+                zip: selection.shippingAddress.zip.trim(),
+                city: selection.shippingAddress.city.trim(),
+                street: selection.shippingAddress.street.trim(),
+                houseNumber: selection.shippingAddress.houseNumber.trim(),
+                stair: selection.shippingAddress.stair.trim() || null,
+                floor: selection.shippingAddress.floor.trim() || null,
+                door: selection.shippingAddress.door.trim() || null,
+              }
+            : {
+                zip: selection.billingAddress.zip.trim(),
+                city: selection.billingAddress.city.trim(),
+                street: selection.billingAddress.street.trim(),
+                houseNumber: selection.billingAddress.houseNumber.trim(),
+                stair: selection.billingAddress.stair.trim() || null,
+                floor: selection.billingAddress.floor.trim() || null,
+                door: selection.billingAddress.door.trim() || null,
+              },
+        foxpostAutomata:
+          selection.shippingMode === "foxpost" && selection.foxpostAutomata
+            ? selection.foxpostAutomata.name
+            : null,
+        foxpostAutomataDetails:
+          selection.shippingMode === "foxpost" && selection.foxpostAutomata
+            ? {
+                place_id: selection.foxpostAutomata.place_id,
+                operator_id: selection.foxpostAutomata.operator_id,
+                name: selection.foxpostAutomata.name,
+                address: selection.foxpostAutomata.address,
+                city: selection.foxpostAutomata.city,
+                zip: selection.foxpostAutomata.zip,
+                geolat: selection.foxpostAutomata.geolat,
+                geolng: selection.foxpostAutomata.geolng,
+                findme: selection.foxpostAutomata.findme,
+              }
+            : null,
+      },
+
+      payment: {
+        mode: selection.paymentMode!,
+      },
+
       subtotal,
       vatPercent,
       vatAmount,
+      shippingFee,
       total,
 
       currency: "HUF",
       createdAt: new Date().toISOString(),
       locale: "hu-HU",
+      ...(configMode === "preset" && selectedPreset
+        ? {
+            presetId: selectedPreset.id,
+            presetLabel: selectedPreset.label,
+            presetMaxSzenzorok: selectedPreset.szenzorok.length,
+          }
+        : {}),
     };
 
+    const orderApiUrl = process.env.NEXT_PUBLIC_ORDER_API_URL;
+    if (!orderApiUrl) {
+      toast.error("Hiányzó API URL (NEXT_PUBLIC_ORDER_API_URL)");
+      return;
+    }
+
     try {
-      const { data } = await axios.post("https://rendszer.szenzor24.hu/api/orders/create", orderPayload);
+      const { data } = await axios.post(orderApiUrl, orderPayload);
       
       if (data.url) {
         // Stripe checkout URL - redirect
@@ -407,26 +874,114 @@ const ProductConfigurator = () => {
     }
   };
 
+  const applyPreset = (presetId: string) => {
+    const preset = presetOptions.find((item) => item.id === presetId);
+    if (!preset) return;
+
+    setConfigMode("preset");
+    setSelectedPresetId(presetId);
+    setSelection((prev) => ({
+      ...prev,
+      szenzorok: preset.szenzorok,
+      anyag: preset.anyagId,
+    }));
+  };
+
+  const selectCustomMode = () => {
+    setConfigMode("custom");
+    setSelectedPresetId(null);
+    setSelection((prev) => ({
+      ...prev,
+      szenzorok: [],
+      anyag: null,
+    }));
+  };
+
+  const updateAddressField = (
+    target: "shippingAddress" | "billingAddress",
+    field: keyof Selection["shippingAddress"],
+    value: string
+  ) => {
+    setSelection((prev) => ({
+      ...prev,
+      [target]: {
+        ...prev[target],
+        [field]: value,
+      },
+    }));
+  };
+
   const renderStepContent = () => {
     switch (currentStep) {
+      case "mod":
+        return (
+          <div className="mx-auto max-w-5xl">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              {presetOptions.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => applyPreset(preset.id)}
+                  className={`rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg ${
+                    configMode === "preset" && selectedPresetId === preset.id
+                      ? "border-primary bg-primary/10"
+                      : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                  }`}
+                >
+                  <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
+                    {preset.label}
+                  </h4>
+                  <p className="text-sm text-body">{preset.description}</p>
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-8 flex justify-center">
+              <button
+                type="button"
+                onClick={selectCustomMode}
+                className={`w-full max-w-sm rounded-2xl border-2 px-6 py-4 text-center text-base font-semibold transition-all hover:shadow-lg ${
+                  configMode === "custom"
+                    ? "border-primary bg-primary/10 text-black dark:text-white"
+                    : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark text-black dark:text-white"
+                }`}
+              >
+                Teljeskörű személyre szabás
+              </button>
+            </div>
+          </div>
+        );
       case "szenzor":
         return (
           <div>
-            <p className="mb-4 text-center text-sm text-body">
-              Válassz max. {MAX_SZENZOROK} szenzort! ({selection.szenzorok.length}/{MAX_SZENZOROK} kiválasztva)
-            </p>
-            <div className="mx-auto max-w-5xl grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {szenzorok.map((szenzor) => {
+            {configMode === "preset" && selectedPreset && (
+              <p className="mb-2 text-center text-sm text-body">
+                Előre beállított konfiguráció: {selectedPreset.label} (a szenzorok és a burkolat nem módosíthatók)
+              </p>
+            )}
+            {configMode !== "preset" && (
+              <p className="mb-4 text-center text-sm text-body">
+                Válassz max. {maxSzenzorok} szenzort! ({selection.szenzorok.length}/{maxSzenzorok} kiválasztva)
+              </p>
+            )}
+            <div
+              className={`mx-auto max-w-5xl gap-3 ${
+                isPresetLocked
+                  ? "flex flex-wrap justify-center"
+                  : "grid grid-cols-2 sm:grid-cols-4"
+              }`}
+            >
+              {visibleSzenzorok.map((szenzor) => {
                 const isSelected = selection.szenzorok.includes(szenzor.id);
                 return (
                   <div
                     key={szenzor.id}
-                    onClick={() => toggleSzenzor(szenzor.id)}
-                    className={`cursor-pointer rounded-xl border-2 p-4 transition-all hover:shadow-lg ${
+                    onClick={isPresetLocked ? undefined : () => toggleSzenzor(szenzor.id)}
+                    className={`rounded-xl border-2 p-4 transition-all ${
                       isSelected
                         ? "border-primary bg-primary/10"
                         : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
-                    }`}
+                    } ${isPresetLocked ? "cursor-not-allowed opacity-80 w-full max-w-[240px]" : "cursor-pointer hover:shadow-lg"}`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-lg bg-slate-100 p-2 dark:bg-slate-800 sm:h-24 sm:w-24">
@@ -463,19 +1018,35 @@ const ProductConfigurator = () => {
       case "anyag":
         return (
           <div>
-            <p className="mb-4 text-center text-sm text-body">
-              Válaszd ki a burok anyagát! (PLACEHOLDER - árak és típusok később pontosítandók)
-            </p>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {anyagok.map((anyag) => (
+            {isPresetLocked && selectedPreset && (
+              <p className="mb-4 text-center text-sm text-body">
+                A burkolat a(z) {selectedPreset.label} konfigurációhoz kötött, nem módosítható.
+              </p>
+            )}
+            {!isPresetLocked && (
+              <p className="mb-4 text-center text-sm text-body">
+                Válaszd ki a burok anyagát! (PLACEHOLDER - árak és típusok később pontosítandók)
+              </p>
+            )}
+            <div
+              className={`gap-4 ${
+                isPresetLocked
+                  ? "flex justify-center"
+                  : "grid grid-cols-1 md:grid-cols-2"
+              }`}
+            >
+              {(isPresetLocked
+                ? anyagok.filter((anyag) => anyag.id === selection.anyag)
+                : anyagok
+              ).map((anyag) => (
                 <div
                   key={anyag.id}
-                  onClick={() => setSelection({ ...selection, anyag: anyag.id })}
-                  className={`cursor-pointer rounded-xl border-2 p-6 transition-all hover:shadow-lg ${
+                  onClick={isPresetLocked ? undefined : () => setSelection({ ...selection, anyag: anyag.id })}
+                  className={`rounded-xl border-2 p-6 transition-all ${
                     selection.anyag === anyag.id
                       ? "border-primary bg-primary/10"
                       : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
-                  }`}
+                  } ${isPresetLocked ? "cursor-not-allowed opacity-80 w-full max-w-[320px]" : "cursor-pointer hover:shadow-lg"}`}
                 >
                   <div className="mb-3 text-4xl">{anyag.icon}</div>
                   <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
@@ -543,7 +1114,7 @@ const ProductConfigurator = () => {
                 Doboz színe
               </h4>
               <div className="flex flex-wrap justify-center gap-3">
-                {dobozSzinek.map((szin) => (
+                {(isAkkus ? akkusDobozSzinek : dobozSzinek).map((szin) => (
                   <button
                     key={szin.id}
                     onClick={() => setSelection({ ...selection, dobozSzin: szin.id })}
@@ -571,7 +1142,7 @@ const ProductConfigurator = () => {
                 Tető színe
               </h4>
               <div className="flex flex-wrap justify-center gap-3">
-                {tetoSzinek.map((szin) => (
+                {(isAkkus ? akkusTetoSzinek : tetoSzinek).map((szin) => (
                   <button
                     key={szin.id}
                     onClick={() => setSelection({ ...selection, tetoSzin: szin.id })}
@@ -623,6 +1194,295 @@ const ProductConfigurator = () => {
           </div>
         );
 
+      case "elofizetes":
+        return (
+          <div className="mx-auto max-w-4xl">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3 whitespace-pre-line">
+              {elofizetesek.map((plan) => (
+                <button
+                  type="button"
+                  key={plan.id}
+                  onClick={() => setSelection({ ...selection, elofizetes: plan.id })}
+                  className={`rounded-xl border-2 p-6 text-left transition-all hover:shadow-lg ${
+                    selection.elofizetes === plan.id
+                      ? "border-primary bg-primary/10"
+                      : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                  }`}
+                >
+                  <h4 className="mb-2 text-lg font-semibold text-black dark:text-white text-center">
+                    {plan.name}
+                  </h4>
+                  <p className="mb-3 text-sm text-body">{plan.description}</p>
+                  <p className="text-xl font-bold text-primary">
+                    {plan.price === 0 ? "0 Ft" : `${plan.price.toLocaleString("hu-HU")} Ft`}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "szallitas":
+        return (
+          <div className="mx-auto max-w-4xl space-y-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {szallitasiModok.map((mod) => (
+                <button
+                  type="button"
+                  key={mod.id}
+                  onClick={() =>
+                    setSelection((prev) => ({
+                      ...prev,
+                      shippingMode: mod.id,
+                      billingSame: mod.id === "hazhoz" ? prev.billingSame : true,
+                    }))
+                  }
+                  className={`rounded-xl border-2 p-5 text-left transition-all hover:shadow-lg ${
+                    selection.shippingMode === mod.id
+                      ? "border-primary bg-primary/10"
+                      : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                  }`}
+                >
+                  <h4 className="mb-2 text-base font-semibold text-black dark:text-white">
+                    {mod.name}
+                  </h4>
+                  <p className="text-sm text-body">{mod.description}</p>
+                </button>
+              ))}
+            </div>
+
+            {selection.shippingMode === "foxpost" && (
+              <div className="space-y-4">
+                <p className="text-sm text-body">
+                  Foxpost automata esetén a cím a számlázási cím.
+                </p>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <input
+                    type="text"
+                    placeholder="Irányítószám"
+                    value={selection.billingAddress.zip}
+                    onChange={(ev) => updateAddressField("billingAddress", "zip", ev.target.value)}
+                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Város"
+                    value={selection.billingAddress.city}
+                    onChange={(ev) => updateAddressField("billingAddress", "city", ev.target.value)}
+                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Utca"
+                    value={selection.billingAddress.street}
+                    onChange={(ev) => updateAddressField("billingAddress", "street", ev.target.value)}
+                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Házszám"
+                    value={selection.billingAddress.houseNumber}
+                    onChange={(ev) => updateAddressField("billingAddress", "houseNumber", ev.target.value)}
+                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Lépcsőház (opcionális)"
+                    value={selection.billingAddress.stair}
+                    onChange={(ev) => updateAddressField("billingAddress", "stair", ev.target.value)}
+                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Emelet (opcionális)"
+                    value={selection.billingAddress.floor}
+                    onChange={(ev) => updateAddressField("billingAddress", "floor", ev.target.value)}
+                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Ajtó (opcionális)"
+                    value={selection.billingAddress.door}
+                    onChange={(ev) => updateAddressField("billingAddress", "door", ev.target.value)}
+                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                  />
+                </div>
+
+                <div className="rounded-xl border border-stroke bg-white p-4 dark:border-stroke-dark dark:bg-dark">
+                  <p className="mb-3 text-sm text-body">
+                    Válaszd ki a csomagautomatát a térképes keresőből:
+                  </p>
+                  <FoxpostSelector
+                    selected={selection.foxpostAutomata}
+                    onSelect={(automata) =>
+                      setSelection((prev) => ({
+                        ...prev,
+                        foxpostAutomata: automata,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+            )}
+
+            {selection.shippingMode === "hazhoz" && (
+              <div className="space-y-4">
+                <p className="text-sm text-body">Szállítási cím</p>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <input
+                    type="text"
+                    placeholder="Irányítószám"
+                    value={selection.shippingAddress.zip}
+                    onChange={(ev) => updateAddressField("shippingAddress", "zip", ev.target.value)}
+                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Város"
+                    value={selection.shippingAddress.city}
+                    onChange={(ev) => updateAddressField("shippingAddress", "city", ev.target.value)}
+                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Utca"
+                    value={selection.shippingAddress.street}
+                    onChange={(ev) => updateAddressField("shippingAddress", "street", ev.target.value)}
+                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Házszám"
+                    value={selection.shippingAddress.houseNumber}
+                    onChange={(ev) => updateAddressField("shippingAddress", "houseNumber", ev.target.value)}
+                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Lépcsőház (opcionális)"
+                    value={selection.shippingAddress.stair}
+                    onChange={(ev) => updateAddressField("shippingAddress", "stair", ev.target.value)}
+                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Emelet (opcionális)"
+                    value={selection.shippingAddress.floor}
+                    onChange={(ev) => updateAddressField("shippingAddress", "floor", ev.target.value)}
+                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Ajtó (opcionális)"
+                    value={selection.shippingAddress.door}
+                    onChange={(ev) => updateAddressField("shippingAddress", "door", ev.target.value)}
+                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                  />
+                </div>
+
+                <label className="flex items-center gap-3 text-sm text-body">
+                  <input
+                    type="checkbox"
+                    checked={selection.billingSame}
+                    onChange={(ev) =>
+                      setSelection({
+                        ...selection,
+                        billingSame: ev.target.checked,
+                      })
+                    }
+                  />
+                  Számlázási cím megegyezik a szállítási címmel
+                </label>
+
+                {!selection.billingSame && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-body">Számlázási cím</p>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <input
+                        type="text"
+                        placeholder="Irányítószám"
+                        value={selection.billingAddress.zip}
+                        onChange={(ev) => updateAddressField("billingAddress", "zip", ev.target.value)}
+                        className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Város"
+                        value={selection.billingAddress.city}
+                        onChange={(ev) => updateAddressField("billingAddress", "city", ev.target.value)}
+                        className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Utca"
+                        value={selection.billingAddress.street}
+                        onChange={(ev) => updateAddressField("billingAddress", "street", ev.target.value)}
+                        className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Házszám"
+                        value={selection.billingAddress.houseNumber}
+                        onChange={(ev) => updateAddressField("billingAddress", "houseNumber", ev.target.value)}
+                        className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Lépcsőház (opcionális)"
+                        value={selection.billingAddress.stair}
+                        onChange={(ev) => updateAddressField("billingAddress", "stair", ev.target.value)}
+                        className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Emelet (opcionális)"
+                        value={selection.billingAddress.floor}
+                        onChange={(ev) => updateAddressField("billingAddress", "floor", ev.target.value)}
+                        className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Ajtó (opcionális)"
+                        value={selection.billingAddress.door}
+                        onChange={(ev) => updateAddressField("billingAddress", "door", ev.target.value)}
+                        className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+
+      case "fizetes":
+        return (
+          <div className="mx-auto max-w-4xl">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {fizetesiModok.map((mod) => (
+                <button
+                  type="button"
+                  key={mod.id}
+                  onClick={() => setSelection({
+                    ...selection,
+                    paymentMode: mod.id,
+                  })}
+                  className={`rounded-xl border-2 p-6 text-left transition-all hover:shadow-lg ${
+                    selection.paymentMode === mod.id
+                      ? "border-primary bg-primary/10"
+                      : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                  }`}
+                >
+                  <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
+                    {mod.name}
+                  </h4>
+                  <p className="text-sm text-body">{mod.description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
       case "osszesites":
         const selectedSzenzorokList = selection.szenzorok
           .map((id) => szenzorok.find((s) => s.id === id))
@@ -630,9 +1490,15 @@ const ProductConfigurator = () => {
         const selectedAnyagOssz = anyagok.find((a) => a.id === selection.anyag);
         const selectedDoboz = dobozok.find((d) => d.id === selection.doboz);
         const selectedTap = tapellatasok.find((t) => t.id === selection.tapellatas);
+        const selectedElofizetes = elofizetesek.find((e) => e.id === selection.elofizetes);
         const selectedDobozSzin = dobozSzinek.find((s) => s.id === selection.dobozSzin);
         const selectedTetoSzin = tetoSzinek.find((s) => s.id === selection.tetoSzin);
         const szenzorokTotal = selectedSzenzorokList.reduce((sum, sz) => sum + (sz?.price || 0), 0);
+        const subtotal = calculateSubtotal();
+        const vatAmount = calculateVatAmount(subtotal);
+        const shippingFee = getShippingFee();
+        const subscriptionFee = calculateSubscriptionFee();
+        const total = subtotal + vatAmount + shippingFee + subscriptionFee;
 
         return (
           <div className="mx-auto max-w-2xl">
@@ -711,13 +1577,164 @@ const ProductConfigurator = () => {
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-3">
-                  <p className="text-xl font-bold text-black dark:text-white">Összesen:</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {calculateTotal().toLocaleString("hu-HU")} Ft
+                <div className="flex items-center justify-between border-b border-stroke pb-3 dark:border-stroke-dark">
+                  <div>
+                    <p className="font-medium text-black dark:text-white">
+                      {selectedElofizetes?.name ?? "-"}
+                    </p>
+                    <p className="text-sm text-body">Előfizetés</p>
+                  </div>
+                  <p className="font-semibold text-black dark:text-white">
+                    {selectedElofizetes
+                      ? selectedElofizetes.price === 0
+                        ? "0 Ft"
+                        : `${selectedElofizetes.price.toLocaleString("hu-HU")} Ft`
+                      : "-"}
                   </p>
                 </div>
-                <p className="text-right text-sm text-body">+ ÁFA</p>
+
+                {/* Darabszám */}
+                <div className="border-b border-stroke pb-3 dark:border-stroke-dark">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium text-black dark:text-white">
+                      Darabszám (db)
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() =>
+                          setSelection((prev) => ({
+                            ...prev,
+                            quantity: Math.max(1, prev.quantity - 1),
+                          }))
+                        }
+                        className="rounded border border-gray-300 bg-white px-3 py-2 text-black hover:bg-gray-100 dark:border-gray-600 dark:bg-dark dark:text-white dark:hover:bg-gray-800"
+                      >
+                        −
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        max="999"
+                        value={selection.quantity}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          if (!isNaN(value) && value >= 1 && value <= 999) {
+                            setSelection((prev) => ({
+                              ...prev,
+                              quantity: value,
+                            }));
+                          }
+                        }}
+                        className="w-20 rounded border border-gray-300 bg-white px-3 py-2 text-center text-black placeholder-gray-400 dark:border-gray-600 dark:bg-dark dark:text-white"
+                      />
+                      <button
+                        onClick={() =>
+                          setSelection((prev) => ({
+                            ...prev,
+                            quantity: Math.min(999, prev.quantity + 1),
+                          }))
+                        }
+                        className="rounded border border-gray-300 bg-white px-3 py-2 text-black hover:bg-gray-100 dark:border-gray-600 dark:bg-dark dark:text-white dark:hover:bg-gray-800"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-b border-stroke pb-3 dark:border-stroke-dark">
+                  <p className="mb-2 text-sm font-medium text-body">Szállítás</p>
+                  <p className="font-medium text-black dark:text-white">
+                    {selection.shippingMode === "foxpost" ? "Foxpost automata" : "Házhozszállítás"}
+                  </p>
+                  <p className="text-sm text-body">
+                    Szállítási díj (ÁFA-mentes): {shippingFee.toLocaleString("hu-HU")} Ft
+                  </p>
+
+                  {selection.shippingMode === "hazhoz" && (
+                    <p className="text-sm text-body">
+                      Szállítási cím: {selection.shippingAddress.zip} {selection.shippingAddress.city}, {selection.shippingAddress.street} {selection.shippingAddress.houseNumber}
+                      {selection.shippingAddress.stair ? `, ${selection.shippingAddress.stair}` : ""}
+                      {selection.shippingAddress.floor ? `, ${selection.shippingAddress.floor}` : ""}
+                      {selection.shippingAddress.door ? `, ${selection.shippingAddress.door}` : ""}
+                    </p>
+                  )}
+
+                  {selection.shippingMode === "hazhoz" && !selection.billingSame && (
+                    <p className="text-sm text-body">
+                      Számlázási cím: {selection.billingAddress.zip} {selection.billingAddress.city}, {selection.billingAddress.street} {selection.billingAddress.houseNumber}
+                      {selection.billingAddress.stair ? `, ${selection.billingAddress.stair}` : ""}
+                      {selection.billingAddress.floor ? `, ${selection.billingAddress.floor}` : ""}
+                      {selection.billingAddress.door ? `, ${selection.billingAddress.door}` : ""}
+                    </p>
+                  )}
+
+                  {selection.shippingMode === "foxpost" && (
+                    <>
+                      <p className="text-sm text-body">
+                        Számlázási cím: {selection.billingAddress.zip} {selection.billingAddress.city}, {selection.billingAddress.street} {selection.billingAddress.houseNumber}
+                        {selection.billingAddress.stair ? `, ${selection.billingAddress.stair}` : ""}
+                        {selection.billingAddress.floor ? `, ${selection.billingAddress.floor}` : ""}
+                        {selection.billingAddress.door ? `, ${selection.billingAddress.door}` : ""}
+                      </p>
+                      {selection.foxpostAutomata && (
+                        <div className="mt-1">
+                          <p className="text-sm font-medium text-black dark:text-white">
+                            Automata: {selection.foxpostAutomata.name}
+                          </p>
+                          <p className="text-xs text-body">
+                            {selection.foxpostAutomata.zip} {selection.foxpostAutomata.city}, {selection.foxpostAutomata.address}
+                          </p>
+                          {selection.foxpostAutomata.findme && (
+                            <p className="whitespace-pre-line text-xs text-body italic">
+                              📍 {formatFoxpostFindme(selection.foxpostAutomata.findme)}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                <div className="border-b border-stroke pb-3 dark:border-stroke-dark">
+                  <p className="mb-2 text-sm font-medium text-body">Fizetés</p>
+                  <p className="font-medium text-black dark:text-white">
+                    {selection.paymentMode === "utalas" ? "Utalás" : "Stripe"}
+                  </p>
+                </div>
+
+                <div className="space-y-2 border-t border-stroke pt-3 dark:border-stroke-dark">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-body">Nettó összeg:</p>
+                    <p className="font-semibold text-black dark:text-white">
+                      {subtotal.toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-body">ÁFA ({VAT_PERCENT}%):</p>
+                    <p className="font-semibold text-black dark:text-white">
+                      {vatAmount.toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-body">Szállítás (ÁFA-mentes):</p>
+                    <p className="font-semibold text-black dark:text-white">
+                      {shippingFee.toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-body">Előfizetés (ÁFA-t tartalmaz):</p>
+                    <p className="font-semibold text-black dark:text-white">
+                      {subscriptionFee.toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between pt-2">
+                    <p className="text-xl font-bold text-black dark:text-white">Bruttó összeg:</p>
+                    <p className="text-2xl font-bold text-primary">
+                      {total.toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <button
@@ -737,20 +1754,50 @@ const ProductConfigurator = () => {
 
   const getStepTitle = () => {
     switch (currentStep) {
+      case "mod":
+        return "Válassz módot!";
       case "szenzor":
         return "Válassz szenzort!";
+      case "anyag":
+        return "Válassz anyagot!";
       case "doboz":
         return "Válassz dobozt!";
       case "szin":
         return "Válassz színt!";
       case "tapellatas":
         return "Akkumulátoros vagy vezetékes?";
+      case "elofizetes":
+        return "Válassz előfizetést!";
+      case "szallitas":
+        return "Add meg a szállítást!";
+      case "fizetes":
+        return "Válassz fizetési módot!";
       case "osszesites":
         return "Ellenőrizd a rendelésed!";
       default:
         return "";
     }
   };
+
+  const selectedSzenzorNames = selection.szenzorok
+    .map((id) => szenzorok.find((s) => s.id === id)?.name)
+    .filter(Boolean) as string[];
+  const selectedAnyagName = anyagok.find((a) => a.id === selection.anyag)?.name ?? "-";
+  const selectedDobozName = dobozok.find((d) => d.id === selection.doboz)?.name ?? "-";
+  const selectedTapName = tapellatasok.find((t) => t.id === selection.tapellatas)?.name ?? "-";
+  const selectedElofizetesName = elofizetesek.find((e) => e.id === selection.elofizetes)?.name ?? "-";
+  const selectedDobozSzinName = dobozSzinek.find((s) => s.id === selection.dobozSzin)?.name ?? "-";
+  const selectedTetoSzinName = tetoSzinek.find((s) => s.id === selection.tetoSzin)?.name ?? "-";
+  const shippingLabel = selection.shippingMode === "foxpost"
+    ? "Foxpost automata"
+    : selection.shippingMode === "hazhoz"
+      ? "Házhozszállítás"
+      : "-";
+  const paymentLabel = selection.paymentMode === "utalas"
+    ? "Utalás"
+    : selection.paymentMode === "stripe"
+      ? "Stripe"
+      : "-";
 
   return (
     <section className="relative z-10">
@@ -772,10 +1819,25 @@ const ProductConfigurator = () => {
               const stepIndex = steps.findIndex((s) => s.id === currentStep);
               const isActive = step.id === currentStep;
               const isCompleted = index < stepIndex;
+              const isBlockedStep =
+                isPresetLocked && (step.id === "szenzor" || step.id === "anyag");
 
               return (
                 <React.Fragment key={step.id}>
-                  <div className="flex flex-col items-center">
+                  <div
+                    onClick={() => {
+                      if (index < stepIndex && !isBlockedStep) {
+                        setCurrentStep(step.id);
+                      }
+                    }}
+                    className={`flex flex-col items-center ${
+                      isBlockedStep
+                        ? "cursor-not-allowed"
+                        : index < stepIndex
+                          ? "cursor-pointer"
+                          : "cursor-default"
+                    }`}
+                  >
                     <div
                       className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold transition-all ${
                         isActive
@@ -817,16 +1879,78 @@ const ProductConfigurator = () => {
           {getStepTitle()}
         </h3>
 
-        {/* Lépés tartalma */}
-        <div className="mb-10">{renderStepContent()}</div>
+        {/* Lépés tartalma + oldalsó összegzés */}
+        <div className="mb-10 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div>{renderStepContent()}</div>
+          <aside className="h-fit rounded-xl border-2 border-stroke bg-white p-5 dark:border-stroke-dark dark:bg-dark lg:sticky lg:top-24">
+            <h4 className="mb-4 text-lg font-semibold text-black dark:text-white">
+              Folyamatkövető
+            </h4>
+            <div className="space-y-4 text-sm">
+              <div>
+                <p className="font-medium text-black dark:text-white">Mód</p>
+                <p className="text-body">
+                  {configMode === "preset"
+                    ? `Preset: ${selectedPreset?.label ?? "-"}`
+                    : configMode === "custom"
+                      ? "Teljeskörű személyre szabás"
+                      : "-"}
+                </p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Szenzorok</p>
+                {selectedSzenzorNames.length > 0 ? (
+                  <ul className="mt-1 list-disc pl-5 text-body">
+                    {selectedSzenzorNames.map((name) => (
+                      <li key={name}>{name}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-body">-</p>
+                )}
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Burok anyaga</p>
+                <p className="text-body">{selectedAnyagName}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Doboz</p>
+                <p className="text-body">{selectedDobozName}</p>
+                <p className="text-body">Színek: {selectedDobozSzinName} / {selectedTetoSzinName}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Tápellátás</p>
+                <p className="text-body">{selectedTapName}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Előfizetés</p>
+                <p className="text-body">{selectedElofizetesName}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Szállítás</p>
+                <p className="text-body">{shippingLabel}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Fizetés</p>
+                <p className="text-body">{paymentLabel}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Bruttó végösszeg</p>
+                <p className="text-lg font-semibold text-primary">
+                  {calculateGrandTotal().toLocaleString("hu-HU")} Ft
+                </p>
+              </div>
+            </div>
+          </aside>
+        </div>
 
         {/* Navigációs gombok */}
         <div className="flex items-center justify-between">
           <button
             onClick={prevStep}
-            disabled={currentStep === "szenzor"}
+            disabled={currentStep === "mod"}
             className={`rounded-lg px-6 py-3 font-medium transition-all ${
-              currentStep === "szenzor"
+              currentStep === "mod"
                 ? "cursor-not-allowed bg-gray-200 text-gray-400 dark:bg-gray-700"
                 : "bg-gray-200 text-black hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
             }`}
@@ -836,9 +1960,9 @@ const ProductConfigurator = () => {
 
           {/* Aktuális ár */}
           <div className="text-center">
-            <p className="text-sm text-body">Jelenlegi összeg:</p>
+            <p className="text-sm text-body">Jelenlegi végösszeg:</p>
             <p className="text-2xl font-bold text-primary">
-              {calculateTotal().toLocaleString("hu-HU")} Ft
+              {calculateGrandTotal().toLocaleString("hu-HU")} Ft
             </p>
           </div>
 
