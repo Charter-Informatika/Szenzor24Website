@@ -226,19 +226,22 @@ const elofizetesek = [
   {
     id: "ingyenes",
     name: "Ingyenes",
-    description: "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 30 napos adatmegőrzés \n ❌ hőmérséklet naplózás \n ❌ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
+    description:
+      "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 30 napos adatmegőrzés \n ❌ hőmérséklet naplózás \n ❌ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
     price: 0,
   },
   {
     id: "havi",
     name: "Havi",
-    description: "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
+    description:
+      "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
     price: 1000,
   },
   {
     id: "eves",
     name: "Éves",
-    description: "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
+    description:
+      "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
     price: 10000,
   },
 ] as const;
@@ -405,7 +408,17 @@ const presetOptions = [
   },
 ];
 
-type StepId = "mod" | "szenzor" | "anyag" | "doboz" | "szin" | "tapellatas" | "elofizetes" | "szallitas" | "fizetes" | "osszesites";
+type StepId =
+  | "mod"
+  | "szenzor"
+  | "anyag"
+  | "doboz"
+  | "szin"
+  | "tapellatas"
+  | "elofizetes"
+  | "szallitas"
+  | "fizetes"
+  | "osszesites";
 type ConfigMode = "preset" | "custom";
 
 const MAX_SZENZOROK = 2;
@@ -480,12 +493,72 @@ const ProductConfigurator = () => {
     },
     foxpostAutomata: null,
   });
+  type Catalog = {
+    szenzorok: typeof szenzorok;
+    eszkozok: typeof eszkozok;
+    dobozok: typeof dobozok;
+    dobozSzinek: typeof dobozSzinek;
+    tetoSzinek: typeof tetoSzinek;
+    tapellatasok: typeof tapellatasok;
+    elofizetesek: typeof elofizetesek;
+    anyagok: typeof anyagok;
+    presetOptions: typeof presetOptions;
+    szallitasiArak: typeof SZALLITASI_ARAK;
+    szallitasiModok: typeof szallitasiModok;
+    fizetesiModok: typeof fizetesiModok;
+  };
+
+  const [catalog, setCatalog] = useState<Catalog>({
+    szenzorok,
+    eszkozok,
+    dobozok,
+    dobozSzinek,
+    tetoSzinek,
+    tapellatasok,
+    elofizetesek,
+    anyagok,
+    presetOptions,
+    szallitasiArak: SZALLITASI_ARAK,
+    szallitasiModok,
+    fizetesiModok,
+  });
 
   const modelViewerRef = useRef<HTMLDivElement>(null);
 
   const isAkkus = selection.tapellatas === "akkus";
-  const akkusDobozSzinek = dobozSzinek.filter((szin) => szin.id === "feher" || szin.id === "fekete");
-  const akkusTetoSzinek = tetoSzinek.filter((szin) => szin.id === "feher" || szin.id === "fekete");
+  const akkusDobozSzinek = dobozSzinek.filter(
+    (szin) => szin.id === "feher" || szin.id === "fekete",
+  );
+  const akkusTetoSzinek = tetoSzinek.filter(
+    (szin) => szin.id === "feher" || szin.id === "fekete",
+  );
+
+  useEffect(() => {
+    const loadCatalog = async () => {
+      try {
+        const res = await fetch("/api/catalog");
+        const data = await res.json();
+
+        setCatalog((prev) => ({
+          ...prev,
+          szenzorok: data.sensors ?? prev.szenzorok,
+          dobozok: data.boxes ?? prev.dobozok,
+          dobozSzinek: (data.colors ?? []).filter((c: any) => c.kind === "box"),
+          tetoSzinek: (data.colors ?? []).filter((c: any) => c.kind === "top"),
+          tapellatasok: data.powerOptions ?? prev.tapellatasok,
+          elofizetesek: data.subscriptions ?? prev.elofizetesek,
+          anyagok: data.materials ?? prev.anyagok,
+          szallitasiArak: Object.fromEntries(
+            (data.shippingPrices ?? []).map((p: any) => [p.id, p.price]),
+          ),
+        }));
+      } catch (err) {
+        console.error("Catalog load failed:", err);
+      }
+    };
+
+    loadCatalog();
+  }, []);
 
   useEffect(() => {
     import("@google/model-viewer");
@@ -503,8 +576,10 @@ const ProductConfigurator = () => {
     }
   }, [isAkkus, selection.dobozSzin, selection.tetoSzin]);
 
-  const getModelPath = (box: string, top: string) => `/images/hero/${box}/${box}_${top}.glb`;
-  const getAkkusModelPath = (box: string, top: string) => `/images/hero/akkus/${box}/${box}_${top}.glb`;
+  const getModelPath = (box: string, top: string) =>
+    `/images/hero/${box}/${box}_${top}.glb`;
+  const getAkkusModelPath = (box: string, top: string) =>
+    `/images/hero/akkus/${box}/${box}_${top}.glb`;
   const modelSrc = isAkkus
     ? getAkkusModelPath(selection.dobozSzin, selection.tetoSzin)
     : getModelPath(selection.dobozSzin, selection.tetoSzin);
@@ -522,25 +597,32 @@ const ProductConfigurator = () => {
     { id: "osszesites", title: "Összesítés", icon: "✓" },
   ];
 
-  const selectedPreset = presetOptions.find((preset) => preset.id === selectedPresetId) ?? null;
+  const selectedPreset =
+    presetOptions.find((preset) => preset.id === selectedPresetId) ?? null;
   const isPresetLocked = configMode === "preset" && Boolean(selectedPreset);
-  const hiddenSteps = isPresetLocked ? new Set<StepId>(["szenzor", "anyag"]) : null;
+  const hiddenSteps = isPresetLocked
+    ? new Set<StepId>(["szenzor", "anyag"])
+    : null;
   const visibleSteps = steps.filter((step) => !hiddenSteps?.has(step.id));
-  const maxSzenzorok = configMode === "preset"
-    ? (selectedPreset?.szenzorok.length ?? MAX_SZENZOROK)
-    : MAX_SZENZOROK;
-  const visibleSzenzorok = isPresetLocked && selectedPreset
-    ? szenzorok.filter((szenzor) => selectedPreset.szenzorok.includes(szenzor.id))
-    : szenzorok;
-
+  const maxSzenzorok =
+    configMode === "preset"
+      ? (selectedPreset?.szenzorok.length ?? MAX_SZENZOROK)
+      : MAX_SZENZOROK;
+  const visibleSzenzorok =
+    isPresetLocked && selectedPreset
+      ? catalog.szenzorok.filter((szenzor) =>
+          selectedPreset.szenzorok.includes(szenzor.id),
+        )
+      : catalog.szenzorok;
 
   const calculateSubtotal = () => {
     let total = 0;
     // Több szenzor összege
     for (const szenzorId of selection.szenzorok) {
-      const szenzor = szenzorok.find((s) => s.id === szenzorId);
+      const szenzor = catalog.szenzorok.find((s) => s.id === szenzorId);
       if (szenzor) total += szenzor.price;
     }
+
     // Anyag (burok) ár
     if (selection.anyag) {
       const anyag = anyagok.find((a) => a.id === selection.anyag);
@@ -579,9 +661,9 @@ const ProductConfigurator = () => {
   const isAddressComplete = (address: Selection["shippingAddress"]) =>
     Boolean(
       address.zip.trim() &&
-      address.city.trim() &&
-      address.street.trim() &&
-      address.houseNumber.trim()
+        address.city.trim() &&
+        address.street.trim() &&
+        address.houseNumber.trim(),
     );
 
   const isShippingValid = () => {
@@ -594,7 +676,8 @@ const ProductConfigurator = () => {
     }
 
     if (!isAddressComplete(selection.shippingAddress)) return false;
-    if (!selection.billingSame && !isAddressComplete(selection.billingAddress)) return false;
+    if (!selection.billingSame && !isAddressComplete(selection.billingAddress))
+      return false;
     return true;
   };
 
@@ -604,7 +687,7 @@ const ProductConfigurator = () => {
       return;
     }
     const isSelected = selection.szenzorok.includes(szenzorId);
-    
+
     if (isSelected) {
       // Eltávolítás
       setSelection((prev) => ({
@@ -687,19 +770,31 @@ const ProductConfigurator = () => {
 
     // Kiválasztott szenzorok (több is lehet)
     const selectedSzenzorok = selection.szenzorok
-      .map((id) => szenzorok.find((s) => s.id === id))
+      .map((id) => catalog.szenzorok.find((s) => s.id === id))
       .filter(Boolean);
-    const selectedAnyag = anyagok.find((a) => a.id === selection.anyag);
-    const selectedDoboz = dobozok.find((d) => d.id === selection.doboz);
-    const selectedTap = tapellatasok.find((t) => t.id === selection.tapellatas);
-    const selectedElofizetes =
-      elofizetesek.find((e) => e.id === selection.elofizetes) ??
-      elofizetesek.find((e) => e.id === "ingyenes") ??
-      null;
-    const selectedDobozSzin = dobozSzinek.find((s) => s.id === selection.dobozSzin);
-    const selectedTetoSzin = tetoSzinek.find((s) => s.id === selection.tetoSzin);
 
-    if (selectedSzenzorok.length === 0 || !selectedAnyag || !selectedDoboz || !selectedTap) {
+    const selectedAnyag = catalog.anyagok.find((a) => a.id === selection.anyag);
+    const selectedDoboz = catalog.dobozok.find((d) => d.id === selection.doboz);
+    const selectedTap = catalog.tapellatasok.find(
+      (t) => t.id === selection.tapellatas,
+    );
+    const selectedElofizetes =
+      catalog.elofizetesek.find((e) => e.id === selection.elofizetes) ??
+      catalog.elofizetesek.find((e) => e.id === "ingyenes") ??
+      null;
+    const selectedDobozSzin = catalog.dobozSzinek.find(
+      (s) => s.id === selection.dobozSzin,
+    );
+    const selectedTetoSzin = catalog.tetoSzinek.find(
+      (s) => s.id === selection.tetoSzin,
+    );
+
+    if (
+      selectedSzenzorok.length === 0 ||
+      !selectedAnyag ||
+      !selectedDoboz ||
+      !selectedTap
+    ) {
       toast.error("Hiányzó termék választás!");
       return;
     }
@@ -789,7 +884,8 @@ const ProductConfigurator = () => {
                 door: selection.shippingAddress.door.trim() || null,
               }
             : null,
-        billingSame: selection.shippingMode === "hazhoz" ? selection.billingSame : true,
+        billingSame:
+          selection.shippingMode === "hazhoz" ? selection.billingSame : true,
         billingAddress:
           selection.shippingMode === "hazhoz" && selection.billingSame
             ? {
@@ -860,17 +956,21 @@ const ProductConfigurator = () => {
 
     try {
       const { data } = await axios.post(orderApiUrl, orderPayload);
-      
+
       if (data.url) {
         // Stripe checkout URL - redirect
         window.location.href = data.url;
       } else {
-        toast.success("Rendelés elküldve! Hamarosan felvesszük Önnel a kapcsolatot.");
+        toast.success(
+          "Rendelés elküldve! Hamarosan felvesszük Önnel a kapcsolatot.",
+        );
         console.log("Order response:", data);
       }
     } catch (error: any) {
       console.error("Order error:", error);
-      toast.error(error.response?.data?.error || "Hiba történt a rendelés során!");
+      toast.error(
+        error.response?.data?.error || "Hiba történt a rendelés során!",
+      );
     }
   };
 
@@ -900,7 +1000,7 @@ const ProductConfigurator = () => {
   const updateAddressField = (
     target: "shippingAddress" | "billingAddress",
     field: keyof Selection["shippingAddress"],
-    value: string
+    value: string,
   ) => {
     setSelection((prev) => ({
       ...prev,
@@ -925,13 +1025,13 @@ const ProductConfigurator = () => {
                   className={`rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg ${
                     configMode === "preset" && selectedPresetId === preset.id
                       ? "border-primary bg-primary/10"
-                      : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                      : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white"
                   }`}
                 >
                   <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
                     {preset.label}
                   </h4>
-                  <p className="text-sm text-body">{preset.description}</p>
+                  <p className="text-body text-sm">{preset.description}</p>
                 </button>
               ))}
             </div>
@@ -943,7 +1043,7 @@ const ProductConfigurator = () => {
                 className={`w-full max-w-sm rounded-2xl border-2 px-6 py-4 text-center text-base font-semibold transition-all hover:shadow-lg ${
                   configMode === "custom"
                     ? "border-primary bg-primary/10 text-black dark:text-white"
-                    : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark text-black dark:text-white"
+                    : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white text-black dark:text-white"
                 }`}
               >
                 Teljeskörű személyre szabás
@@ -955,13 +1055,15 @@ const ProductConfigurator = () => {
         return (
           <div>
             {configMode === "preset" && selectedPreset && (
-              <p className="mb-2 text-center text-sm text-body">
-                Előre beállított konfiguráció: {selectedPreset.label} (a szenzorok és a burkolat nem módosíthatók)
+              <p className="text-body mb-2 text-center text-sm">
+                Előre beállított konfiguráció: {selectedPreset.label} (a
+                szenzorok és a burkolat nem módosíthatók)
               </p>
             )}
             {configMode !== "preset" && (
-              <p className="mb-4 text-center text-sm text-body">
-                Válassz max. {maxSzenzorok} szenzort! ({selection.szenzorok.length}/{maxSzenzorok} kiválasztva)
+              <p className="text-body mb-4 text-center text-sm">
+                Válassz max. {maxSzenzorok} szenzort! (
+                {selection.szenzorok.length}/{maxSzenzorok} kiválasztva)
               </p>
             )}
             <div
@@ -976,27 +1078,43 @@ const ProductConfigurator = () => {
                 return (
                   <div
                     key={szenzor.id}
-                    onClick={isPresetLocked ? undefined : () => toggleSzenzor(szenzor.id)}
+                    onClick={
+                      isPresetLocked
+                        ? undefined
+                        : () => toggleSzenzor(szenzor.id)
+                    }
                     className={`rounded-xl border-2 p-4 transition-all ${
                       isSelected
                         ? "border-primary bg-primary/10"
-                        : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
-                    } ${isPresetLocked ? "cursor-not-allowed opacity-80 w-full max-w-[240px]" : "cursor-pointer hover:shadow-lg"}`}
+                        : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white"
+                    } ${isPresetLocked ? "w-full max-w-[240px] cursor-not-allowed opacity-80" : "cursor-pointer hover:shadow-lg"}`}
                   >
                     <div className="flex items-start justify-between">
-                      <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-lg bg-slate-100 p-2 dark:bg-slate-800 sm:h-24 sm:w-24">
+                      <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-lg bg-slate-100 p-2 sm:h-24 sm:w-24 dark:bg-slate-800">
                         <img
                           src={szenzor.imageUrl}
                           alt={szenzor.name}
                           className="h-full w-full object-contain"
                         />
                       </div>
-                      <div className={`flex h-6 w-6 items-center justify-center rounded-md border-2 ${
-                        isSelected ? "border-primary bg-primary" : "border-gray-300 dark:border-gray-600"
-                      }`}>
+                      <div
+                        className={`flex h-6 w-6 items-center justify-center rounded-md border-2 ${
+                          isSelected
+                            ? "border-primary bg-primary"
+                            : "border-gray-300 dark:border-gray-600"
+                        }`}
+                      >
                         {isSelected && (
-                          <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          <svg
+                            className="h-4 w-4 text-white"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                         )}
                       </div>
@@ -1004,8 +1122,10 @@ const ProductConfigurator = () => {
                     <h4 className="mb-1 text-base font-semibold text-black dark:text-white">
                       {szenzor.name}
                     </h4>
-                    <p className="mb-2 text-xs text-body break-words">{szenzor.description}</p>
-                    <p className="text-lg font-bold text-primary">
+                    <p className="text-body mb-2 text-xs break-words">
+                      {szenzor.description}
+                    </p>
+                    <p className="text-primary text-lg font-bold">
                       {szenzor.price.toLocaleString("hu-HU")} Ft
                     </p>
                   </div>
@@ -1019,13 +1139,15 @@ const ProductConfigurator = () => {
         return (
           <div>
             {isPresetLocked && selectedPreset && (
-              <p className="mb-4 text-center text-sm text-body">
-                A burkolat a(z) {selectedPreset.label} konfigurációhoz kötött, nem módosítható.
+              <p className="text-body mb-4 text-center text-sm">
+                A burkolat a(z) {selectedPreset.label} konfigurációhoz kötött,
+                nem módosítható.
               </p>
             )}
             {!isPresetLocked && (
-              <p className="mb-4 text-center text-sm text-body">
-                Válaszd ki a burok anyagát! (PLACEHOLDER - árak és típusok később pontosítandók)
+              <p className="text-body mb-4 text-center text-sm">
+                Válaszd ki a burok anyagát! (PLACEHOLDER - árak és típusok
+                később pontosítandók)
               </p>
             )}
             <div
@@ -1041,20 +1163,26 @@ const ProductConfigurator = () => {
               ).map((anyag) => (
                 <div
                   key={anyag.id}
-                  onClick={isPresetLocked ? undefined : () => setSelection({ ...selection, anyag: anyag.id })}
+                  onClick={
+                    isPresetLocked
+                      ? undefined
+                      : () => setSelection({ ...selection, anyag: anyag.id })
+                  }
                   className={`rounded-xl border-2 p-6 transition-all ${
                     selection.anyag === anyag.id
                       ? "border-primary bg-primary/10"
-                      : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
-                  } ${isPresetLocked ? "cursor-not-allowed opacity-80 w-full max-w-[320px]" : "cursor-pointer hover:shadow-lg"}`}
+                      : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white"
+                  } ${isPresetLocked ? "w-full max-w-[320px] cursor-not-allowed opacity-80" : "cursor-pointer hover:shadow-lg"}`}
                 >
                   <div className="mb-3 text-4xl">{anyag.icon}</div>
                   <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
                     {anyag.name}
                   </h4>
-                  <p className="mb-3 text-sm text-body">{anyag.description}</p>
-                  <p className="text-xl font-bold text-primary">
-                    {anyag.price === 0 ? "Alap ár" : `+${anyag.price.toLocaleString("hu-HU")} Ft`}
+                  <p className="text-body mb-3 text-sm">{anyag.description}</p>
+                  <p className="text-primary text-xl font-bold">
+                    {anyag.price === 0
+                      ? "Alap ár"
+                      : `+${anyag.price.toLocaleString("hu-HU")} Ft`}
                   </p>
                 </div>
               ))}
@@ -1072,15 +1200,15 @@ const ProductConfigurator = () => {
                 className={`cursor-pointer rounded-xl border-2 p-6 transition-all hover:shadow-lg ${
                   selection.doboz === doboz.id
                     ? "border-primary bg-primary/10"
-                    : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                    : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white"
                 }`}
               >
                 <div className="mb-3 text-4xl">{doboz.icon}</div>
                 <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
                   {doboz.name}
                 </h4>
-                <p className="mb-3 text-sm text-body">{doboz.description}</p>
-                <p className="text-xl font-bold text-primary">
+                <p className="text-body mb-3 text-sm">{doboz.description}</p>
+                <p className="text-primary text-xl font-bold">
                   {doboz.price.toLocaleString("hu-HU")} Ft
                 </p>
               </div>
@@ -1117,7 +1245,9 @@ const ProductConfigurator = () => {
                 {(isAkkus ? akkusDobozSzinek : dobozSzinek).map((szin) => (
                   <button
                     key={szin.id}
-                    onClick={() => setSelection({ ...selection, dobozSzin: szin.id })}
+                    onClick={() =>
+                      setSelection({ ...selection, dobozSzin: szin.id })
+                    }
                     className={`flex items-center gap-2 rounded-full border-2 px-4 py-2 transition-all ${
                       selection.dobozSzin === szin.id
                         ? "border-primary bg-primary/10"
@@ -1145,7 +1275,9 @@ const ProductConfigurator = () => {
                 {(isAkkus ? akkusTetoSzinek : tetoSzinek).map((szin) => (
                   <button
                     key={szin.id}
-                    onClick={() => setSelection({ ...selection, tetoSzin: szin.id })}
+                    onClick={() =>
+                      setSelection({ ...selection, tetoSzin: szin.id })
+                    }
                     className={`flex items-center gap-2 rounded-full border-2 px-4 py-2 transition-all ${
                       selection.tetoSzin === szin.id
                         ? "border-primary bg-primary/10"
@@ -1173,19 +1305,21 @@ const ProductConfigurator = () => {
               {tapellatasok.map((tap) => (
                 <div
                   key={tap.id}
-                  onClick={() => setSelection({ ...selection, tapellatas: tap.id })}
+                  onClick={() =>
+                    setSelection({ ...selection, tapellatas: tap.id })
+                  }
                   className={`cursor-pointer rounded-xl border-2 p-6 transition-all hover:shadow-lg ${
                     selection.tapellatas === tap.id
                       ? "border-primary bg-primary/10"
-                      : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                      : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white"
                   }`}
                 >
                   <div className="mb-3 text-4xl">{tap.icon}</div>
                   <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
                     {tap.name}
                   </h4>
-                  <p className="mb-3 text-sm text-body">{tap.description}</p>
-                  <p className="text-xl font-bold text-primary">
+                  <p className="text-body mb-3 text-sm">{tap.description}</p>
+                  <p className="text-primary text-xl font-bold">
                     {tap.price.toLocaleString("hu-HU")} Ft
                   </p>
                 </div>
@@ -1197,24 +1331,28 @@ const ProductConfigurator = () => {
       case "elofizetes":
         return (
           <div className="mx-auto max-w-4xl">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3 whitespace-pre-line">
+            <div className="grid grid-cols-1 gap-6 whitespace-pre-line md:grid-cols-3">
               {elofizetesek.map((plan) => (
                 <button
                   type="button"
                   key={plan.id}
-                  onClick={() => setSelection({ ...selection, elofizetes: plan.id })}
+                  onClick={() =>
+                    setSelection({ ...selection, elofizetes: plan.id })
+                  }
                   className={`rounded-xl border-2 p-6 text-left transition-all hover:shadow-lg ${
                     selection.elofizetes === plan.id
                       ? "border-primary bg-primary/10"
-                      : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                      : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white"
                   }`}
                 >
-                  <h4 className="mb-2 text-lg font-semibold text-black dark:text-white text-center">
+                  <h4 className="mb-2 text-center text-lg font-semibold text-black dark:text-white">
                     {plan.name}
                   </h4>
-                  <p className="mb-3 text-sm text-body">{plan.description}</p>
-                  <p className="text-xl font-bold text-primary">
-                    {plan.price === 0 ? "0 Ft" : `${plan.price.toLocaleString("hu-HU")} Ft`}
+                  <p className="text-body mb-3 text-sm">{plan.description}</p>
+                  <p className="text-primary text-xl font-bold">
+                    {plan.price === 0
+                      ? "0 Ft"
+                      : `${plan.price.toLocaleString("hu-HU")} Ft`}
                   </p>
                 </button>
               ))}
@@ -1234,26 +1372,27 @@ const ProductConfigurator = () => {
                     setSelection((prev) => ({
                       ...prev,
                       shippingMode: mod.id,
-                      billingSame: mod.id === "hazhoz" ? prev.billingSame : true,
+                      billingSame:
+                        mod.id === "hazhoz" ? prev.billingSame : true,
                     }))
                   }
                   className={`rounded-xl border-2 p-5 text-left transition-all hover:shadow-lg ${
                     selection.shippingMode === mod.id
                       ? "border-primary bg-primary/10"
-                      : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                      : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white"
                   }`}
                 >
                   <h4 className="mb-2 text-base font-semibold text-black dark:text-white">
                     {mod.name}
                   </h4>
-                  <p className="text-sm text-body">{mod.description}</p>
+                  <p className="text-body text-sm">{mod.description}</p>
                 </button>
               ))}
             </div>
 
             {selection.shippingMode === "foxpost" && (
               <div className="space-y-4">
-                <p className="text-sm text-body">
+                <p className="text-body text-sm">
                   Foxpost automata esetén a cím a számlázási cím.
                 </p>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -1261,55 +1400,97 @@ const ProductConfigurator = () => {
                     type="text"
                     placeholder="Irányítószám"
                     value={selection.billingAddress.zip}
-                    onChange={(ev) => updateAddressField("billingAddress", "zip", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                    onChange={(ev) =>
+                      updateAddressField(
+                        "billingAddress",
+                        "zip",
+                        ev.target.value,
+                      )
+                    }
+                    className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                   />
                   <input
                     type="text"
                     placeholder="Város"
                     value={selection.billingAddress.city}
-                    onChange={(ev) => updateAddressField("billingAddress", "city", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                    onChange={(ev) =>
+                      updateAddressField(
+                        "billingAddress",
+                        "city",
+                        ev.target.value,
+                      )
+                    }
+                    className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                   />
                   <input
                     type="text"
                     placeholder="Utca"
                     value={selection.billingAddress.street}
-                    onChange={(ev) => updateAddressField("billingAddress", "street", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                    onChange={(ev) =>
+                      updateAddressField(
+                        "billingAddress",
+                        "street",
+                        ev.target.value,
+                      )
+                    }
+                    className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                   />
                   <input
                     type="text"
                     placeholder="Házszám"
                     value={selection.billingAddress.houseNumber}
-                    onChange={(ev) => updateAddressField("billingAddress", "houseNumber", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                    onChange={(ev) =>
+                      updateAddressField(
+                        "billingAddress",
+                        "houseNumber",
+                        ev.target.value,
+                      )
+                    }
+                    className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                   />
                   <input
                     type="text"
                     placeholder="Lépcsőház (opcionális)"
                     value={selection.billingAddress.stair}
-                    onChange={(ev) => updateAddressField("billingAddress", "stair", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                    onChange={(ev) =>
+                      updateAddressField(
+                        "billingAddress",
+                        "stair",
+                        ev.target.value,
+                      )
+                    }
+                    className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                   />
                   <input
                     type="text"
                     placeholder="Emelet (opcionális)"
                     value={selection.billingAddress.floor}
-                    onChange={(ev) => updateAddressField("billingAddress", "floor", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                    onChange={(ev) =>
+                      updateAddressField(
+                        "billingAddress",
+                        "floor",
+                        ev.target.value,
+                      )
+                    }
+                    className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                   />
                   <input
                     type="text"
                     placeholder="Ajtó (opcionális)"
                     value={selection.billingAddress.door}
-                    onChange={(ev) => updateAddressField("billingAddress", "door", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                    onChange={(ev) =>
+                      updateAddressField(
+                        "billingAddress",
+                        "door",
+                        ev.target.value,
+                      )
+                    }
+                    className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                   />
                 </div>
 
-                <div className="rounded-xl border border-stroke bg-white p-4 dark:border-stroke-dark dark:bg-dark">
-                  <p className="mb-3 text-sm text-body">
+                <div className="border-stroke dark:border-stroke-dark dark:bg-dark rounded-xl border bg-white p-4">
+                  <p className="text-body mb-3 text-sm">
                     Válaszd ki a csomagautomatát a térképes keresőből:
                   </p>
                   <FoxpostSelector
@@ -1327,60 +1508,102 @@ const ProductConfigurator = () => {
 
             {selection.shippingMode === "hazhoz" && (
               <div className="space-y-4">
-                <p className="text-sm text-body">Szállítási cím</p>
+                <p className="text-body text-sm">Szállítási cím</p>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <input
                     type="text"
                     placeholder="Irányítószám"
                     value={selection.shippingAddress.zip}
-                    onChange={(ev) => updateAddressField("shippingAddress", "zip", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                    onChange={(ev) =>
+                      updateAddressField(
+                        "shippingAddress",
+                        "zip",
+                        ev.target.value,
+                      )
+                    }
+                    className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                   />
                   <input
                     type="text"
                     placeholder="Város"
                     value={selection.shippingAddress.city}
-                    onChange={(ev) => updateAddressField("shippingAddress", "city", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                    onChange={(ev) =>
+                      updateAddressField(
+                        "shippingAddress",
+                        "city",
+                        ev.target.value,
+                      )
+                    }
+                    className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                   />
                   <input
                     type="text"
                     placeholder="Utca"
                     value={selection.shippingAddress.street}
-                    onChange={(ev) => updateAddressField("shippingAddress", "street", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                    onChange={(ev) =>
+                      updateAddressField(
+                        "shippingAddress",
+                        "street",
+                        ev.target.value,
+                      )
+                    }
+                    className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                   />
                   <input
                     type="text"
                     placeholder="Házszám"
                     value={selection.shippingAddress.houseNumber}
-                    onChange={(ev) => updateAddressField("shippingAddress", "houseNumber", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                    onChange={(ev) =>
+                      updateAddressField(
+                        "shippingAddress",
+                        "houseNumber",
+                        ev.target.value,
+                      )
+                    }
+                    className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                   />
                   <input
                     type="text"
                     placeholder="Lépcsőház (opcionális)"
                     value={selection.shippingAddress.stair}
-                    onChange={(ev) => updateAddressField("shippingAddress", "stair", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                    onChange={(ev) =>
+                      updateAddressField(
+                        "shippingAddress",
+                        "stair",
+                        ev.target.value,
+                      )
+                    }
+                    className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                   />
                   <input
                     type="text"
                     placeholder="Emelet (opcionális)"
                     value={selection.shippingAddress.floor}
-                    onChange={(ev) => updateAddressField("shippingAddress", "floor", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                    onChange={(ev) =>
+                      updateAddressField(
+                        "shippingAddress",
+                        "floor",
+                        ev.target.value,
+                      )
+                    }
+                    className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                   />
                   <input
                     type="text"
                     placeholder="Ajtó (opcionális)"
                     value={selection.shippingAddress.door}
-                    onChange={(ev) => updateAddressField("shippingAddress", "door", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                    onChange={(ev) =>
+                      updateAddressField(
+                        "shippingAddress",
+                        "door",
+                        ev.target.value,
+                      )
+                    }
+                    className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                   />
                 </div>
 
-                <label className="flex items-center gap-3 text-sm text-body">
+                <label className="text-body flex items-center gap-3 text-sm">
                   <input
                     type="checkbox"
                     checked={selection.billingSame}
@@ -1396,56 +1619,98 @@ const ProductConfigurator = () => {
 
                 {!selection.billingSame && (
                   <div className="space-y-4">
-                    <p className="text-sm text-body">Számlázási cím</p>
+                    <p className="text-body text-sm">Számlázási cím</p>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <input
                         type="text"
                         placeholder="Irányítószám"
                         value={selection.billingAddress.zip}
-                        onChange={(ev) => updateAddressField("billingAddress", "zip", ev.target.value)}
-                        className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                        onChange={(ev) =>
+                          updateAddressField(
+                            "billingAddress",
+                            "zip",
+                            ev.target.value,
+                          )
+                        }
+                        className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                       />
                       <input
                         type="text"
                         placeholder="Város"
                         value={selection.billingAddress.city}
-                        onChange={(ev) => updateAddressField("billingAddress", "city", ev.target.value)}
-                        className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                        onChange={(ev) =>
+                          updateAddressField(
+                            "billingAddress",
+                            "city",
+                            ev.target.value,
+                          )
+                        }
+                        className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                       />
                       <input
                         type="text"
                         placeholder="Utca"
                         value={selection.billingAddress.street}
-                        onChange={(ev) => updateAddressField("billingAddress", "street", ev.target.value)}
-                        className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                        onChange={(ev) =>
+                          updateAddressField(
+                            "billingAddress",
+                            "street",
+                            ev.target.value,
+                          )
+                        }
+                        className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                       />
                       <input
                         type="text"
                         placeholder="Házszám"
                         value={selection.billingAddress.houseNumber}
-                        onChange={(ev) => updateAddressField("billingAddress", "houseNumber", ev.target.value)}
-                        className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                        onChange={(ev) =>
+                          updateAddressField(
+                            "billingAddress",
+                            "houseNumber",
+                            ev.target.value,
+                          )
+                        }
+                        className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                       />
                       <input
                         type="text"
                         placeholder="Lépcsőház (opcionális)"
                         value={selection.billingAddress.stair}
-                        onChange={(ev) => updateAddressField("billingAddress", "stair", ev.target.value)}
-                        className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                        onChange={(ev) =>
+                          updateAddressField(
+                            "billingAddress",
+                            "stair",
+                            ev.target.value,
+                          )
+                        }
+                        className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                       />
                       <input
                         type="text"
                         placeholder="Emelet (opcionális)"
                         value={selection.billingAddress.floor}
-                        onChange={(ev) => updateAddressField("billingAddress", "floor", ev.target.value)}
-                        className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                        onChange={(ev) =>
+                          updateAddressField(
+                            "billingAddress",
+                            "floor",
+                            ev.target.value,
+                          )
+                        }
+                        className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                       />
                       <input
                         type="text"
                         placeholder="Ajtó (opcionális)"
                         value={selection.billingAddress.door}
-                        onChange={(ev) => updateAddressField("billingAddress", "door", ev.target.value)}
-                        className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
+                        onChange={(ev) =>
+                          updateAddressField(
+                            "billingAddress",
+                            "door",
+                            ev.target.value,
+                          )
+                        }
+                        className="border-stroke focus:border-primary dark:border-stroke-dark dark:bg-dark w-full rounded-lg border bg-white px-4 py-3 text-sm text-black outline-none dark:text-white"
                       />
                     </div>
                   </div>
@@ -1463,20 +1728,22 @@ const ProductConfigurator = () => {
                 <button
                   type="button"
                   key={mod.id}
-                  onClick={() => setSelection({
-                    ...selection,
-                    paymentMode: mod.id,
-                  })}
+                  onClick={() =>
+                    setSelection({
+                      ...selection,
+                      paymentMode: mod.id,
+                    })
+                  }
                   className={`rounded-xl border-2 p-6 text-left transition-all hover:shadow-lg ${
                     selection.paymentMode === mod.id
                       ? "border-primary bg-primary/10"
-                      : "border-stroke dark:border-stroke-dark bg-white dark:bg-dark"
+                      : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white"
                   }`}
                 >
                   <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
                     {mod.name}
                   </h4>
-                  <p className="text-sm text-body">{mod.description}</p>
+                  <p className="text-body text-sm">{mod.description}</p>
                 </button>
               ))}
             </div>
@@ -1489,11 +1756,22 @@ const ProductConfigurator = () => {
           .filter(Boolean);
         const selectedAnyagOssz = anyagok.find((a) => a.id === selection.anyag);
         const selectedDoboz = dobozok.find((d) => d.id === selection.doboz);
-        const selectedTap = tapellatasok.find((t) => t.id === selection.tapellatas);
-        const selectedElofizetes = elofizetesek.find((e) => e.id === selection.elofizetes);
-        const selectedDobozSzin = dobozSzinek.find((s) => s.id === selection.dobozSzin);
-        const selectedTetoSzin = tetoSzinek.find((s) => s.id === selection.tetoSzin);
-        const szenzorokTotal = selectedSzenzorokList.reduce((sum, sz) => sum + (sz?.price || 0), 0);
+        const selectedTap = tapellatasok.find(
+          (t) => t.id === selection.tapellatas,
+        );
+        const selectedElofizetes = elofizetesek.find(
+          (e) => e.id === selection.elofizetes,
+        );
+        const selectedDobozSzin = dobozSzinek.find(
+          (s) => s.id === selection.dobozSzin,
+        );
+        const selectedTetoSzin = tetoSzinek.find(
+          (s) => s.id === selection.tetoSzin,
+        );
+        const szenzorokTotal = selectedSzenzorokList.reduce(
+          (sum, sz) => sum + (sz?.price || 0),
+          0,
+        );
         const subtotal = calculateSubtotal();
         const vatAmount = calculateVatAmount(subtotal);
         const shippingFee = getShippingFee();
@@ -1502,17 +1780,22 @@ const ProductConfigurator = () => {
 
         return (
           <div className="mx-auto max-w-2xl">
-            <div className="rounded-xl border-2 border-stroke bg-white p-6 dark:border-stroke-dark dark:bg-dark">
+            <div className="border-stroke dark:border-stroke-dark dark:bg-dark rounded-xl border-2 bg-white p-6">
               <h4 className="mb-6 text-center text-xl font-bold text-black dark:text-white">
                 Rendelés összesítése
               </h4>
 
               <div className="space-y-4">
                 {/* Szenzorok - több is lehet */}
-                <div className="border-b border-stroke pb-3 dark:border-stroke-dark">
-                  <p className="mb-2 text-sm font-medium text-body">Szenzorok ({selectedSzenzorokList.length} db)</p>
+                <div className="border-stroke dark:border-stroke-dark border-b pb-3">
+                  <p className="text-body mb-2 text-sm font-medium">
+                    Szenzorok ({selectedSzenzorokList.length} db)
+                  </p>
                   {selectedSzenzorokList.map((sz) => (
-                    <div key={sz?.id} className="flex items-center justify-between py-1">
+                    <div
+                      key={sz?.id}
+                      className="flex items-center justify-between py-1"
+                    >
                       <div className="flex items-center gap-2">
                         {sz?.imageUrl && (
                           <img
@@ -1531,33 +1814,36 @@ const ProductConfigurator = () => {
                     </div>
                   ))}
                   <div className="mt-2 flex items-center justify-between border-t border-dashed border-gray-300 pt-2 dark:border-gray-600">
-                    <p className="text-sm text-body">Szenzorok összesen:</p>
-                    <p className="font-semibold text-primary">
+                    <p className="text-body text-sm">Szenzorok összesen:</p>
+                    <p className="text-primary font-semibold">
                       {szenzorokTotal.toLocaleString("hu-HU")} Ft
                     </p>
                   </div>
                 </div>
 
                 {/* Anyag */}
-                <div className="flex items-center justify-between border-b border-stroke pb-3 dark:border-stroke-dark">
+                <div className="border-stroke dark:border-stroke-dark flex items-center justify-between border-b pb-3">
                   <div>
                     <p className="font-medium text-black dark:text-white">
                       {selectedAnyagOssz?.icon} {selectedAnyagOssz?.name}
                     </p>
-                    <p className="text-sm text-body">Burok anyaga</p>
+                    <p className="text-body text-sm">Burok anyaga</p>
                   </div>
                   <p className="font-semibold text-black dark:text-white">
-                    {selectedAnyagOssz?.price === 0 ? "Alap ár" : `+${selectedAnyagOssz?.price.toLocaleString("hu-HU")} Ft`}
+                    {selectedAnyagOssz?.price === 0
+                      ? "Alap ár"
+                      : `+${selectedAnyagOssz?.price.toLocaleString("hu-HU")} Ft`}
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between border-b border-stroke pb-3 dark:border-stroke-dark">
+                <div className="border-stroke dark:border-stroke-dark flex items-center justify-between border-b pb-3">
                   <div>
                     <p className="font-medium text-black dark:text-white">
                       {selectedDoboz?.icon} {selectedDoboz?.name}
                     </p>
-                    <p className="text-sm text-body">
-                      Doboz ({selectedDobozSzin?.name} / {selectedTetoSzin?.name} tető)
+                    <p className="text-body text-sm">
+                      Doboz ({selectedDobozSzin?.name} /{" "}
+                      {selectedTetoSzin?.name} tető)
                     </p>
                   </div>
                   <p className="font-semibold text-black dark:text-white">
@@ -1565,24 +1851,24 @@ const ProductConfigurator = () => {
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between border-b border-stroke pb-3 dark:border-stroke-dark">
+                <div className="border-stroke dark:border-stroke-dark flex items-center justify-between border-b pb-3">
                   <div>
                     <p className="font-medium text-black dark:text-white">
                       {selectedTap?.icon} {selectedTap?.name}
                     </p>
-                    <p className="text-sm text-body">Tápellátás</p>
+                    <p className="text-body text-sm">Tápellátás</p>
                   </div>
                   <p className="font-semibold text-black dark:text-white">
                     {selectedTap?.price.toLocaleString("hu-HU")} Ft
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between border-b border-stroke pb-3 dark:border-stroke-dark">
+                <div className="border-stroke dark:border-stroke-dark flex items-center justify-between border-b pb-3">
                   <div>
                     <p className="font-medium text-black dark:text-white">
                       {selectedElofizetes?.name ?? "-"}
                     </p>
-                    <p className="text-sm text-body">Előfizetés</p>
+                    <p className="text-body text-sm">Előfizetés</p>
                   </div>
                   <p className="font-semibold text-black dark:text-white">
                     {selectedElofizetes
@@ -1594,7 +1880,7 @@ const ProductConfigurator = () => {
                 </div>
 
                 {/* Darabszám */}
-                <div className="border-b border-stroke pb-3 dark:border-stroke-dark">
+                <div className="border-stroke dark:border-stroke-dark border-b pb-3">
                   <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium text-black dark:text-white">
                       Darabszám (db)
@@ -1607,7 +1893,7 @@ const ProductConfigurator = () => {
                             quantity: Math.max(1, prev.quantity - 1),
                           }))
                         }
-                        className="rounded border border-gray-300 bg-white px-3 py-2 text-black hover:bg-gray-100 dark:border-gray-600 dark:bg-dark dark:text-white dark:hover:bg-gray-800"
+                        className="dark:bg-dark rounded border border-gray-300 bg-white px-3 py-2 text-black hover:bg-gray-100 dark:border-gray-600 dark:text-white dark:hover:bg-gray-800"
                       >
                         −
                       </button>
@@ -1625,7 +1911,7 @@ const ProductConfigurator = () => {
                             }));
                           }
                         }}
-                        className="w-20 rounded border border-gray-300 bg-white px-3 py-2 text-center text-black placeholder-gray-400 dark:border-gray-600 dark:bg-dark dark:text-white"
+                        className="dark:bg-dark w-20 rounded border border-gray-300 bg-white px-3 py-2 text-center text-black placeholder-gray-400 dark:border-gray-600 dark:text-white"
                       />
                       <button
                         onClick={() =>
@@ -1634,7 +1920,7 @@ const ProductConfigurator = () => {
                             quantity: Math.min(999, prev.quantity + 1),
                           }))
                         }
-                        className="rounded border border-gray-300 bg-white px-3 py-2 text-black hover:bg-gray-100 dark:border-gray-600 dark:bg-dark dark:text-white dark:hover:bg-gray-800"
+                        className="dark:bg-dark rounded border border-gray-300 bg-white px-3 py-2 text-black hover:bg-gray-100 dark:border-gray-600 dark:text-white dark:hover:bg-gray-800"
                       >
                         +
                       </button>
@@ -1642,52 +1928,90 @@ const ProductConfigurator = () => {
                   </div>
                 </div>
 
-                <div className="border-b border-stroke pb-3 dark:border-stroke-dark">
-                  <p className="mb-2 text-sm font-medium text-body">Szállítás</p>
-                  <p className="font-medium text-black dark:text-white">
-                    {selection.shippingMode === "foxpost" ? "Foxpost automata" : "Házhozszállítás"}
+                <div className="border-stroke dark:border-stroke-dark border-b pb-3">
+                  <p className="text-body mb-2 text-sm font-medium">
+                    Szállítás
                   </p>
-                  <p className="text-sm text-body">
-                    Szállítási díj (ÁFA-mentes): {shippingFee.toLocaleString("hu-HU")} Ft
+                  <p className="font-medium text-black dark:text-white">
+                    {selection.shippingMode === "foxpost"
+                      ? "Foxpost automata"
+                      : "Házhozszállítás"}
+                  </p>
+                  <p className="text-body text-sm">
+                    Szállítási díj (ÁFA-mentes):{" "}
+                    {shippingFee.toLocaleString("hu-HU")} Ft
                   </p>
 
                   {selection.shippingMode === "hazhoz" && (
-                    <p className="text-sm text-body">
-                      Szállítási cím: {selection.shippingAddress.zip} {selection.shippingAddress.city}, {selection.shippingAddress.street} {selection.shippingAddress.houseNumber}
-                      {selection.shippingAddress.stair ? `, ${selection.shippingAddress.stair}` : ""}
-                      {selection.shippingAddress.floor ? `, ${selection.shippingAddress.floor}` : ""}
-                      {selection.shippingAddress.door ? `, ${selection.shippingAddress.door}` : ""}
+                    <p className="text-body text-sm">
+                      Szállítási cím: {selection.shippingAddress.zip}{" "}
+                      {selection.shippingAddress.city},{" "}
+                      {selection.shippingAddress.street}{" "}
+                      {selection.shippingAddress.houseNumber}
+                      {selection.shippingAddress.stair
+                        ? `, ${selection.shippingAddress.stair}`
+                        : ""}
+                      {selection.shippingAddress.floor
+                        ? `, ${selection.shippingAddress.floor}`
+                        : ""}
+                      {selection.shippingAddress.door
+                        ? `, ${selection.shippingAddress.door}`
+                        : ""}
                     </p>
                   )}
 
-                  {selection.shippingMode === "hazhoz" && !selection.billingSame && (
-                    <p className="text-sm text-body">
-                      Számlázási cím: {selection.billingAddress.zip} {selection.billingAddress.city}, {selection.billingAddress.street} {selection.billingAddress.houseNumber}
-                      {selection.billingAddress.stair ? `, ${selection.billingAddress.stair}` : ""}
-                      {selection.billingAddress.floor ? `, ${selection.billingAddress.floor}` : ""}
-                      {selection.billingAddress.door ? `, ${selection.billingAddress.door}` : ""}
-                    </p>
-                  )}
+                  {selection.shippingMode === "hazhoz" &&
+                    !selection.billingSame && (
+                      <p className="text-body text-sm">
+                        Számlázási cím: {selection.billingAddress.zip}{" "}
+                        {selection.billingAddress.city},{" "}
+                        {selection.billingAddress.street}{" "}
+                        {selection.billingAddress.houseNumber}
+                        {selection.billingAddress.stair
+                          ? `, ${selection.billingAddress.stair}`
+                          : ""}
+                        {selection.billingAddress.floor
+                          ? `, ${selection.billingAddress.floor}`
+                          : ""}
+                        {selection.billingAddress.door
+                          ? `, ${selection.billingAddress.door}`
+                          : ""}
+                      </p>
+                    )}
 
                   {selection.shippingMode === "foxpost" && (
                     <>
-                      <p className="text-sm text-body">
-                        Számlázási cím: {selection.billingAddress.zip} {selection.billingAddress.city}, {selection.billingAddress.street} {selection.billingAddress.houseNumber}
-                        {selection.billingAddress.stair ? `, ${selection.billingAddress.stair}` : ""}
-                        {selection.billingAddress.floor ? `, ${selection.billingAddress.floor}` : ""}
-                        {selection.billingAddress.door ? `, ${selection.billingAddress.door}` : ""}
+                      <p className="text-body text-sm">
+                        Számlázási cím: {selection.billingAddress.zip}{" "}
+                        {selection.billingAddress.city},{" "}
+                        {selection.billingAddress.street}{" "}
+                        {selection.billingAddress.houseNumber}
+                        {selection.billingAddress.stair
+                          ? `, ${selection.billingAddress.stair}`
+                          : ""}
+                        {selection.billingAddress.floor
+                          ? `, ${selection.billingAddress.floor}`
+                          : ""}
+                        {selection.billingAddress.door
+                          ? `, ${selection.billingAddress.door}`
+                          : ""}
                       </p>
                       {selection.foxpostAutomata && (
                         <div className="mt-1">
                           <p className="text-sm font-medium text-black dark:text-white">
                             Automata: {selection.foxpostAutomata.name}
                           </p>
-                          <p className="text-xs text-body">
-                            {selection.foxpostAutomata.zip} {selection.foxpostAutomata.city}, {selection.foxpostAutomata.address}
+                          <p className="text-body text-xs">
+                            {selection.foxpostAutomata.zip}{" "}
+                            {selection.foxpostAutomata.city},{" "}
+                            {selection.foxpostAutomata.address}
                           </p>
                           {selection.foxpostAutomata.findme && (
-                            <p className="whitespace-pre-line text-xs text-body italic">
-                              📍 {formatFoxpostFindme(selection.foxpostAutomata.findme)}
+                            <p className="text-body text-xs whitespace-pre-line italic">
+                              📍{" "}
+                              {formatFoxpostFindme(
+                                selection.foxpostAutomata.findme,
+                              )}
                             </p>
                           )}
                         </div>
@@ -1696,41 +2020,45 @@ const ProductConfigurator = () => {
                   )}
                 </div>
 
-                <div className="border-b border-stroke pb-3 dark:border-stroke-dark">
-                  <p className="mb-2 text-sm font-medium text-body">Fizetés</p>
+                <div className="border-stroke dark:border-stroke-dark border-b pb-3">
+                  <p className="text-body mb-2 text-sm font-medium">Fizetés</p>
                   <p className="font-medium text-black dark:text-white">
                     {selection.paymentMode === "utalas" ? "Utalás" : "Stripe"}
                   </p>
                 </div>
 
-                <div className="space-y-2 border-t border-stroke pt-3 dark:border-stroke-dark">
+                <div className="border-stroke dark:border-stroke-dark space-y-2 border-t pt-3">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-body">Nettó összeg:</p>
+                    <p className="text-body text-sm">Nettó összeg:</p>
                     <p className="font-semibold text-black dark:text-white">
                       {subtotal.toLocaleString("hu-HU")} Ft
                     </p>
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-body">ÁFA ({VAT_PERCENT}%):</p>
+                    <p className="text-body text-sm">ÁFA ({VAT_PERCENT}%):</p>
                     <p className="font-semibold text-black dark:text-white">
                       {vatAmount.toLocaleString("hu-HU")} Ft
                     </p>
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-body">Szállítás (ÁFA-mentes):</p>
+                    <p className="text-body text-sm">Szállítás (ÁFA-mentes):</p>
                     <p className="font-semibold text-black dark:text-white">
                       {shippingFee.toLocaleString("hu-HU")} Ft
                     </p>
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-body">Előfizetés (ÁFA-t tartalmaz):</p>
+                    <p className="text-body text-sm">
+                      Előfizetés (ÁFA-t tartalmaz):
+                    </p>
                     <p className="font-semibold text-black dark:text-white">
                       {subscriptionFee.toLocaleString("hu-HU")} Ft
                     </p>
                   </div>
                   <div className="flex items-center justify-between pt-2">
-                    <p className="text-xl font-bold text-black dark:text-white">Bruttó összeg:</p>
-                    <p className="text-2xl font-bold text-primary">
+                    <p className="text-xl font-bold text-black dark:text-white">
+                      Bruttó összeg:
+                    </p>
+                    <p className="text-primary text-2xl font-bold">
                       {total.toLocaleString("hu-HU")} Ft
                     </p>
                   </div>
@@ -1780,34 +2108,46 @@ const ProductConfigurator = () => {
   };
 
   const selectedSzenzorNames = selection.szenzorok
-    .map((id) => szenzorok.find((s) => s.id === id)?.name)
+    .map((id) => catalog.szenzorok.find((s) => s.id === id)?.name)
     .filter(Boolean) as string[];
-  const selectedAnyagName = anyagok.find((a) => a.id === selection.anyag)?.name ?? "-";
-  const selectedDobozName = dobozok.find((d) => d.id === selection.doboz)?.name ?? "-";
-  const selectedTapName = tapellatasok.find((t) => t.id === selection.tapellatas)?.name ?? "-";
-  const selectedElofizetesName = elofizetesek.find((e) => e.id === selection.elofizetes)?.name ?? "-";
-  const selectedDobozSzinName = dobozSzinek.find((s) => s.id === selection.dobozSzin)?.name ?? "-";
-  const selectedTetoSzinName = tetoSzinek.find((s) => s.id === selection.tetoSzin)?.name ?? "-";
-  const shippingLabel = selection.shippingMode === "foxpost"
-    ? "Foxpost automata"
-    : selection.shippingMode === "hazhoz"
-      ? "Házhozszállítás"
-      : "-";
-  const paymentLabel = selection.paymentMode === "utalas"
-    ? "Utalás"
-    : selection.paymentMode === "stripe"
-      ? "Stripe"
-      : "-";
+
+  const selectedAnyagName =
+    anyagok.find((a) => a.id === selection.anyag)?.name ?? "-";
+  const selectedDobozName =
+    dobozok.find((d) => d.id === selection.doboz)?.name ?? "-";
+  const selectedTapName =
+    tapellatasok.find((t) => t.id === selection.tapellatas)?.name ?? "-";
+  const selectedElofizetesName =
+    elofizetesek.find((e) => e.id === selection.elofizetes)?.name ?? "-";
+  const selectedDobozSzinName =
+    dobozSzinek.find((s) => s.id === selection.dobozSzin)?.name ?? "-";
+  const selectedTetoSzinName =
+    tetoSzinek.find((s) => s.id === selection.tetoSzin)?.name ?? "-";
+  const shippingLabel =
+    selection.shippingMode === "foxpost"
+      ? "Foxpost automata"
+      : selection.shippingMode === "hazhoz"
+        ? "Házhozszállítás"
+        : "-";
+  const paymentLabel =
+    selection.paymentMode === "utalas"
+      ? "Utalás"
+      : selection.paymentMode === "stripe"
+        ? "Stripe"
+        : "-";
 
   return (
     <section className="relative z-10">
       <div className="container">
         {/* Fejléc */}
-        <div className="wow fadeInUp mx-auto mb-10 max-w-[690px] text-center" data-wow-delay=".2s">
-          <h2 className="mb-4 text-3xl font-bold text-black dark:text-white sm:text-4xl md:text-[44px] md:leading-tight">
+        <div
+          className="wow fadeInUp mx-auto mb-10 max-w-[690px] text-center"
+          data-wow-delay=".2s"
+        >
+          <h2 className="mb-4 text-3xl font-bold text-black sm:text-4xl md:text-[44px] md:leading-tight dark:text-white">
             Termék konfigurátor
           </h2>
-          <p className="text-base text-body">
+          <p className="text-body text-base">
             Állítsd össze a saját szenzor csomagodat lépésről lépésre!
           </p>
         </div>
@@ -1820,7 +2160,8 @@ const ProductConfigurator = () => {
               const isActive = step.id === currentStep;
               const isCompleted = index < stepIndex;
               const isBlockedStep =
-                isPresetLocked && (step.id === "szenzor" || step.id === "anyag");
+                isPresetLocked &&
+                (step.id === "szenzor" || step.id === "anyag");
 
               return (
                 <React.Fragment key={step.id}>
@@ -1863,8 +2204,10 @@ const ProductConfigurator = () => {
                   </div>
                   {index < steps.length - 1 && (
                     <div
-                      className={`h-1 flex-1 mx-2 rounded ${
-                        index < stepIndex ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700"
+                      className={`mx-2 h-1 flex-1 rounded ${
+                        index < stepIndex
+                          ? "bg-green-500"
+                          : "bg-gray-200 dark:bg-gray-700"
                       }`}
                     />
                   )}
@@ -1882,7 +2225,7 @@ const ProductConfigurator = () => {
         {/* Lépés tartalma + oldalsó összegzés */}
         <div className="mb-10 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div>{renderStepContent()}</div>
-          <aside className="h-fit rounded-xl border-2 border-stroke bg-white p-5 dark:border-stroke-dark dark:bg-dark lg:sticky lg:top-24">
+          <aside className="border-stroke dark:border-stroke-dark dark:bg-dark h-fit rounded-xl border-2 bg-white p-5 lg:sticky lg:top-24">
             <h4 className="mb-4 text-lg font-semibold text-black dark:text-white">
               Folyamatkövető
             </h4>
@@ -1898,9 +2241,11 @@ const ProductConfigurator = () => {
                 </p>
               </div>
               <div>
-                <p className="font-medium text-black dark:text-white">Szenzorok</p>
+                <p className="font-medium text-black dark:text-white">
+                  Szenzorok
+                </p>
                 {selectedSzenzorNames.length > 0 ? (
-                  <ul className="mt-1 list-disc pl-5 text-body">
+                  <ul className="text-body mt-1 list-disc pl-5">
                     {selectedSzenzorNames.map((name) => (
                       <li key={name}>{name}</li>
                     ))}
@@ -1910,33 +2255,47 @@ const ProductConfigurator = () => {
                 )}
               </div>
               <div>
-                <p className="font-medium text-black dark:text-white">Burok anyaga</p>
+                <p className="font-medium text-black dark:text-white">
+                  Burok anyaga
+                </p>
                 <p className="text-body">{selectedAnyagName}</p>
               </div>
               <div>
                 <p className="font-medium text-black dark:text-white">Doboz</p>
                 <p className="text-body">{selectedDobozName}</p>
-                <p className="text-body">Színek: {selectedDobozSzinName} / {selectedTetoSzinName}</p>
+                <p className="text-body">
+                  Színek: {selectedDobozSzinName} / {selectedTetoSzinName}
+                </p>
               </div>
               <div>
-                <p className="font-medium text-black dark:text-white">Tápellátás</p>
+                <p className="font-medium text-black dark:text-white">
+                  Tápellátás
+                </p>
                 <p className="text-body">{selectedTapName}</p>
               </div>
               <div>
-                <p className="font-medium text-black dark:text-white">Előfizetés</p>
+                <p className="font-medium text-black dark:text-white">
+                  Előfizetés
+                </p>
                 <p className="text-body">{selectedElofizetesName}</p>
               </div>
               <div>
-                <p className="font-medium text-black dark:text-white">Szállítás</p>
+                <p className="font-medium text-black dark:text-white">
+                  Szállítás
+                </p>
                 <p className="text-body">{shippingLabel}</p>
               </div>
               <div>
-                <p className="font-medium text-black dark:text-white">Fizetés</p>
+                <p className="font-medium text-black dark:text-white">
+                  Fizetés
+                </p>
                 <p className="text-body">{paymentLabel}</p>
               </div>
               <div>
-                <p className="font-medium text-black dark:text-white">Bruttó végösszeg</p>
-                <p className="text-lg font-semibold text-primary">
+                <p className="font-medium text-black dark:text-white">
+                  Bruttó végösszeg
+                </p>
+                <p className="text-primary text-lg font-semibold">
                   {calculateGrandTotal().toLocaleString("hu-HU")} Ft
                 </p>
               </div>
@@ -1960,8 +2319,8 @@ const ProductConfigurator = () => {
 
           {/* Aktuális ár */}
           <div className="text-center">
-            <p className="text-sm text-body">Jelenlegi végösszeg:</p>
-            <p className="text-2xl font-bold text-primary">
+            <p className="text-body text-sm">Jelenlegi végösszeg:</p>
+            <p className="text-primary text-2xl font-bold">
               {calculateGrandTotal().toLocaleString("hu-HU")} Ft
             </p>
           </div>
@@ -1972,7 +2331,7 @@ const ProductConfigurator = () => {
               disabled={!canProceed()}
               className={`rounded-lg px-6 py-3 font-medium transition-all ${
                 canProceed()
-                  ? "bg-primary text-white hover:bg-primary/90"
+                  ? "bg-primary hover:bg-primary/90 text-white"
                   : "cursor-not-allowed bg-gray-200 text-gray-400 dark:bg-gray-700"
               }`}
             >
