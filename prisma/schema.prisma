@@ -8,7 +8,7 @@ datasource db {
 }
 
 model account {
-  id                String  @id
+  id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
@@ -123,7 +123,7 @@ model sensors_new {
 }
 
 model session {
-  id           String   @id
+  id           String   @id @default(cuid())
   sessionToken String   @unique(map: "Session_sessionToken_key")
   userId       String
   expires      DateTime
@@ -139,7 +139,7 @@ model tech_type {
 }
 
 model user {
-  id                    String    @id
+  id                    String    @id @default(cuid())
   name                  String?
   email                 String?   @unique(map: "User_email_key")
   emailVerified         DateTime?
@@ -181,7 +181,7 @@ model users_new {
 }
 
 model verificationtoken {
-  id         String   @id
+  id         String   @id @default(cuid())
   identifier String
   token      String   @unique(map: "VerificationToken_token_key")
   expires    DateTime
