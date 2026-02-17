@@ -190,7 +190,8 @@ model verificationtoken {
 }
 
 model shop_boxes {
-  id          String  @id @db.VarChar(64)
+  id          Int     @id @default(autoincrement())
+  old_id      String? @db.VarChar(64)
   name        String  @db.VarChar(255)
   description String  @db.Text
   price       Int
@@ -201,20 +202,19 @@ model shop_boxes {
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model shop_colors {
-  pk       Int    @id @default(autoincrement())
-  id       String @db.VarChar(64)
-  name     String @db.VarChar(255)
-  hex      String @db.VarChar(16)
-  kind     shop_colors_kind
-  sort     Int    @default(0)
-  isActive Boolean @default(true)
-
-  @@unique([id, kind])
+  id       Int     @id @default(autoincrement())
+  old_id   String? @db.VarChar(64)
+  name     String? @db.VarChar(255)
+  hex      String? @db.VarChar(16)
+  kind     String? @db.VarChar(16)
+  sort     Int?
+  isActive Int?    @db.TinyInt
+  pk       Int?
 }
 
-
 model shop_materials {
-  id          String  @id @db.VarChar(64)
+  id          Int     @id @default(autoincrement())
+  old_id      String? @db.VarChar(64)
   name        String  @db.VarChar(255)
   description String  @db.Text
   price       Int
@@ -224,7 +224,8 @@ model shop_materials {
 }
 
 model shop_power_options {
-  id          String  @id @db.VarChar(64)
+  id          Int     @id @default(autoincrement())
+  old_id      String? @db.VarChar(64)
   name        String  @db.VarChar(255)
   description String  @db.Text
   price       Int
@@ -234,7 +235,8 @@ model shop_power_options {
 }
 
 model shop_sensors {
-  id          String  @id @db.VarChar(64)
+  id          Int     @id @default(autoincrement())
+  old_id      String? @db.VarChar(64)
   name        String  @db.VarChar(255)
   description String  @db.Text
   price       Int
@@ -244,11 +246,77 @@ model shop_sensors {
 }
 
 model shop_shipping_prices {
+  id     Int     @id @default(autoincrement())
+  old_id String? @db.VarChar(64)
+  price  Int
+}
+
+model shop_subscriptions {
+  id          Int     @id @default(autoincrement())
+  old_id      String? @db.VarChar(64)
+  name        String  @db.VarChar(255)
+  description String  @db.Text
+  price       Int
+  sort        Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model shop_colors_backup {
+  id       String                  @db.VarChar(64)
+  name     String                  @db.VarChar(255)
+  hex      String                  @db.VarChar(16)
+  kind     shop_colors_backup_kind
+  sort     Int                     @default(0)
+  isActive Boolean                 @default(true)
+  pk       Int                     @id @default(autoincrement())
+}
+
+model shop_boxes_backup {
+  id          String  @id @db.VarChar(64)
+  name        String  @db.VarChar(255)
+  description String  @db.Text
+  price       Int
+  icon        String  @db.VarChar(16)
+  sort        Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model shop_materials_backup {
+  id          String  @id @db.VarChar(64)
+  name        String  @db.VarChar(255)
+  description String  @db.Text
+  price       Int
+  icon        String  @db.VarChar(16)
+  sort        Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model shop_power_options_backup {
+  id          String  @id @db.VarChar(64)
+  name        String  @db.VarChar(255)
+  description String  @db.Text
+  price       Int
+  icon        String  @db.VarChar(16)
+  sort        Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model shop_sensors_backup {
+  id          String  @id @db.VarChar(64)
+  name        String  @db.VarChar(255)
+  description String  @db.Text
+  price       Int
+  imageUrl    String  @db.VarChar(255)
+  sort        Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model shop_shipping_prices_backup {
   id    String @id @db.VarChar(64)
   price Int
 }
 
-model shop_subscriptions {
+model shop_subscriptions_backup {
   id          String  @id @db.VarChar(64)
   name        String  @db.VarChar(255)
   description String  @db.Text
@@ -272,7 +340,7 @@ enum users_new_role {
   user
 }
 
-enum shop_colors_kind {
+enum shop_colors_backup_kind {
   box
   top
 }

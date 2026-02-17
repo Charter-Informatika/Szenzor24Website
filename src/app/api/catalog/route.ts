@@ -21,7 +21,7 @@ export async function GET() {
         orderBy: { sort: "asc" },
       }),
       prisma.shop_colors.findMany({
-        where: { isActive: true },
+        where: { isActive: 1 },
         orderBy: { sort: "asc" },
       }),
       prisma.shop_power_options.findMany({
