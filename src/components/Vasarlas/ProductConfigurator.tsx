@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { OrderPayload } from "@/types/order";
 import FoxpostSelector, { FoxpostAutomataData } from "./FoxpostSelector";
+import { validateShippingAddress, type AddressValidation } from "@/utils/validations";
 
 const formatFoxpostFindme = (value: string) =>
   value
@@ -481,6 +482,9 @@ const ProductConfigurator = () => {
     foxpostAutomata: null,
   });
 
+  const [shippingAddressErrors, setShippingAddressErrors] = useState<AddressValidation["errors"]>({});
+  const [billingAddressErrors, setBillingAddressErrors] = useState<AddressValidation["errors"]>({});
+
   const modelViewerRef = useRef<HTMLDivElement>(null);
 
   const isAkkus = selection.tapellatas === "akkus";
@@ -589,12 +593,22 @@ const ProductConfigurator = () => {
 
     if (selection.shippingMode === "foxpost") {
       if (!isAddressComplete(selection.billingAddress)) return false;
+      const billingValidation = validateShippingAddress(selection.billingAddress);
+      if (!billingValidation.isValid) return false;
       if (!selection.foxpostAutomata) return false;
       return true;
     }
 
     if (!isAddressComplete(selection.shippingAddress)) return false;
+    const shippingValidation = validateShippingAddress(selection.shippingAddress);
+    if (!shippingValidation.isValid) return false;
+
     if (!selection.billingSame && !isAddressComplete(selection.billingAddress)) return false;
+    if (!selection.billingSame) {
+      const billingValidation = validateShippingAddress(selection.billingAddress);
+      if (!billingValidation.isValid) return false;
+    }
+
     return true;
   };
 
@@ -705,7 +719,19 @@ const ProductConfigurator = () => {
     }
 
     if (!isShippingValid()) {
-      toast.error("Hiányzó szállítási adatok!");
+      // Set validation errors for display
+      if (selection.shippingMode === "foxpost") {
+        const billingVal = validateShippingAddress(selection.billingAddress);
+        setBillingAddressErrors(billingVal.errors);
+      } else if (selection.shippingMode === "hazhoz") {
+        const shippingVal = validateShippingAddress(selection.shippingAddress);
+        setShippingAddressErrors(shippingVal.errors);
+        if (!selection.billingSame) {
+          const billingVal = validateShippingAddress(selection.billingAddress);
+          setBillingAddressErrors(billingVal.errors);
+        }
+      }
+      toast.error("Hiányzó vagy érvénytelen szállítási adatok!");
       return;
     }
 
@@ -914,6 +940,46 @@ const ProductConfigurator = () => {
       },
     }));
   };
+
+  const validateAddress = (
+    target: "shippingAddress" | "billingAddress"
+  ) => {
+    const address = selection[target];
+    const validation = validateShippingAddress(address);
+    
+    if (target === "shippingAddress") {
+      setShippingAddressErrors(validation.errors);
+    } else {
+      setBillingAddressErrors(validation.errors);
+    }
+    
+    return validation.isValid;
+  };
+
+  const renderAddressInput = (
+    placeholder: string,
+    value: string,
+    field: keyof Selection["shippingAddress"],
+    target: "shippingAddress" | "billingAddress",
+    error?: string
+  ) => (
+    <div className="space-y-1">
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={value}
+        onChange={(ev) => updateAddressField(target, field, ev.target.value)}
+        className={`w-full rounded-lg border px-4 py-3 text-sm text-black outline-none focus:border-primary dark:bg-dark dark:text-white ${
+          error
+            ? "border-red-500 bg-red-50/10 dark:border-red-400"
+            : "border-stroke bg-white focus:border-primary dark:border-stroke-dark"
+        }`}
+      />
+      {error && (
+        <p className="text-xs font-medium text-red-500">{error}</p>
+      )}
+    </div>
+  );
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -1234,13 +1300,15 @@ const ProductConfigurator = () => {
                 <button
                   type="button"
                   key={mod.id}
-                  onClick={() =>
+                  onClick={() => {
                     setSelection((prev) => ({
                       ...prev,
                       shippingMode: mod.id,
                       billingSame: mod.id === "hazhoz" ? prev.billingSame : true,
-                    }))
-                  }
+                    }));
+                    setShippingAddressErrors({});
+                    setBillingAddressErrors({});
+                  }}
                   className={`rounded-xl border-2 p-5 text-left transition-all hover:shadow-lg ${
                     selection.shippingMode === mod.id
                       ? "border-primary bg-primary/10"
@@ -1261,34 +1329,34 @@ const ProductConfigurator = () => {
                   Foxpost automata esetén a cím a számlázási cím.
                 </p>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <input
-                    type="text"
-                    placeholder="Irányítószám"
-                    value={selection.billingAddress.zip}
-                    onChange={(ev) => updateAddressField("billingAddress", "zip", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Város"
-                    value={selection.billingAddress.city}
-                    onChange={(ev) => updateAddressField("billingAddress", "city", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Utca"
-                    value={selection.billingAddress.street}
-                    onChange={(ev) => updateAddressField("billingAddress", "street", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Házszám"
-                    value={selection.billingAddress.houseNumber}
-                    onChange={(ev) => updateAddressField("billingAddress", "houseNumber", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
-                  />
+                  {renderAddressInput(
+                    "Irányítószám",
+                    selection.billingAddress.zip,
+                    "zip",
+                    "billingAddress",
+                    billingAddressErrors.zip
+                  )}
+                  {renderAddressInput(
+                    "Város",
+                    selection.billingAddress.city,
+                    "city",
+                    "billingAddress",
+                    billingAddressErrors.city
+                  )}
+                  {renderAddressInput(
+                    "Utca",
+                    selection.billingAddress.street,
+                    "street",
+                    "billingAddress",
+                    billingAddressErrors.street
+                  )}
+                  {renderAddressInput(
+                    "Házszám",
+                    selection.billingAddress.houseNumber,
+                    "houseNumber",
+                    "billingAddress",
+                    billingAddressErrors.houseNumber
+                  )}
                   <input
                     type="text"
                     placeholder="Lépcsőház (opcionális)"
@@ -1333,34 +1401,34 @@ const ProductConfigurator = () => {
               <div className="space-y-4">
                 <p className="text-sm text-body">Szállítási cím</p>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <input
-                    type="text"
-                    placeholder="Irányítószám"
-                    value={selection.shippingAddress.zip}
-                    onChange={(ev) => updateAddressField("shippingAddress", "zip", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Város"
-                    value={selection.shippingAddress.city}
-                    onChange={(ev) => updateAddressField("shippingAddress", "city", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Utca"
-                    value={selection.shippingAddress.street}
-                    onChange={(ev) => updateAddressField("shippingAddress", "street", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Házszám"
-                    value={selection.shippingAddress.houseNumber}
-                    onChange={(ev) => updateAddressField("shippingAddress", "houseNumber", ev.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-white px-4 py-3 text-sm text-black outline-none focus:border-primary dark:border-stroke-dark dark:bg-dark dark:text-white"
-                  />
+                  {renderAddressInput(
+                    "Irányítószám",
+                    selection.shippingAddress.zip,
+                    "zip",
+                    "shippingAddress",
+                    shippingAddressErrors.zip
+                  )}
+                  {renderAddressInput(
+                    "Város",
+                    selection.shippingAddress.city,
+                    "city",
+                    "shippingAddress",
+                    shippingAddressErrors.city
+                  )}
+                  {renderAddressInput(
+                    "Utca",
+                    selection.shippingAddress.street,
+                    "street",
+                    "shippingAddress",
+                    shippingAddressErrors.street
+                  )}
+                  {renderAddressInput(
+                    "Házszám",
+                    selection.shippingAddress.houseNumber,
+                    "houseNumber",
+                    "shippingAddress",
+                    shippingAddressErrors.houseNumber
+                  )}
                   <input
                     type="text"
                     placeholder="Lépcsőház (opcionális)"
