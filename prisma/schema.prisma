@@ -190,7 +190,8 @@ model verificationtoken {
 }
 
 model shop_boxes {
-  id          String  @id @db.VarChar(64)
+  id          Int     @id @default(autoincrement())
+  old_id      String? @db.VarChar(64)
   name        String  @db.VarChar(255)
   description String  @db.Text
   price       Int
@@ -212,7 +213,8 @@ model shop_colors {
 }
 
 model shop_materials {
-  id          String  @id @db.VarChar(64)
+  id          Int     @id @default(autoincrement())
+  old_id      String? @db.VarChar(64)
   name        String  @db.VarChar(255)
   description String  @db.Text
   price       Int
@@ -222,7 +224,8 @@ model shop_materials {
 }
 
 model shop_power_options {
-  id          String  @id @db.VarChar(64)
+  id          Int     @id @default(autoincrement())
+  old_id      String? @db.VarChar(64)
   name        String  @db.VarChar(255)
   description String  @db.Text
   price       Int
@@ -232,7 +235,8 @@ model shop_power_options {
 }
 
 model shop_sensors {
-  id          String  @id @db.VarChar(64)
+  id          Int     @id @default(autoincrement())
+  old_id      String? @db.VarChar(64)
   name        String  @db.VarChar(255)
   description String  @db.Text
   price       Int
@@ -242,12 +246,14 @@ model shop_sensors {
 }
 
 model shop_shipping_prices {
-  id    String @id @db.VarChar(64)
-  price Int
+  id     Int     @id @default(autoincrement())
+  old_id String? @db.VarChar(64)
+  price  Int
 }
 
 model shop_subscriptions {
-  id          String  @id @db.VarChar(64)
+  id          Int     @id @default(autoincrement())
+  old_id      String? @db.VarChar(64)
   name        String  @db.VarChar(255)
   description String  @db.Text
   price       Int
@@ -263,6 +269,60 @@ model shop_colors_backup {
   sort     Int                     @default(0)
   isActive Boolean                 @default(true)
   pk       Int                     @id @default(autoincrement())
+}
+
+model shop_boxes_backup {
+  id          String  @id @db.VarChar(64)
+  name        String  @db.VarChar(255)
+  description String  @db.Text
+  price       Int
+  icon        String  @db.VarChar(16)
+  sort        Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model shop_materials_backup {
+  id          String  @id @db.VarChar(64)
+  name        String  @db.VarChar(255)
+  description String  @db.Text
+  price       Int
+  icon        String  @db.VarChar(16)
+  sort        Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model shop_power_options_backup {
+  id          String  @id @db.VarChar(64)
+  name        String  @db.VarChar(255)
+  description String  @db.Text
+  price       Int
+  icon        String  @db.VarChar(16)
+  sort        Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model shop_sensors_backup {
+  id          String  @id @db.VarChar(64)
+  name        String  @db.VarChar(255)
+  description String  @db.Text
+  price       Int
+  imageUrl    String  @db.VarChar(255)
+  sort        Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model shop_shipping_prices_backup {
+  id    String @id @db.VarChar(64)
+  price Int
+}
+
+model shop_subscriptions_backup {
+  id          String  @id @db.VarChar(64)
+  name        String  @db.VarChar(255)
+  description String  @db.Text
+  price       Int
+  sort        Int     @default(0)
+  isActive    Boolean @default(true)
 }
 
 enum devices_new_type {

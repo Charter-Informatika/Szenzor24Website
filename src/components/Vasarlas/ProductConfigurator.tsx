@@ -545,15 +545,15 @@ const ProductConfigurator = () => {
 
         setCatalog((prev) => ({
           ...prev,
-          szenzorok: data.sensors ?? prev.szenzorok,
-          dobozok: data.boxes ?? prev.dobozok,
-          dobozSzinek: (data.colors ?? []).filter((c: any) => c.kind === "box"),
-          tetoSzinek: (data.colors ?? []).filter((c: any) => c.kind === "top"),
-          tapellatasok: data.powerOptions ?? prev.tapellatasok,
-          elofizetesek: data.subscriptions ?? prev.elofizetesek,
-          anyagok: data.materials ?? prev.anyagok,
+          szenzorok: (data.sensors ?? prev.szenzorok).map((it: any) => ({ ...it, id: String(it.id) })),
+          dobozok: (data.boxes ?? prev.dobozok).map((it: any) => ({ ...it, id: String(it.id) })),
+          dobozSzinek: (data.colors ?? []).filter((c: any) => c.kind === "box").map((it: any) => ({ ...it, id: String(it.id) })),
+          tetoSzinek: (data.colors ?? []).filter((c: any) => c.kind === "top").map((it: any) => ({ ...it, id: String(it.id) })),
+          tapellatasok: (data.powerOptions ?? prev.tapellatasok).map((it: any) => ({ ...it, id: String(it.id) })),
+          elofizetesek: (data.subscriptions ?? prev.elofizetesek).map((it: any) => ({ ...it, id: String(it.id) })),
+          anyagok: (data.materials ?? prev.anyagok).map((it: any) => ({ ...it, id: String(it.id) })),
           szallitasiArak: Object.fromEntries(
-            (data.shippingPrices ?? []).map((p: any) => [p.id, p.price]),
+            (data.shippingPrices ?? []).map((p: any) => [String(p.id), p.price]),
           ) as typeof SZALLITASI_ARAK,
         }));
       } catch (err) {
@@ -615,29 +615,48 @@ const ProductConfigurator = () => {
   const visibleSzenzorok =
     isPresetLocked && selectedPreset
       ? catalog.szenzorok.filter((szenzor) =>
-          selectedPreset.szenzorok.includes(szenzor.id),
+          selectedPreset.szenzorok.includes(
+            // match by old_id slug when available, otherwise by id/string
+            (szenzor as any).old_id ? (szenzor as any).old_id : String((szenzor as any).id),
+          ),
         )
       : catalog.szenzorok;
+
+  // Helper: match selection value against item's old_id (slug) or id
+  const findBySelection = (list: any[], sel: any) => {
+    if (sel === null || sel === undefined) return undefined;
+    return list.find((item) => {
+      const oldId = (item as any).old_id;
+      if (oldId != null && String(oldId) === String(sel)) return true;
+      return String((item as any).id) === String(sel);
+    });
+  };
+  const matchSelection = (item: any, sel: any) => {
+    if (sel === null || sel === undefined) return false;
+    const oldId = item?.old_id;
+    if (oldId != null && String(oldId) === String(sel)) return true;
+    return String(item?.id) === String(sel);
+  };
 
   const calculateSubtotal = () => {
     let total = 0;
     // Több szenzor összege
     for (const szenzorId of selection.szenzorok) {
-      const szenzor = catalog.szenzorok.find((s) => s.id === szenzorId);
+      const szenzor = findBySelection(catalog.szenzorok, szenzorId);
       if (szenzor) total += szenzor.price;
     }
 
     // Anyag (burok) ár
     if (selection.anyag) {
-      const anyag = anyagok.find((a) => a.id === selection.anyag);
+      const anyag = findBySelection(anyagok, selection.anyag);
       if (anyag) total += anyag.price;
     }
     if (selection.doboz) {
-      const doboz = dobozok.find((d) => d.id === selection.doboz);
+      const doboz = findBySelection(dobozok, selection.doboz);
       if (doboz) total += doboz.price;
     }
     if (selection.tapellatas) {
-      const tap = tapellatasok.find((t) => t.id === selection.tapellatas);
+      const tap = findBySelection(tapellatasok, selection.tapellatas);
       if (tap) total += tap.price;
     }
     // Szorzunk a darabszámmal
@@ -646,7 +665,7 @@ const ProductConfigurator = () => {
 
   const calculateSubscriptionFee = () => {
     if (!selection.elofizetes) return 0;
-    const elofizetes = elofizetesek.find((e) => e.id === selection.elofizetes);
+    const elofizetes = findBySelection(elofizetesek, selection.elofizetes);
     return elofizetes ? elofizetes.price : 0;
   };
 
@@ -783,24 +802,18 @@ const ProductConfigurator = () => {
 
     // Kiválasztott szenzorok (több is lehet)
     const selectedSzenzorok = selection.szenzorok
-      .map((id) => catalog.szenzorok.find((s) => s.id === id))
-      .filter(Boolean);
+      .map((id) => findBySelection(catalog.szenzorok, id))
+      .filter(Boolean as any);
 
-    const selectedAnyag = catalog.anyagok.find((a) => a.id === selection.anyag);
-    const selectedDoboz = catalog.dobozok.find((d) => d.id === selection.doboz);
-    const selectedTap = catalog.tapellatasok.find(
-      (t) => t.id === selection.tapellatas,
-    );
+    const selectedAnyag = findBySelection(catalog.anyagok, selection.anyag);
+    const selectedDoboz = findBySelection(catalog.dobozok, selection.doboz);
+    const selectedTap = findBySelection(catalog.tapellatasok, selection.tapellatas);
     const selectedElofizetes =
-      catalog.elofizetesek.find((e) => e.id === selection.elofizetes) ??
-      catalog.elofizetesek.find((e) => e.id === "ingyenes") ??
+      findBySelection(catalog.elofizetesek, selection.elofizetes) ??
+      findBySelection(catalog.elofizetesek, "ingyenes") ??
       null;
-    const selectedDobozSzin = catalog.dobozSzinek.find(
-      (s) => s.id === selection.dobozSzin,
-    );
-    const selectedTetoSzin = catalog.tetoSzinek.find(
-      (s) => s.id === selection.tetoSzin,
-    );
+    const selectedDobozSzin = findBySelection(catalog.dobozSzinek, selection.dobozSzin);
+    const selectedTetoSzin = findBySelection(catalog.tetoSzinek, selection.tetoSzin);
 
     if (
       selectedSzenzorok.length === 0 ||
@@ -1227,7 +1240,7 @@ const ProductConfigurator = () => {
               }`}
             >
               {(isPresetLocked
-                ? anyagok.filter((anyag) => anyag.id === selection.anyag)
+                ? anyagok.filter((anyag) => matchSelection(anyag, selection.anyag))
                 : anyagok
               ).map((anyag) => (
                 <div
@@ -1238,7 +1251,7 @@ const ProductConfigurator = () => {
                       : () => setSelection({ ...selection, anyag: anyag.id })
                   }
                   className={`rounded-xl border-2 p-6 transition-all ${
-                    selection.anyag === anyag.id
+                    matchSelection(anyag, selection.anyag)
                       ? "border-primary bg-primary/10"
                       : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white"
                   } ${isPresetLocked ? "w-full max-w-[320px] cursor-not-allowed opacity-80" : "cursor-pointer hover:shadow-lg"}`}
@@ -1267,9 +1280,9 @@ const ProductConfigurator = () => {
                 key={doboz.id}
                 onClick={() => setSelection({ ...selection, doboz: doboz.id })}
                 className={`cursor-pointer rounded-xl border-2 p-6 transition-all hover:shadow-lg ${
-                  selection.doboz === doboz.id
-                    ? "border-primary bg-primary/10"
-                    : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white"
+                    matchSelection(doboz, selection.doboz)
+                      ? "border-primary bg-primary/10"
+                      : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white"
                 }`}
               >
                 <div className="mb-3 text-4xl">{doboz.icon}</div>
@@ -1409,10 +1422,10 @@ const ProductConfigurator = () => {
                     setSelection({ ...selection, elofizetes: plan.id })
                   }
                   className={`rounded-xl border-2 p-6 text-left transition-all hover:shadow-lg ${
-                    selection.elofizetes === plan.id
-                      ? "border-primary bg-primary/10"
-                      : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white"
-                  }`}
+                      matchSelection(plan, selection.elofizetes)
+                        ? "border-primary bg-primary/10"
+                        : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white"
+                    }`}
                 >
                   <h4 className="mb-2 text-center text-lg font-semibold text-black dark:text-white">
                     {plan.name}
@@ -1774,22 +1787,14 @@ const ProductConfigurator = () => {
 
       case "osszesites":
         const selectedSzenzorokList = selection.szenzorok
-          .map((id) => szenzorok.find((s) => s.id === id))
-          .filter(Boolean);
-        const selectedAnyagOssz = anyagok.find((a) => a.id === selection.anyag);
-        const selectedDoboz = dobozok.find((d) => d.id === selection.doboz);
-        const selectedTap = tapellatasok.find(
-          (t) => t.id === selection.tapellatas,
-        );
-        const selectedElofizetes = elofizetesek.find(
-          (e) => e.id === selection.elofizetes,
-        );
-        const selectedDobozSzin = dobozSzinek.find(
-          (s) => s.id === selection.dobozSzin,
-        );
-        const selectedTetoSzin = tetoSzinek.find(
-          (s) => s.id === selection.tetoSzin,
-        );
+          .map((id) => findBySelection(catalog.szenzorok, id))
+          .filter(Boolean as any);
+        const selectedAnyagOssz = findBySelection(anyagok, selection.anyag);
+        const selectedDoboz = findBySelection(dobozok, selection.doboz);
+        const selectedTap = findBySelection(tapellatasok, selection.tapellatas);
+        const selectedElofizetes = findBySelection(elofizetesek, selection.elofizetes);
+        const selectedDobozSzin = findBySelection(dobozSzinek, selection.dobozSzin);
+        const selectedTetoSzin = findBySelection(tetoSzinek, selection.tetoSzin);
         const szenzorokTotal = selectedSzenzorokList.reduce(
           (sum, sz) => sum + (sz?.price || 0),
           0,
@@ -2130,21 +2135,16 @@ const ProductConfigurator = () => {
   };
 
   const selectedSzenzorNames = selection.szenzorok
-    .map((id) => catalog.szenzorok.find((s) => s.id === id)?.name)
+    .map((id) => findBySelection(catalog.szenzorok, id)?.name)
     .filter(Boolean) as string[];
 
   const selectedAnyagName =
-    anyagok.find((a) => a.id === selection.anyag)?.name ?? "-";
-  const selectedDobozName =
-    dobozok.find((d) => d.id === selection.doboz)?.name ?? "-";
-  const selectedTapName =
-    tapellatasok.find((t) => t.id === selection.tapellatas)?.name ?? "-";
-  const selectedElofizetesName =
-    elofizetesek.find((e) => e.id === selection.elofizetes)?.name ?? "-";
-  const selectedDobozSzinName =
-    dobozSzinek.find((s) => s.id === selection.dobozSzin)?.name ?? "-";
-  const selectedTetoSzinName =
-    tetoSzinek.find((s) => s.id === selection.tetoSzin)?.name ?? "-";
+    anyagok.find((a) => matchSelection(a, selection.anyag))?.name ?? "-";
+  const selectedDobozName = findBySelection(dobozok, selection.doboz)?.name ?? "-";
+  const selectedTapName = findBySelection(tapellatasok, selection.tapellatas)?.name ?? "-";
+  const selectedElofizetesName = findBySelection(elofizetesek, selection.elofizetes)?.name ?? "-";
+  const selectedDobozSzinName = findBySelection(dobozSzinek, selection.dobozSzin)?.name ?? "-";
+  const selectedTetoSzinName = findBySelection(tetoSzinek, selection.tetoSzin)?.name ?? "-";
   const shippingLabel =
     selection.shippingMode === "foxpost"
       ? "Foxpost automata"
