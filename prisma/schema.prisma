@@ -201,17 +201,15 @@ model shop_boxes {
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model shop_colors {
-  pk       Int    @id @default(autoincrement())
-  id       String @db.VarChar(64)
-  name     String @db.VarChar(255)
-  hex      String @db.VarChar(16)
-  kind     shop_colors_kind
-  sort     Int    @default(0)
-  isActive Boolean @default(true)
-
-  @@unique([id, kind])
+  id       Int     @id @default(autoincrement())
+  old_id   String? @db.VarChar(64)
+  name     String? @db.VarChar(255)
+  hex      String? @db.VarChar(16)
+  kind     String? @db.VarChar(16)
+  sort     Int?
+  isActive Int?    @db.TinyInt
+  pk       Int?
 }
-
 
 model shop_materials {
   id          String  @id @db.VarChar(64)
@@ -257,6 +255,16 @@ model shop_subscriptions {
   isActive    Boolean @default(true)
 }
 
+model shop_colors_backup {
+  id       String                  @db.VarChar(64)
+  name     String                  @db.VarChar(255)
+  hex      String                  @db.VarChar(16)
+  kind     shop_colors_backup_kind
+  sort     Int                     @default(0)
+  isActive Boolean                 @default(true)
+  pk       Int                     @id @default(autoincrement())
+}
+
 enum devices_new_type {
   bor_sz  @map("borász")
   led
@@ -272,7 +280,7 @@ enum users_new_role {
   user
 }
 
-enum shop_colors_kind {
+enum shop_colors_backup_kind {
   box
   top
 }
