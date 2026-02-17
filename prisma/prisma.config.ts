@@ -1,14 +1,23 @@
-import 'dotenv/config';
-import { defineConfig } from "prisma/config";
-import path from 'path';
+import path from "path";
+import dotenv from "dotenv";
+import { defineConfig } from "@prisma/config";
 
-// Get DATABASE_URL and fix localhost to 127.0.0.1 for IPv6 issues
-const dbUrl = process.env.DATABASE_URL?.replace('localhost', '127.0.0.1') || '';
+// Biztos .env betöltés a projekt gyökeréből
+dotenv.config({ path: path.join(process.cwd(), ".env") });
+
+const dbUrl = (process.env.DATABASE_URL || "").replace(
+  "localhost",
+  "127.0.0.1",
+);
+
+if (!dbUrl) {
+  throw new Error("DATABASE_URL is missing. Check .env in project root.");
+}
 
 export default defineConfig({
-  schema: path.join(__dirname, 'schema.prisma'),
+  schema: path.join(process.cwd(), "prisma", "schema.prisma"),
   migrations: {
-    path: path.join(__dirname, 'migrations'),
+    path: path.join(process.cwd(), "prisma", "migrations"),
   },
   datasource: {
     url: dbUrl,

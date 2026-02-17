@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "binary"
 }
 
@@ -10,8 +7,8 @@ datasource db {
   provider = "mysql"
 }
 
-model Account {
-  id                String  @id @default(cuid())
+model account {
+  id                String  @id
   userId            String
   type              String
   provider          String
@@ -23,40 +20,259 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              user    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Account_userId_fkey")
 
-  @@unique([provider, providerAccountId])
+  @@unique([provider, providerAccountId], map: "Account_provider_providerAccountId_key")
   @@index([userId], map: "Account_userId_fkey")
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
+model devices_new {
+  id                 Int               @id @default(autoincrement())
+  user_id            Int?
+  facility_id        Int?
+  name               String            @db.VarChar(255)
+  location           String?           @db.VarChar(255)
+  type               devices_new_type?
+  tech_id            Int?
+  created_at         DateTime          @db.DateTime(0)
+  comment            String?           @db.VarChar(255)
+  serial             String?           @unique(map: "serial") @db.VarChar(255)
+  last_online        DateTime?         @db.DateTime(0)
+  paid_in_full       Boolean?          @default(false)
+  last_email_at      DateTime?         @db.DateTime(0)
+  version            String?           @db.VarChar(64)
+  offlineEmail       Boolean?          @default(false)
+  fridge_brand       String?           @db.Text
+  fridge_model       String?           @db.Text
+  fridge_type        String?           @db.VarChar(255)
+  version_updated_at DateTime?         @db.DateTime(0)
+  custom_price       Int?
+  wants_subscription Boolean?          @default(false)
+  battery_percentage Int?
+  sleep_duration_min Int?
+  reset_request      Boolean           @default(false)
+  update_pending     Int?              @default(0) @db.TinyInt
+  offlineBuzzer      Boolean           @default(false)
+  users_new          users_new?        @relation(fields: [user_id], references: [id], map: "devices_new_ibfk_183")
+  facilities_new     facilities_new?   @relation(fields: [facility_id], references: [id], map: "devices_new_ibfk_184")
+  tech_type          tech_type?        @relation(fields: [tech_id], references: [id], map: "devices_new_ibfk_185")
+  sensors_new        sensors_new[]
+
+  @@index([tech_id], map: "devices_new_ibfk_185_idx")
+  @@index([facility_id], map: "facility_id")
+  @@index([user_id], map: "user_id_index")
+}
+
+model facilities_new {
+  id               Int           @id @default(autoincrement())
+  user_id          Int
+  name             String        @db.VarChar(255)
+  postcode         Int?
+  city             String?       @db.VarChar(255)
+  street           String?       @db.VarChar(255)
+  email            String?       @db.VarChar(255)
+  phone            String?       @db.VarChar(255)
+  comment          String?       @db.VarChar(255)
+  created_at       DateTime      @db.DateTime(0)
+  updated_at       DateTime      @db.DateTime(0)
+  last_email_at    DateTime?     @db.DateTime(0)
+  from_motion_time DateTime?     @db.Time(0)
+  to_motion_time   DateTime?     @db.Time(0)
+  devices_new      devices_new[]
+  users_new        users_new     @relation(fields: [user_id], references: [id], onDelete: NoAction, map: "facilities_new_ibfk_1")
+
+  @@index([user_id], map: "facilities_new_ibfk_1_idx")
+}
+
+model sensor_types_new {
+  id             Int           @id @default(autoincrement())
+  collector_type String        @unique(map: "collector_type_10") @db.VarChar(255)
+  type           String        @db.VarChar(255)
+  sensors_new    sensors_new[]
+
+  @@index([collector_type], map: "collector_type")
+  @@index([type], map: "type")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model sensors_new {
+  id               Int              @id @default(autoincrement())
+  device_id        Int
+  name             String           @db.VarChar(255)
+  sensor_type      String           @db.VarChar(255)
+  unit             String?          @db.VarChar(255)
+  range_min        Float?           @db.Float
+  range_max        Float?           @db.Float
+  created_at       DateTime?        @default(now()) @db.Timestamp(0)
+  comment          String?          @db.VarChar(255)
+  last_online      DateTime?        @db.DateTime(0)
+  serial           Int
+  offset           Float            @default(0) @db.Float
+  problem_interval Float            @default(0) @db.Float
+  receive_email    Boolean          @default(false)
+  last_email_at    DateTime?        @db.DateTime(0)
+  gyro_table_name  String?          @db.VarChar(100)
+  opening_hours    String?          @db.LongText
+  address          String?          @db.VarChar(16)
+  price            Decimal?         @default(0.00) @db.Decimal(10, 2)
+  devices_new      devices_new      @relation(fields: [device_id], references: [id], onDelete: NoAction, map: "sensors_new_ibfk_159")
+  sensor_types_new sensor_types_new @relation(fields: [sensor_type], references: [collector_type], onDelete: NoAction, map: "sensors_new_ibfk_160")
+
+  @@index([device_id], map: "device_id")
+  @@index([sensor_type], map: "sensor_type_ind")
+}
+
+model session {
+  id           String   @id
+  sessionToken String   @unique(map: "Session_sessionToken_key")
   userId       String
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Session_userId_fkey")
 
   @@index([userId], map: "Session_userId_fkey")
 }
 
-model User {
-  id                    String    @id @default(cuid())
+model tech_type {
+  id          Int           @id @default(autoincrement())
+  name        String        @db.VarChar(255)
+  devices_new devices_new[]
+}
+
+model user {
+  id                    String    @id
   name                  String?
-  email                 String?   @unique
+  email                 String?   @unique(map: "User_email_key")
   emailVerified         DateTime?
   image                 String?
   password              String?
-  passwordResetToken    String?   @unique
+  passwordResetToken    String?   @unique(map: "User_passwordResetToken_key")
   passwordResetTokenExp DateTime?
-  accounts              Account[]
-  sessions              Session[]
+  account               account[]
+  session               session[]
 }
 
-model VerificationToken {
-  id         String   @id @default(cuid())
+model users_new {
+  id                     Int              @id @default(autoincrement())
+  username               String           @unique(map: "username") @db.VarChar(255)
+  postcode               Int?
+  city                   String?          @db.VarChar(255)
+  street                 String?          @db.VarChar(255)
+  email                  String?          @unique(map: "email_unique_index") @db.VarChar(255)
+  phone                  String?          @db.VarChar(255)
+  password               String           @db.VarChar(255)
+  created_at             DateTime         @db.DateTime(0)
+  updated_at             DateTime         @db.DateTime(0)
+  role                   users_new_role
+  comment                String?          @db.VarChar(255)
+  last_email_at          DateTime?        @db.DateTime(0)
+  report_hours           String?          @db.VarChar(255)
+  receive_warning_email  Boolean          @default(false)
+  tax_number             String?          @db.VarChar(255)
+  isSubscriber           Boolean?         @default(false)
+  company_name           String?          @db.VarChar(255)
+  billing_postcode       String?          @db.VarChar(20)
+  billing_city           String?          @db.VarChar(255)
+  billing_street         String?          @db.VarChar(255)
+  receive_offline_emails Boolean?         @default(true)
+  custom_device_price    Int?
+  balance                Int?
+  devices_new            devices_new[]
+  facilities_new         facilities_new[]
+}
+
+model verificationtoken {
+  id         String   @id
   identifier String
-  token      String   @unique
+  token      String   @unique(map: "VerificationToken_token_key")
   expires    DateTime
 
-  @@unique([identifier, token])
+  @@unique([identifier, token], map: "VerificationToken_identifier_token_key")
+}
+
+model shop_boxes {
+  id          String  @id @db.VarChar(64)
+  name        String  @db.VarChar(255)
+  description String  @db.Text
+  price       Int
+  icon        String  @db.VarChar(16)
+  sort        Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model shop_colors {
+  pk       Int    @id @default(autoincrement())
+  id       String @db.VarChar(64)
+  name     String @db.VarChar(255)
+  hex      String @db.VarChar(16)
+  kind     shop_colors_kind
+  sort     Int    @default(0)
+  isActive Boolean @default(true)
+
+  @@unique([id, kind])
+}
+
+
+model shop_materials {
+  id          String  @id @db.VarChar(64)
+  name        String  @db.VarChar(255)
+  description String  @db.Text
+  price       Int
+  icon        String  @db.VarChar(16)
+  sort        Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model shop_power_options {
+  id          String  @id @db.VarChar(64)
+  name        String  @db.VarChar(255)
+  description String  @db.Text
+  price       Int
+  icon        String  @db.VarChar(16)
+  sort        Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model shop_sensors {
+  id          String  @id @db.VarChar(64)
+  name        String  @db.VarChar(255)
+  description String  @db.Text
+  price       Int
+  imageUrl    String  @db.VarChar(255)
+  sort        Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model shop_shipping_prices {
+  id    String @id @db.VarChar(64)
+  price Int
+}
+
+model shop_subscriptions {
+  id          String  @id @db.VarChar(64)
+  name        String  @db.VarChar(255)
+  description String  @db.Text
+  price       Int
+  sort        Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+enum devices_new_type {
+  bor_sz  @map("borász")
+  led
+  h_t_    @map("hűtő")
+  kaz_n   @map("kazán")
+  medence
+  f_st_l_ @map("füstölő")
+  egy_b   @map("egyéb")
+}
+
+enum users_new_role {
+  admin
+  user
+}
+
+enum shop_colors_kind {
+  box
+  top
 }
