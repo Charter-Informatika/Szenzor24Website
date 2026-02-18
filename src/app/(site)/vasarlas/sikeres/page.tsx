@@ -10,7 +10,7 @@ export default function OrderSuccessPage() {
     // Redirect to homepage after 3 seconds
     const timer = setTimeout(() => {
       router.push("/");
-    }, 3000);
+    }, 10000);
 
     return () => clearTimeout(timer);
   }, [router]);
