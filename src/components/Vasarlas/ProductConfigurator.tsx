@@ -1007,8 +1007,7 @@ const ProductConfigurator = () => {
             presetMaxSzenzorok: selectedPreset.szenzorok.length,
           }
         : {}),
-    };
-
+    };    
     const orderApiUrl = process.env.NEXT_PUBLIC_ORDER_API_URL;
     if (!orderApiUrl) {
       toast.error("Hiányzó API URL (NEXT_PUBLIC_ORDER_API_URL)");
