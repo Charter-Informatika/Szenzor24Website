@@ -218,8 +218,8 @@ const fizetesiModok = [
   },
   {
     id: "stripe",
-    name: "Stripe",
-    description: "Bankkártyás fizetés",
+    name: "Bankkártyás fizetés",
+    description: "Stripe",
   },
 ] as const;
 
