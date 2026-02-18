@@ -139,7 +139,7 @@ model tech_type {
 }
 
 model user {
-  id                    String    @id
+  id                    String    @id @default(uuid())
   name                  String?
   email                 String?   @unique(map: "User_email_key")
   emailVerified         DateTime?
