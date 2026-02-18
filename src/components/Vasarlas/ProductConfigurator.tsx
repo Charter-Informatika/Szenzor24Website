@@ -294,13 +294,24 @@ const anyagok = [
 ];
 
 // Javasolt konfigurációk
-const presetOptions = [
+// népszerű presetek: a hűtő, akvárium és irodai levegőminőség
+interface PresetOption {
+  id: string;
+  label: string;
+  description: string;
+  szenzorok: string[];
+  anyagId: string;
+  popular?: boolean;
+}
+
+const presetOptions: PresetOption[] = [
   {
     id: "huto",
     label: "Hűtő",
     description: "Hő + páratartalom szenzor, normál burkolat",
     szenzorok: ["homerseklet", "paratartalom"],
     anyagId: "normal_burkolat",
+    popular: true,
   },
   {
     id: "akvarium",
@@ -308,6 +319,7 @@ const presetOptions = [
     description: "Hő + O2 + CO2 szenzor, vízálló burkolat",
     szenzorok: ["homerseklet", "o2", "co2"],
     anyagId: "vizallo_burkolat",
+    popular: true,
   },
   {
     id: "hutokamra",
@@ -350,6 +362,7 @@ const presetOptions = [
     description: "CO2 + HTU21D, Sima PLA",
     szenzorok: ["co2", "htu21d"],
     anyagId: "sima_pla",
+    popular: true,
   },
   {
     id: "tanterem_levegofigyelo",
@@ -460,9 +473,10 @@ interface Selection {
 const ProductConfigurator = () => {
   const { data: session } = useSession();
   const [currentStep, setCurrentStep] = useState<StepId>("mod");
-  const [configMode, setConfigMode] = useState<ConfigMode | null>(null);
-  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
-  const [selection, setSelection] = useState<Selection>({
+  // default to preset mode with the first popular option selected
+  const [configMode, setConfigMode] = useState<ConfigMode | null>("preset");
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>("huto");
+  const [selection, setSelection] = useState<Selection>(() => ({
     szenzorok: [],
     anyag: null,
     doboz: null,
@@ -493,7 +507,7 @@ const ProductConfigurator = () => {
       door: "",
     },
     foxpostAutomata: null,
-  });
+  }));
   type Catalog = {
     szenzorok: typeof szenzorok;
     eszkozok: typeof eszkozok;
@@ -579,6 +593,15 @@ const ProductConfigurator = () => {
       }));
     }
   }, [isAkkus, selection.dobozSzin, selection.tetoSzin]);
+
+  // when component mounts, if we already have a preset selected by default, apply
+  useEffect(() => {
+    if (configMode === "preset" && selectedPresetId) {
+      applyPreset(selectedPresetId);
+    }
+    // we only want to run this once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getModelPath = (box: string, top: string) =>
     `/images/hero/${box}/${box}_${top}.glb`;
@@ -1099,23 +1122,43 @@ const ProductConfigurator = () => {
         return (
           <div className="mx-auto max-w-5xl">
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              {presetOptions.map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => applyPreset(preset.id)}
-                  className={`rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg ${
-                    configMode === "preset" && selectedPresetId === preset.id
-                      ? "border-primary bg-primary/10"
-                      : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white"
-                  }`}
-                >
-                  <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
-                    {preset.label}
-                  </h4>
-                  <p className="text-body text-sm">{preset.description}</p>
-                </button>
-              ))}
+              {presetOptions.map((preset) => {
+                const isSelected = configMode === "preset" && selectedPresetId === preset.id;
+                const isPopular = Boolean(preset.popular);
+                let styleClass = "rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg ";
+
+                if (isSelected) {
+                  if (isPopular) {
+                    styleClass += "border-yellow-400 bg-primary/10";
+                  } else {
+                    styleClass += "border-primary bg-primary/10";
+                  }
+                } else if (isPopular) {
+                  // popular but not selected: yellow border, normal bg
+                  styleClass += "border-yellow-400 dark:border-yellow-600 dark:bg-dark bg-white";
+                } else {
+                  styleClass += "border-stroke dark:border-stroke-dark dark:bg-dark bg-white";
+                }
+
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => applyPreset(preset.id)}
+                    className={styleClass}
+                  >
+                    <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
+                      {preset.label}
+                      {preset.popular && (
+                        <span className="ml-2 inline-block rounded bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5">
+                          népszerű
+                        </span>
+                      )}
+                    </h4>
+                    <p className="text-body text-sm">{preset.description}</p>
+                  </button>
+                );
+              })}
             </div>
 
             <div className="mt-8 flex justify-center">
@@ -1138,7 +1181,12 @@ const ProductConfigurator = () => {
           <div>
             {configMode === "preset" && selectedPreset && (
               <p className="text-body mb-2 text-center text-sm">
-                Előre beállított konfiguráció: {selectedPreset.label} (a
+                Előre beállított konfiguráció: {selectedPreset.label}
+                {selectedPreset.popular && (
+                  <span className="ml-1 inline-block rounded bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5">
+                    népszerű
+                  </span>
+                )} (a
                 szenzorok és a burkolat nem módosíthatók)
               </p>
             )}
