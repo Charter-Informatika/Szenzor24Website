@@ -7,6 +7,7 @@ import axios from "axios";
 import { OrderPayload } from "@/types/order";
 import FoxpostSelector, { FoxpostAutomataData } from "./FoxpostSelector";
 import { validateShippingAddress, type AddressValidation } from "@/utils/validations";
+import InfoIcon from "../ui/InfoIcon"; // tooltip icon for extra explanations
 
 const formatFoxpostFindme = (value: string) =>
   value
@@ -299,6 +300,7 @@ interface PresetOption {
   id: string;
   label: string;
   description: string;
+  infodescription: string; // hosszabb leírás a tooltiphez
   szenzorok: string[];
   anyagId: string;
   popular?: boolean;
@@ -309,6 +311,7 @@ const presetOptions: PresetOption[] = [
     id: "huto",
     label: "Hűtő",
     description: "Hő + páratartalom szenzor, normál burkolat",
+    infodescription: "Élelmiszer és ital frissességének megőrzése",
     szenzorok: ["homerseklet", "paratartalom"],
     anyagId: "normal_burkolat",
     popular: true,
@@ -317,6 +320,7 @@ const presetOptions: PresetOption[] = [
     id: "akvarium",
     label: "Akvárium",
     description: "Hő + O2 + CO2 szenzor, vízálló burkolat",
+    infodescription: "Víz-paraméterek folyamatos monitorozása",
     szenzorok: ["homerseklet", "o2", "co2"],
     anyagId: "vizallo_burkolat",
     popular: true,
@@ -325,6 +329,7 @@ const presetOptions: PresetOption[] = [
     id: "hutokamra",
     label: "Hűtőkamra",
     description: "SENSORION hőmérséklet + páratartalom, normál burkolat",
+    infodescription: "Raktárak, klímaszabályozás",
     szenzorok: ["sensorion", "paratartalom"],
     anyagId: "normal_burkolat",
   },
@@ -332,6 +337,7 @@ const presetOptions: PresetOption[] = [
     id: "hideglanc_monitor",
     label: "Hideglánc monitor",
     description: "SENSORION hőmérséklet + MPU-6050, PETG",
+    infodescription: "Termékvédelem szállítmányozás alatt",
     szenzorok: ["sensorion", "mpu6050"],
     anyagId: "petg",
   },
@@ -339,6 +345,7 @@ const presetOptions: PresetOption[] = [
     id: "gyogyszertarolo",
     label: "Gyógyszertároló",
     description: "SENSORION hőmérséklet + páratartalom, ABS",
+    infodescription: "Gyógyszerek hatékonyságának megőrzése",
     szenzorok: ["sensorion", "paratartalom"],
     anyagId: "abs",
   },
@@ -346,6 +353,7 @@ const presetOptions: PresetOption[] = [
     id: "raktar_kornyezetfigyelo",
     label: "Raktár környezetfigyelő",
     description: "HTU21D + MPU-6050, PETG",
+    infodescription: "Raktári körülmények teljes kontrollja",
     szenzorok: ["htu21d", "mpu6050"],
     anyagId: "petg",
   },
@@ -353,6 +361,7 @@ const presetOptions: PresetOption[] = [
     id: "server_szoba_monitor",
     label: "Server szoba monitor",
     description: "SENSORION hőmérséklet + CO2, ABS",
+    infodescription: "Szerver-berendezések megbízható védelme",
     szenzorok: ["sensorion", "co2"],
     anyagId: "abs",
   },
@@ -360,6 +369,7 @@ const presetOptions: PresetOption[] = [
     id: "iroda_levegominoseg",
     label: "Iroda levegőminőség",
     description: "CO2 + HTU21D, Sima PLA",
+    infodescription: "Egészséges munkakörnyezet biztosítása",
     szenzorok: ["co2", "htu21d"],
     anyagId: "sima_pla",
     popular: true,
@@ -368,6 +378,7 @@ const presetOptions: PresetOption[] = [
     id: "tanterem_levegofigyelo",
     label: "Tanterem levegőfigyelő",
     description: "CO2 + hőmérséklet, Sima PLA",
+    infodescription: "Tanulási teljesítmény támogatása",
     szenzorok: ["co2", "homerseklet"],
     anyagId: "sima_pla",
   },
@@ -375,6 +386,7 @@ const presetOptions: PresetOption[] = [
     id: "kazan_biztonsag",
     label: "Kazánház biztonság",
     description: "Gáz + O2, ABS",
+    infodescription: "Gázszívárgás azonnali felismerése",
     szenzorok: ["gaz", "o2"],
     anyagId: "abs",
   },
@@ -382,6 +394,7 @@ const presetOptions: PresetOption[] = [
     id: "garazs_gazfigyelo",
     label: "Garázs gázfigyelő",
     description: "Gáz + CO2, PETG",
+    infodescription: "Munkahelyi biztonság garantálása",
     szenzorok: ["gaz", "co2"],
     anyagId: "petg",
   },
@@ -389,6 +402,7 @@ const presetOptions: PresetOption[] = [
     id: "akku_tolto_helyiseg",
     label: "Akkumulátor töltő helyiség",
     description: "Hidrogén + hőmérséklet, ABS",
+    infodescription: "Veszélyes körülmények megelőzése",
     szenzorok: ["hidrogen", "homerseklet"],
     anyagId: "abs",
   },
@@ -396,6 +410,7 @@ const presetOptions: PresetOption[] = [
     id: "allattarto_telep",
     label: "Állattartó telep levegőfigyelő",
     description: "Metán + CO2 + O2, vízálló burkolat",
+    infodescription: "Állatok egészségének és komfortjának biztosítása",
     szenzorok: ["metan", "co2", "o2"],
     anyagId: "vizallo_burkolat",
   },
@@ -403,6 +418,7 @@ const presetOptions: PresetOption[] = [
     id: "logisztikai_csomagfigyelo",
     label: "Logisztikai csomagfigyelő",
     description: "MPU-6050 + hőmérséklet, PETG",
+    infodescription: "Szállított termékek biztonságos érkezése",
     szenzorok: ["mpu6050", "homerseklet"],
     anyagId: "petg",
   },
@@ -410,6 +426,7 @@ const presetOptions: PresetOption[] = [
     id: "szallitasi_sokkfigyelo",
     label: "Szállítási sokkfigyelő",
     description: "MPU-6050, PETG",
+    infodescription: "Rezgés és ütés elleni védelem",
     szenzorok: ["mpu6050"],
     anyagId: "petg",
   },
@@ -417,6 +434,7 @@ const presetOptions: PresetOption[] = [
     id: "tarolo_kontener",
     label: "Tároló konténer monitor",
     description: "Hőmérséklet + MPU-6050, PETG",
+    infodescription: "Raktározott áruk megvédése",
     szenzorok: ["homerseklet", "mpu6050"],
     anyagId: "petg",
   },
@@ -1146,8 +1164,15 @@ const ProductConfigurator = () => {
                     onClick={() => applyPreset(preset.id)}
                     className={styleClass}
                   >
-                    <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
-                      {preset.label}
+                    <h4 className="mb-2 text-lg font-semibold text-black dark:text-white flex items-center">
+                      <span>{preset.label}</span>
+                      <InfoIcon
+                        description={
+                          preset.infodescription
+                        }
+                        position="right"
+                        className="ml-2"
+                      />
                       {preset.popular && (
                         <span className="ml-2 inline-block rounded bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5">
                           népszerű
