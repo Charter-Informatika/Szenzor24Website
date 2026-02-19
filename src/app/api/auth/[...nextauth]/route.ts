@@ -117,7 +117,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         // check to see if eamil and password is there
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Please enter an email or password");
+          throw new Error("Kérem adjon meg egy e-mail címet és jelszót");
         }
 
         // check to see if user already exist
@@ -129,7 +129,7 @@ export const authOptions: NextAuthOptions = {
 
         // if user was not found
         if (!user || !user?.password) {
-          throw new Error("No user found");
+          throw new Error("Felhasználó nem található");
         }
 
         // check to see if passwords match
@@ -139,7 +139,7 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!passwordMatch) {
-          throw new Error("Incorrect password");
+          throw new Error("Hibás jelszó");
         }
 
         return user;

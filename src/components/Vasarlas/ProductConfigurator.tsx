@@ -7,6 +7,7 @@ import axios from "axios";
 import { OrderPayload } from "@/types/order";
 import FoxpostSelector, { FoxpostAutomataData } from "./FoxpostSelector";
 import { validateShippingAddress, type AddressValidation } from "@/utils/validations";
+import InfoIcon from "../ui/InfoIcon"; // tooltip icon for extra explanations
 
 const formatFoxpostFindme = (value: string) =>
   value
@@ -218,8 +219,8 @@ const fizetesiModok = [
   },
   {
     id: "stripe",
-    name: "Stripe",
-    description: "Bankkártyás fizetés",
+    name: "Bankkártyás fizetés",
+    description: "Stripe",
   },
 ] as const;
 
@@ -294,25 +295,41 @@ const anyagok = [
 ];
 
 // Javasolt konfigurációk
-const presetOptions = [
+// népszerű presetek: a hűtő, akvárium és irodai levegőminőség
+interface PresetOption {
+  id: string;
+  label: string;
+  description: string;
+  infodescription: string; // hosszabb leírás a tooltiphez
+  szenzorok: string[];
+  anyagId: string;
+  popular?: boolean;
+}
+
+const presetOptions: PresetOption[] = [
   {
     id: "huto",
     label: "Hűtő",
     description: "Hő + páratartalom szenzor, normál burkolat",
+    infodescription: "Élelmiszer és ital frissességének megőrzése",
     szenzorok: ["homerseklet", "paratartalom"],
     anyagId: "normal_burkolat",
+    popular: true,
   },
   {
     id: "akvarium",
     label: "Akvárium",
     description: "Hő + O2 + CO2 szenzor, vízálló burkolat",
+    infodescription: "Víz-paraméterek folyamatos monitorozása",
     szenzorok: ["homerseklet", "o2", "co2"],
     anyagId: "vizallo_burkolat",
+    popular: true,
   },
   {
     id: "hutokamra",
     label: "Hűtőkamra",
     description: "SENSORION hőmérséklet + páratartalom, normál burkolat",
+    infodescription: "Raktárak, klímaszabályozás",
     szenzorok: ["sensorion", "paratartalom"],
     anyagId: "normal_burkolat",
   },
@@ -320,6 +337,7 @@ const presetOptions = [
     id: "hideglanc_monitor",
     label: "Hideglánc monitor",
     description: "SENSORION hőmérséklet + MPU-6050, PETG",
+    infodescription: "Termékvédelem szállítmányozás alatt",
     szenzorok: ["sensorion", "mpu6050"],
     anyagId: "petg",
   },
@@ -327,6 +345,7 @@ const presetOptions = [
     id: "gyogyszertarolo",
     label: "Gyógyszertároló",
     description: "SENSORION hőmérséklet + páratartalom, ABS",
+    infodescription: "Gyógyszerek hatékonyságának megőrzése",
     szenzorok: ["sensorion", "paratartalom"],
     anyagId: "abs",
   },
@@ -334,6 +353,7 @@ const presetOptions = [
     id: "raktar_kornyezetfigyelo",
     label: "Raktár környezetfigyelő",
     description: "HTU21D + MPU-6050, PETG",
+    infodescription: "Raktári körülmények teljes kontrollja",
     szenzorok: ["htu21d", "mpu6050"],
     anyagId: "petg",
   },
@@ -341,6 +361,7 @@ const presetOptions = [
     id: "server_szoba_monitor",
     label: "Server szoba monitor",
     description: "SENSORION hőmérséklet + CO2, ABS",
+    infodescription: "Szerver-berendezések megbízható védelme",
     szenzorok: ["sensorion", "co2"],
     anyagId: "abs",
   },
@@ -348,13 +369,16 @@ const presetOptions = [
     id: "iroda_levegominoseg",
     label: "Iroda levegőminőség",
     description: "CO2 + HTU21D, Sima PLA",
+    infodescription: "Egészséges munkakörnyezet biztosítása",
     szenzorok: ["co2", "htu21d"],
     anyagId: "sima_pla",
+    popular: true,
   },
   {
     id: "tanterem_levegofigyelo",
     label: "Tanterem levegőfigyelő",
     description: "CO2 + hőmérséklet, Sima PLA",
+    infodescription: "Tanulási teljesítmény támogatása",
     szenzorok: ["co2", "homerseklet"],
     anyagId: "sima_pla",
   },
@@ -362,6 +386,7 @@ const presetOptions = [
     id: "kazan_biztonsag",
     label: "Kazánház biztonság",
     description: "Gáz + O2, ABS",
+    infodescription: "Gázszívárgás azonnali felismerése",
     szenzorok: ["gaz", "o2"],
     anyagId: "abs",
   },
@@ -369,6 +394,7 @@ const presetOptions = [
     id: "garazs_gazfigyelo",
     label: "Garázs gázfigyelő",
     description: "Gáz + CO2, PETG",
+    infodescription: "Munkahelyi biztonság garantálása",
     szenzorok: ["gaz", "co2"],
     anyagId: "petg",
   },
@@ -376,6 +402,7 @@ const presetOptions = [
     id: "akku_tolto_helyiseg",
     label: "Akkumulátor töltő helyiség",
     description: "Hidrogén + hőmérséklet, ABS",
+    infodescription: "Veszélyes körülmények megelőzése",
     szenzorok: ["hidrogen", "homerseklet"],
     anyagId: "abs",
   },
@@ -383,6 +410,7 @@ const presetOptions = [
     id: "allattarto_telep",
     label: "Állattartó telep levegőfigyelő",
     description: "Metán + CO2 + O2, vízálló burkolat",
+    infodescription: "Állatok egészségének és komfortjának biztosítása",
     szenzorok: ["metan", "co2", "o2"],
     anyagId: "vizallo_burkolat",
   },
@@ -390,6 +418,7 @@ const presetOptions = [
     id: "logisztikai_csomagfigyelo",
     label: "Logisztikai csomagfigyelő",
     description: "MPU-6050 + hőmérséklet, PETG",
+    infodescription: "Szállított termékek biztonságos érkezése",
     szenzorok: ["mpu6050", "homerseklet"],
     anyagId: "petg",
   },
@@ -397,6 +426,7 @@ const presetOptions = [
     id: "szallitasi_sokkfigyelo",
     label: "Szállítási sokkfigyelő",
     description: "MPU-6050, PETG",
+    infodescription: "Rezgés és ütés elleni védelem",
     szenzorok: ["mpu6050"],
     anyagId: "petg",
   },
@@ -404,6 +434,7 @@ const presetOptions = [
     id: "tarolo_kontener",
     label: "Tároló konténer monitor",
     description: "Hőmérséklet + MPU-6050, PETG",
+    infodescription: "Raktározott áruk megvédése",
     szenzorok: ["homerseklet", "mpu6050"],
     anyagId: "petg",
   },
@@ -460,9 +491,10 @@ interface Selection {
 const ProductConfigurator = () => {
   const { data: session } = useSession();
   const [currentStep, setCurrentStep] = useState<StepId>("mod");
-  const [configMode, setConfigMode] = useState<ConfigMode | null>(null);
-  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
-  const [selection, setSelection] = useState<Selection>({
+  // default to preset mode with the first popular option selected
+  const [configMode, setConfigMode] = useState<ConfigMode | null>("preset");
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>("huto");
+  const [selection, setSelection] = useState<Selection>(() => ({
     szenzorok: [],
     anyag: null,
     doboz: null,
@@ -493,7 +525,7 @@ const ProductConfigurator = () => {
       door: "",
     },
     foxpostAutomata: null,
-  });
+  }));
   type Catalog = {
     szenzorok: typeof szenzorok;
     eszkozok: typeof eszkozok;
@@ -579,6 +611,15 @@ const ProductConfigurator = () => {
       }));
     }
   }, [isAkkus, selection.dobozSzin, selection.tetoSzin]);
+
+  // when component mounts, if we already have a preset selected by default, apply
+  useEffect(() => {
+    if (configMode === "preset" && selectedPresetId) {
+      applyPreset(selectedPresetId);
+    }
+    // we only want to run this once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getModelPath = (box: string, top: string) =>
     `/images/hero/${box}/${box}_${top}.glb`;
@@ -984,8 +1025,7 @@ const ProductConfigurator = () => {
             presetMaxSzenzorok: selectedPreset.szenzorok.length,
           }
         : {}),
-    };
-
+    };    
     const orderApiUrl = process.env.NEXT_PUBLIC_ORDER_API_URL;
     if (!orderApiUrl) {
       toast.error("Hiányzó API URL (NEXT_PUBLIC_ORDER_API_URL)");
@@ -1099,23 +1139,50 @@ const ProductConfigurator = () => {
         return (
           <div className="mx-auto max-w-5xl">
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              {presetOptions.map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => applyPreset(preset.id)}
-                  className={`rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg ${
-                    configMode === "preset" && selectedPresetId === preset.id
-                      ? "border-primary bg-primary/10"
-                      : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white"
-                  }`}
-                >
-                  <h4 className="mb-2 text-lg font-semibold text-black dark:text-white">
-                    {preset.label}
-                  </h4>
-                  <p className="text-body text-sm">{preset.description}</p>
-                </button>
-              ))}
+              {presetOptions.map((preset) => {
+                const isSelected = configMode === "preset" && selectedPresetId === preset.id;
+                const isPopular = Boolean(preset.popular);
+                let styleClass = "rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg ";
+
+                if (isSelected) {
+                  if (isPopular) {
+                    styleClass += "border-yellow-400 bg-primary/10";
+                  } else {
+                    styleClass += "border-primary bg-primary/10";
+                  }
+                } else if (isPopular) {
+                  // popular but not selected: yellow border, normal bg
+                  styleClass += "border-yellow-400 dark:border-yellow-600 dark:bg-dark bg-white";
+                } else {
+                  styleClass += "border-stroke dark:border-stroke-dark dark:bg-dark bg-white";
+                }
+
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => applyPreset(preset.id)}
+                    className={styleClass}
+                  >
+                    <h4 className="mb-2 text-lg font-semibold text-black dark:text-white flex items-center">
+                      <span>{preset.label}</span>
+                      <InfoIcon
+                        description={
+                          preset.infodescription
+                        }
+                        position="right"
+                        className="ml-2"
+                      />
+                      {preset.popular && (
+                        <span className="ml-2 inline-block rounded bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5">
+                          népszerű
+                        </span>
+                      )}
+                    </h4>
+                    <p className="text-body text-sm">{preset.description}</p>
+                  </button>
+                );
+              })}
             </div>
 
             <div className="mt-8 flex justify-center">
@@ -1138,7 +1205,12 @@ const ProductConfigurator = () => {
           <div>
             {configMode === "preset" && selectedPreset && (
               <p className="text-body mb-2 text-center text-sm">
-                Előre beállított konfiguráció: {selectedPreset.label} (a
+                Előre beállított konfiguráció: {selectedPreset.label}
+                {selectedPreset.popular && (
+                  <span className="ml-1 inline-block rounded bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5">
+                    népszerű
+                  </span>
+                )} (a
                 szenzorok és a burkolat nem módosíthatók)
               </p>
             )}
