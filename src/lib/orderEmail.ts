@@ -162,11 +162,25 @@ export const sendOrderConfirmationEmail = async (order: OrderPayload) => {
 </html>
   `;
 
+
+console.log('Küldés megkezdése, email:', order?.userEmail);
+try {
   const result = await sendEmail({
     to: order.userEmail,
     subject: `✅ Rendelés visszaigazolás - Szenzor24 #${Date.now().toString(36).toUpperCase()}`,
     html,
   });
 
+  console.log('SendEmail result:', result);
+
+  if (!result || result.accepted?.length === 0) {
+    console.error('Az email nem lett elküldve: nincs elfogadott cím a result-ban');
+    return null;
+  }
+
   return result;
+} catch (error) {
+  console.error('Hiba az email küldésekor:', error);
+  return null;
+}
 };
