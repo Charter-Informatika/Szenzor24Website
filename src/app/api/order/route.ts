@@ -427,36 +427,66 @@ export async function POST(request: Request) {
     };
 
     // Email küldés a megrendelőnek
+    console.log("Rendelés visszaigazoló email küldése:", body.userEmail);
     try {
-      await sendOrderConfirmationEmail(orderWithCalculation);
-      console.log("✅ Rendelés visszaigazoló email elküldve:", body.userEmail);
-    } catch (emailError) {
-      console.error("❌ Email küldési hiba:", emailError);
-      // Email hiba nem blokkolja a rendelést
-    }
+console.log("📨 Email küldés indítása...");
+await sendOrderConfirmationEmail(orderWithCalculation);
+console.log("✅ Rendelés visszaigazoló email elküldve:", body.userEmail);
+} catch (emailError) {
+console.error("❌ Email küldési hiba:", emailError);
+// Az email hiba nem blokkolja a rendelést
+}
 
-    // Utalás módnál direkt az sikeres oldalra (mock)
-    if (body.payment.mode === "utalas") {
-      return NextResponse.json({
-        success: true,
-        message: "Rendelés fogadva - Banki átutalásra vár",
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/vasarlas/sikeres`,
-        order: orderWithCalculation,
-      });
-    }
+// 2. Rendelés továbbítása az Express backendnek (App2)
+try {
+console.log("🚀 Rendelés továbbítása az Express szerver felé...");
 
-    // Placeholder válasz - ha egyik üzleti logika se fut
-    return NextResponse.json({
-      success: true,
-      message: "Rendelés fogadva",
-      order: orderWithCalculation,
-    });
+// Ide beírhatod a .env változót, VAGY fixen az IP/URL-t
+const expressApiUrl = process.env.NEXT_PUBLIC_ORDER_API_URL || "Nincs beállítva az Express API URL";
 
-  } catch (error) {
-    console.error("Order API error:", error);
-    return NextResponse.json(
-      { error: "Hiba történt a rendelés feldolgozása során" },
-      { status: 500 }
-    );
-  }
+const app2Response = await fetch(expressApiUrl, {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify(body),
+});
+
+if (!app2Response.ok) {
+const errorText = await app2Response.text();
+console.error("❌ Express hiba válasz:", errorText);
+throw new Error(`Express hiba: ${app2Response.status}`);
+}
+
+console.log("✅ Express szerver sikeresen fogadta a rendelést!");
+} catch (app2Error) {
+console.error("❌ Hiba az Express szerver felé továbbításkor:", app2Error);
+return NextResponse.json(
+{ error: "Hiba a rendelés mentésekor (Express)" },
+{ status: 500 }
+);
+}
+
+// 3. Visszatérés a frontendnek utalás esetén
+if (body.payment.mode === "utalas") {
+return NextResponse.json({
+success: true,
+message: "Rendelés fogadva - Banki átutalásra vár",
+url: `${process.env.NEXT_PUBLIC_SITE_URL}/vasarlas/sikeres`,
+order: orderWithCalculation,
+});
+}
+
+// Alapértelmezett válasz
+return NextResponse.json({
+success: true,
+message: "Rendelés fogadva",
+order: orderWithCalculation,
+});
+
+} catch (error) {
+console.error("Order API error:", error);
+return NextResponse.json(
+{ error: "Hiba történt a rendelés feldolgozása során" },
+{ status: 500 }
+);
+}
 }

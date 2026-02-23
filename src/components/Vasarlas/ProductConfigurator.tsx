@@ -1026,9 +1026,9 @@ const ProductConfigurator = () => {
           }
         : {}),
     };    
-    const orderApiUrl = process.env.NEXT_PUBLIC_ORDER_API_URL;
+    const orderApiUrl = process.env.NEXT_PUBLIC_ORDER_API_URL_LOCAL;
     if (!orderApiUrl) {
-      toast.error("Hiányzó API URL (NEXT_PUBLIC_ORDER_API_URL)");
+      toast.error("Hiányzó API URL (NEXT_PUBLIC_ORDER_API_URL_LOCAL)!");
       return;
     }
 
