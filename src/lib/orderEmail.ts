@@ -167,7 +167,7 @@ console.log('Küldés megkezdése, email:', order?.userEmail);
 try {
   const result = await sendEmail({
     to: order.userEmail,
-    subject: `✅ Rendelés visszaigazolás - Szenzor24 #${Date.now().toString(36).toUpperCase()}`,
+    subject: `✅ Rendelés visszaigazolás - Szenzor24`,
     html,
   });
 
