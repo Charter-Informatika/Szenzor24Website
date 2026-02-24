@@ -20,7 +20,7 @@ function useTabsContext() {
   const context = useContext(TabsContext);
 
   if (!context) {
-    throw new Error("useTabsContext must be used within a Tabs Component");
+    throw new Error("a useTabsContext hívása csak Tabs komponens belsejében lehetséges");
   }
 
   return context;

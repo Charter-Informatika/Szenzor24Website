@@ -11,7 +11,7 @@ const dbUrl = (process.env.DATABASE_URL || "").replace(
 );
 
 if (!dbUrl) {
-  throw new Error("DATABASE_URL is missing. Check .env in project root.");
+  throw new Error("DATABASE_URL hiányzik a környezeti változók közül!");
 }
 
 export default defineConfig({

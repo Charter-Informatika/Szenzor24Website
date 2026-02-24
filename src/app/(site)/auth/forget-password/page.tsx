@@ -28,9 +28,9 @@ export default function Page() {
     } catch (error) {
       if (error instanceof AxiosError) {
         if (error.response?.status === 404) {
-          toast.error("User not found.");
+          toast.error("Felhasználó nem található.");
         } else {
-          toast.error("Something went wrong.");
+          toast.error("Valami hiba történt.");
         }
       }
     } finally {

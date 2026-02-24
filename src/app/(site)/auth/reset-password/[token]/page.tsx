@@ -15,7 +15,7 @@ export default async function Page(props: PropsType) {
   try {
     userEmail = await verifyToken(params.token);
   } catch (error) {
-    toast.error("Token is invalid or has expired. Please request a new one.");
+    toast.error("Érvénytelen vagy lejárt token.");
     redirect("/auth/forget-password");
   }
 

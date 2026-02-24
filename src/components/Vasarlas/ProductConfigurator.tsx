@@ -589,7 +589,7 @@ const ProductConfigurator = () => {
           ) as typeof SZALLITASI_ARAK,
         }));
       } catch (err) {
-        console.error("Catalog load failed:", err);
+        console.error("Catalog betöltése sikertelen:", err);
       }
     };
 
@@ -1049,7 +1049,7 @@ const ProductConfigurator = () => {
         console.log("Order response:", data);
       }
     } catch (error: any) {
-      console.error("Order error:", error);
+      console.error("Rendelési hiba:", error);
       toast.error(
         error.response?.data?.error || "Hiba történt a rendelés során!",
       );
