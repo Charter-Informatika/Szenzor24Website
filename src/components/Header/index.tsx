@@ -32,6 +32,11 @@ const menuData: Menu[] = [
     label: "Elérhetőség",
     route: "/#screens",
   }
+  ,
+  {
+    label: "Dokumentáció",
+    route: "/docs",
+  }
 ];
 
 const Header = () => {
