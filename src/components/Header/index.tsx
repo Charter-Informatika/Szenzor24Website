@@ -35,7 +35,7 @@ const menuData: Menu[] = [
   ,
   {
     label: "Dokumentáció",
-    route: "/docs",
+    route: "/docs/Szenzor24",
   }
 ];
 
