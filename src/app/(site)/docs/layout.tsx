@@ -3,7 +3,12 @@ import { getAllPosts } from "@/lib/markdown";
 import { PropsWithChildren } from "react";
 
 export default function DocsLayout({ children }: PropsWithChildren) {
-  const posts = getAllPosts(["title", "date", "excerpt", "coverImage", "slug"]);
+  let posts: ReturnType<typeof getAllPosts> = [];
+  try {
+    posts = getAllPosts(["title", "date", "excerpt", "coverImage", "slug"]);
+  } catch (e) {
+    console.error("Failed to load docs list for sidebar:", e);
+  }
 
   return (
     <div className="container pt-24 pb-16 md:pt-28 md:pb-20 lg:pt-32 lg:pb-24">

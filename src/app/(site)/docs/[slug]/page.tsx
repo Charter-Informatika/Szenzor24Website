@@ -9,7 +9,12 @@ type Props = {
 
 export async function generateMetadata(props: Props) {
   const params = await props.params;
-  const post = getPostBySlug(params.slug, ["title", "author", "content"]);
+  let post: ReturnType<typeof getPostBySlug> | null = null;
+  try {
+    post = getPostBySlug(params.slug, ["title", "author", "content"]);
+  } catch {
+    // file not found – fall through to "Not Found" metadata
+  }
   const siteName = process.env.SITE_NAME;
   const authorName = process.env.AUTHOR_NAME;
 
@@ -43,19 +48,23 @@ export async function generateMetadata(props: Props) {
 export default async function DocsPost(props: Props) {
   const { slug } = await props.params;
 
-  const post = getPostBySlug(slug, ["title", "author", "content"]);
+  let post: ReturnType<typeof getPostBySlug>;
+  try {
+    post = getPostBySlug(slug, ["title", "author", "content"]);
+  } catch {
+    notFound();
+  }
 
-  if (!post) notFound();
+  const content = await markdownToHtml(post!.content || "");
 
-  const content = await markdownToHtml(post.content || "");
-
-  await structuredAlgoliaHtmlData({
+  // Fire-and-forget: Algolia indexing must not block the page render
+  structuredAlgoliaHtmlData({
     type: "docs",
-    title: post?.title,
+    title: post!.title,
     htmlString: content,
     pageUrl: `${process.env.SITE_URL}/docs/${slug}`,
     imageURL: "",
-  });
+  }).catch((e) => console.error("Algolia indexing error:", e));
 
   return <article dangerouslySetInnerHTML={{ __html: content }} />;
 }
