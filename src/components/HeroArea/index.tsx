@@ -161,7 +161,7 @@ const HeroArea = () => {
                         </model-viewer>`,
                       }}                
                     />
-                  ), [modelSrc])}
+                  ), [modelSrc, modelAPath])}
                 </div>
                 <div className="mt-4 flex justify-center">
                   <button

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import Graphics from "@/components/Features/Graphics";
 import { Feature } from "@/types/feature";
 
@@ -267,6 +268,7 @@ const Features = () => {
         clearTimeout(fadeTimeoutRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalPages]);
 
   return (
@@ -277,13 +279,13 @@ const Features = () => {
           <div className="mb-6 max-w-[1320px] mx-auto px-4">
             {/* First 4 images: stretched on mobile, spaced apart on desktop */}
             <div className="grid grid-cols-2 md:flex md:justify-between gap-4 mb-4">
-              <img src="/images/hero/szenzorkep1.png" alt="Szenzor 1" className="w-full md:w-auto h-auto max-h-[400px] object-contain rounded-lg" />
-              <img src="/images/hero/szenzorkep2.png" alt="Szenzor 2" className="w-full md:w-auto h-auto max-h-[400px] object-contain rounded-lg" />
-              <img src="/images/hero/szenzorkep3.png" alt="Szenzor 3" className="w-full md:w-auto h-auto max-h-[400px] object-contain rounded-lg" />
-              <img src="/images/hero/szenzorkep4.png" alt="Szenzor 4" className="w-full md:w-auto h-auto max-h-[400px] object-contain rounded-lg" />
+              <Image src="/images/hero/szenzorkep1.png" alt="Szenzor 1" width={400} height={400} className="w-full md:w-auto h-auto max-h-[400px] object-contain rounded-lg" />
+              <Image src="/images/hero/szenzorkep2.png" alt="Szenzor 2" width={400} height={400} className="w-full md:w-auto h-auto max-h-[400px] object-contain rounded-lg" />
+              <Image src="/images/hero/szenzorkep3.png" alt="Szenzor 3" width={400} height={400} className="w-full md:w-auto h-auto max-h-[400px] object-contain rounded-lg" />
+              <Image src="/images/hero/szenzorkep4.png" alt="Szenzor 4" width={400} height={400} className="w-full md:w-auto h-auto max-h-[400px] object-contain rounded-lg" />
             </div>
             {/* Large image spanning full width */}
-            <img src="/images/hero/szenzorkep5.png" alt="Szenzor 5" className="w-full h-auto max-h-[800px] object-contain rounded-lg" />
+            <Image src="/images/hero/szenzorkep5.png" alt="Szenzor 5" width={1320} height={800} className="w-full h-auto max-h-[800px] object-contain rounded-lg" />
           </div>
 
           <div

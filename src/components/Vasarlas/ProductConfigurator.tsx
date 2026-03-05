@@ -1245,6 +1245,7 @@ const ProductConfigurator = () => {
                   >
                     <div className="flex items-start justify-between">
                       <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-lg bg-slate-100 p-2 sm:h-24 sm:w-24 dark:bg-slate-800">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={szenzor.imageUrl}
                           alt={szenzor.name}
@@ -1897,11 +1898,14 @@ const ProductConfigurator = () => {
                     >
                       <div className="flex items-center gap-2">
                         {sz?.imageUrl && (
-                          <img
-                            src={sz.imageUrl}
-                            alt={sz.name}
-                            className="h-6 w-6 object-contain"
-                          />
+                          <>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={sz.imageUrl}
+                              alt={sz.name}
+                              className="h-6 w-6 object-contain"
+                            />
+                          </>
                         )}
                         <p className="font-medium text-black dark:text-white">
                           {sz?.name}

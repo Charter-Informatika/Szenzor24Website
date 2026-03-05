@@ -50,7 +50,7 @@ export default function DocsIndex() {
           <div></div>
         ) : (
           docsList.map((f) => (
-            <div>
+            <div key={f}>
               <div>
                 <div className="font-medium">{f}</div>
                 <div className="text-sm text-slate-500">Hely: <code>/docs/{f}</code></div>

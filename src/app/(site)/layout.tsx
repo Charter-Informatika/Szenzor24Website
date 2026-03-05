@@ -69,6 +69,7 @@ export default function RootLayout({
               target="_blank"
               rel="noreferrer"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 className="statcounter"
                 //src="https://c.statcounter.com/13168723/0/4634ba31/1/"
