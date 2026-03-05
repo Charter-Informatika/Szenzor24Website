@@ -7,7 +7,7 @@ export async function generateStaticParams() {
   try {
     const slugs = getPostSlugs();
     return slugs.map((file) => ({
-      slug: encodeURIComponent(file.replace(/\.mdx$/, "")),
+      slug: file.replace(/\.mdx$/, ""),
     }));
   } catch {
     return [];
