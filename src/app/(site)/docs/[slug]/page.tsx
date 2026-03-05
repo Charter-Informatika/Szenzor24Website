@@ -1,7 +1,18 @@
 import { structuredAlgoliaHtmlData } from "@/lib/crawlIndex";
-import { getPostBySlug } from "@/lib/markdown";
+import { getPostBySlug, getPostSlugs } from "@/lib/markdown";
 import markdownToHtml from "@/lib/markdownToHtml";
 import { notFound } from "next/navigation";
+
+export async function generateStaticParams() {
+  try {
+    const slugs = getPostSlugs();
+    return slugs.map((file) => ({
+      slug: encodeURIComponent(file.replace(/\.mdx$/, "")),
+    }));
+  } catch {
+    return [];
+  }
+}
 
 type Props = {
   params: Promise<{ slug: string }>;
