@@ -23,6 +23,7 @@
     "cheerio": "^1.0.0-rc.12",
     "fslightbox-react": "^1.7.6",
     "gray-matter": "^4.0.3",
+    "mammoth": "^1.11.0",
     "mariadb": "^3.4.5",
     "next": "^15.5.7",
     "next-auth": "^4.24.11",

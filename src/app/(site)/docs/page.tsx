@@ -1,26 +1,66 @@
-import type { Metadata } from "next";
+import Link from "next/link";
+import fs from "fs";
+import path from "path";
+import { getAllPosts } from "@/lib/markdown";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Docs Page - Solid SaaS Boilerplate",
-  description: "This is Docs page for Solid Pro",
-  // other metadata
+// This is a server component so we can read the public/docs folder at build/runtime.
+function readDocs(): string[] {
+  try {
+    const docsDir = path.join(process.cwd(), "public", "docs");
+    if (!fs.existsSync(docsDir)) return [];
+    const files = fs.readdirSync(docsDir);
+    // filter to common docx/doc formats
+    return files.filter((f) => /\.(docx?|pdf|txt)$/i.test(f));
+  } catch (err) {
+    return [];
+  }
+}
+
+const docsList = readDocs();
+
+try {
+  const posts = getAllPosts(["slug"]);
+  if (posts && posts.length > 0) {
+    const defaultSlug = posts.find((p) => p.slug === "Szenzor24")
+      ? "Szenzor24"
+      : posts[0].slug;
+    redirect(`/docs/${defaultSlug}`);
+  }
+} catch (err) {
+  // ignore if markdown helper fails or no posts
+}
+
+export const metadata = {
+  title: "Dokumentáció - Szenzor24",
+  description: "",
 };
 
-export default function DocsPage() {
+export default function DocsIndex() {
   return (
-    <article>
-      <h1>Welcome to Startup Documentation</h1>
+    <div className="container mx-auto px-6 py-12">
+      <h1 className="text-3xl font-bold mb-4"></h1>
 
-      <p className="text-body-color dark:text-body-color-dark text-base">
-        This document serves as a simple template to showcase a sample layout
-        and format. It is solely created for demonstration purposes and is not
-        intended for any official use.
+      <p className="mb-4">
+        
       </p>
-      <p className="text-body-color dark:text-body-color-dark text-base">
-        Please visit:{" "}
-        <a href="https://nextjstemplates.com/docs">nextjstemplates.com/docs</a>{" "}
-        to check out the real docs, setup guide and even video instructions
-      </p>
-    </article>
+
+      <div className="space-y-4">
+        {docsList.length === 0 ? (
+          <div></div>
+        ) : (
+          docsList.map((f) => (
+            <div>
+              <div>
+                <div className="font-medium">{f}</div>
+                <div className="text-sm text-slate-500">Hely: <code>/docs/{f}</code></div>
+              </div>
+
+            </div>
+          ))
+        )}
+      </div>
+    </div>
   );
 }
+
