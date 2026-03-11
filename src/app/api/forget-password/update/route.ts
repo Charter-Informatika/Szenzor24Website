@@ -20,7 +20,7 @@ export async function POST(request) {
   });
 
   if (!user) {
-    throw new Error("Email does not exists");
+    throw new Error("Email cím nem található");
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);

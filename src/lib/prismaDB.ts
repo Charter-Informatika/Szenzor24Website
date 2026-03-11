@@ -30,7 +30,7 @@ function getPrismaClient() {
 
   const dbUrl = process.env.DATABASE_URL || "";
   if (!dbUrl) {
-    throw new Error("[PrismaDB] DATABASE_URL is not set!");
+    throw new Error("[PrismaDB] DATABASE_URL nincs megadva!");
   }
 
   const dbConfig = parseDbUrl(dbUrl);
