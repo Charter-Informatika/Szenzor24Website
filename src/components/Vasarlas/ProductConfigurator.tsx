@@ -307,6 +307,7 @@ interface PresetOption {
 }
 
 const presetOptions: PresetOption[] = [
+  // csak a kész csomagok latáthatók
   {
     id: "huto",
     label: "Hűtő",
@@ -324,119 +325,6 @@ const presetOptions: PresetOption[] = [
     szenzorok: ["homerseklet", "o2", "co2"],
     anyagId: "vizallo_burkolat",
     popular: true,
-  },
-  {
-    id: "hutokamra",
-    label: "Hűtőkamra",
-    description: "SENSORION hőmérséklet + páratartalom, normál burkolat",
-    infodescription: "Raktárak, klímaszabályozás",
-    szenzorok: ["sensorion", "paratartalom"],
-    anyagId: "normal_burkolat",
-  },
-  {
-    id: "hideglanc_monitor",
-    label: "Hideglánc monitor",
-    description: "SENSORION hőmérséklet + MPU-6050, PETG",
-    infodescription: "Termékvédelem szállítmányozás alatt",
-    szenzorok: ["sensorion", "mpu6050"],
-    anyagId: "petg",
-  },
-  {
-    id: "gyogyszertarolo",
-    label: "Gyógyszertároló",
-    description: "SENSORION hőmérséklet + páratartalom, ABS",
-    infodescription: "Gyógyszerek hatékonyságának megőrzése",
-    szenzorok: ["sensorion", "paratartalom"],
-    anyagId: "abs",
-  },
-  {
-    id: "raktar_kornyezetfigyelo",
-    label: "Raktár környezetfigyelő",
-    description: "HTU21D + MPU-6050, PETG",
-    infodescription: "Raktári körülmények teljes kontrollja",
-    szenzorok: ["htu21d", "mpu6050"],
-    anyagId: "petg",
-  },
-  {
-    id: "server_szoba_monitor",
-    label: "Server szoba monitor",
-    description: "SENSORION hőmérséklet + CO2, ABS",
-    infodescription: "Szerver-berendezések megbízható védelme",
-    szenzorok: ["sensorion", "co2"],
-    anyagId: "abs",
-  },
-  {
-    id: "iroda_levegominoseg",
-    label: "Iroda levegőminőség",
-    description: "CO2 + HTU21D, Sima PLA",
-    infodescription: "Egészséges munkakörnyezet biztosítása",
-    szenzorok: ["co2", "htu21d"],
-    anyagId: "sima_pla",
-    popular: true,
-  },
-  {
-    id: "tanterem_levegofigyelo",
-    label: "Tanterem levegőfigyelő",
-    description: "CO2 + hőmérséklet, Sima PLA",
-    infodescription: "Tanulási teljesítmény támogatása",
-    szenzorok: ["co2", "homerseklet"],
-    anyagId: "sima_pla",
-  },
-  {
-    id: "kazan_biztonsag",
-    label: "Kazánház biztonság",
-    description: "Gáz + O2, ABS",
-    infodescription: "Gázszívárgás azonnali felismerése",
-    szenzorok: ["gaz", "o2"],
-    anyagId: "abs",
-  },
-  {
-    id: "garazs_gazfigyelo",
-    label: "Garázs gázfigyelő",
-    description: "Gáz + CO2, PETG",
-    infodescription: "Munkahelyi biztonság garantálása",
-    szenzorok: ["gaz", "co2"],
-    anyagId: "petg",
-  },
-  {
-    id: "akku_tolto_helyiseg",
-    label: "Akkumulátor töltő helyiség",
-    description: "Hidrogén + hőmérséklet, ABS",
-    infodescription: "Veszélyes körülmények megelőzése",
-    szenzorok: ["hidrogen", "homerseklet"],
-    anyagId: "abs",
-  },
-  {
-    id: "allattarto_telep",
-    label: "Állattartó telep levegőfigyelő",
-    description: "Metán + CO2 + O2, vízálló burkolat",
-    infodescription: "Állatok egészségének és komfortjának biztosítása",
-    szenzorok: ["metan", "co2", "o2"],
-    anyagId: "vizallo_burkolat",
-  },
-  {
-    id: "logisztikai_csomagfigyelo",
-    label: "Logisztikai csomagfigyelő",
-    description: "MPU-6050 + hőmérséklet, PETG",
-    infodescription: "Szállított termékek biztonságos érkezése",
-    szenzorok: ["mpu6050", "homerseklet"],
-    anyagId: "petg",
-  },
-  {
-    id: "szallitasi_sokkfigyelo",
-    label: "Szállítási sokkfigyelő",
-    description: "MPU-6050, PETG",
-    infodescription: "Rezgés és ütés elleni védelem",
-    szenzorok: ["mpu6050"],
-    anyagId: "petg",
-  },
-  {
-    id: "tarolo_kontener",
-    label: "Tároló konténer monitor",
-    description: "Hőmérséklet + MPU-6050, PETG",
-    infodescription: "Raktározott áruk megvédése",
-    szenzorok: ["homerseklet", "mpu6050"],
-    anyagId: "petg",
   },
 ];
 
@@ -463,6 +351,7 @@ interface Selection {
   tetoSzin: string;
   tapellatas: string | null;
   elofizetes: "ingyenes" | "havi" | "eves" | null;
+  elofizetesekPerUnit: (string | null)[];
   quantity: number; // Megrendelt darabszám
   shippingMode: "foxpost" | "hazhoz" | null;
   paymentMode: "utalas" | "stripe" | null;
@@ -502,6 +391,7 @@ const ProductConfigurator = () => {
     tetoSzin: "feher",
     tapellatas: null,
     elofizetes: null,
+    elofizetesekPerUnit: [],
     quantity: 1,
     shippingMode: null,
     paymentMode: null,
@@ -589,7 +479,7 @@ const ProductConfigurator = () => {
           ) as typeof SZALLITASI_ARAK,
         }));
       } catch (err) {
-        console.error("Catalog load failed:", err);
+        console.error("Catalog betöltése sikertelen:", err);
       }
     };
 
@@ -621,6 +511,21 @@ const ProductConfigurator = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Sync per-unit subscriptions when entering the summary step
+  useEffect(() => {
+    if (currentStep === "osszesites") {
+      setSelection((prev) => {
+        if (prev.elofizetesekPerUnit.length === prev.quantity) return prev;
+        const perUnit = Array.from({ length: prev.quantity }, (_, i) =>
+          i < prev.elofizetesekPerUnit.length
+            ? prev.elofizetesekPerUnit[i]
+            : prev.elofizetes,
+        );
+        return { ...prev, elofizetesekPerUnit: perUnit };
+      });
+    }
+  }, [currentStep]);
+
   const getModelPath = (box: string, top: string) =>
     `/images/hero/${box}/${box}_${top}.glb`;
   const getAkkusModelPath = (box: string, top: string) =>
@@ -630,15 +535,13 @@ const ProductConfigurator = () => {
     : getModelPath(selection.dobozSzin, selection.tetoSzin);
 
   const steps: { id: StepId; title: string; icon: string }[] = [
-    { id: "mod", title: "Mód", icon: "1" },
-    { id: "szenzor", title: "Szenzor", icon: "2" },
-    { id: "anyag", title: "Anyag", icon: "3" },
-    { id: "tapellatas", title: "Tápellátás", icon: "4" },
-    { id: "doboz", title: "Doboz", icon: "5" },
-    { id: "szin", title: "Szín", icon: "6" },
-    { id: "elofizetes", title: "Előfizetés", icon: "7" },
-    { id: "szallitas", title: "Szállítás", icon: "8" },
-    { id: "fizetes", title: "Fizetés", icon: "9" },
+    { id: "mod", title: "Csomag", icon: "1" },
+    { id: "tapellatas", title: "Tápellátás", icon: "2" },
+    { id: "doboz", title: "Doboz", icon: "3" },
+    { id: "szin", title: "Szín", icon: "4" },
+    { id: "elofizetes", title: "Előfizetés", icon: "5" },
+    { id: "szallitas", title: "Szállítás", icon: "6" },
+    { id: "fizetes", title: "Fizetés", icon: "7" },
     { id: "osszesites", title: "Összesítés", icon: "✓" },
   ];
 
@@ -705,9 +608,17 @@ const ProductConfigurator = () => {
   };
 
   const calculateSubscriptionFee = () => {
+    if (selection.elofizetesekPerUnit.length > 0) {
+      return selection.elofizetesekPerUnit.reduce((sum, id) => {
+        if (!id) return sum;
+        const plan = findBySelection(catalog.elofizetesek, id);
+        return sum + (plan ? plan.price : 0);
+      }, 0);
+    }
+    // Fallback before summary is reached
     if (!selection.elofizetes) return 0;
-    const elofizetes = findBySelection(elofizetesek, selection.elofizetes);
-    return elofizetes ? elofizetes.price : 0;
+    const elofizetes = findBySelection(catalog.elofizetesek, selection.elofizetes);
+    return elofizetes ? elofizetes.price * selection.quantity : 0;
   };
 
   const getShippingFee = () =>
@@ -866,6 +777,14 @@ const ProductConfigurator = () => {
       return;
     }
 
+    if (
+      selection.elofizetesekPerUnit.length < selection.quantity ||
+      selection.elofizetesekPerUnit.some((id) => !id)
+    ) {
+      toast.error("Minden eszközhöz kötelező előfizetést választani!");
+      return;
+    }
+
     if (!isShippingValid()) {
       // Set validation errors for display
       if (selection.shippingMode === "foxpost") {
@@ -937,6 +856,16 @@ const ProductConfigurator = () => {
             price: 0,
             quantity: selection.quantity,
           },
+
+      elofizetesekPerUnit: selection.elofizetesekPerUnit.map((id) => {
+        const plan = findBySelection(catalog.elofizetesek, id);
+        return {
+          id: String(plan?.id ?? "ingyenes"),
+          name: plan?.name ?? "Ingyenes",
+          price: plan?.price ?? 0,
+          quantity: 1,
+        };
+      }),
 
       colors: {
         dobozSzin: {
@@ -1049,7 +978,7 @@ const ProductConfigurator = () => {
         console.log("Order response:", data);
       }
     } catch (error: any) {
-      console.error("Order error:", error);
+      console.error("Rendelési hiba:", error);
       toast.error(
         error.response?.data?.error || "Hiba történt a rendelés során!",
       );
@@ -1185,19 +1114,7 @@ const ProductConfigurator = () => {
               })}
             </div>
 
-            <div className="mt-8 flex justify-center">
-              <button
-                type="button"
-                onClick={selectCustomMode}
-                className={`w-full max-w-sm rounded-2xl border-2 px-6 py-4 text-center text-base font-semibold transition-all hover:shadow-lg ${
-                  configMode === "custom"
-                    ? "border-primary bg-primary/10 text-black dark:text-white"
-                    : "border-stroke dark:border-stroke-dark dark:bg-dark bg-white text-black dark:text-white"
-                }`}
-              >
-                Teljeskörű személyre szabás
-              </button>
-            </div>
+
           </div>
         );
       case "szenzor":
@@ -1966,20 +1883,59 @@ const ProductConfigurator = () => {
                   </p>
                 </div>
 
-                <div className="border-stroke dark:border-stroke-dark flex items-center justify-between border-b pb-3">
-                  <div>
-                    <p className="font-medium text-black dark:text-white">
-                      {selectedElofizetes?.name ?? "-"}
-                    </p>
-                    <p className="text-body text-sm">Előfizetés</p>
+                <div className="border-stroke dark:border-stroke-dark border-b pb-3">
+                  <p className="text-body mb-3 text-sm font-medium">Előfizetés eszközönként</p>
+                  <div className="space-y-4">
+                    {Array.from({ length: selection.quantity }, (_, i) => {
+                      const unitEloId = selection.elofizetesekPerUnit[i] ?? null;
+                      return (
+                        <div key={i}>
+                          <p className="mb-2 text-xs font-semibold text-black dark:text-white">
+                            {i + 1}. eszköz
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {catalog.elofizetesek.map((plan) => {
+                              const isSelected = matchSelection(plan, unitEloId);
+                              return (
+                                <button
+                                  key={String(plan.id)}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelection((prev) => {
+                                      const newPerUnit = [...prev.elofizetesekPerUnit];
+                                      newPerUnit[i] = String(plan.id);
+                                      return { ...prev, elofizetesekPerUnit: newPerUnit };
+                                    });
+                                  }}
+                                  className={`rounded-lg border-2 px-3 py-1.5 text-xs font-medium transition-all ${
+                                    isSelected
+                                      ? "border-primary bg-primary/10 text-black dark:text-white"
+                                      : "border-stroke dark:border-stroke-dark text-body hover:border-primary/50"
+                                  }`}
+                                >
+                                  {plan.name}{" "}
+                                  <span className="opacity-70">
+                                    {plan.price === 0
+                                      ? "(0 Ft)"
+                                      : `(${plan.price.toLocaleString("hu-HU")} Ft)`}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {!unitEloId && (
+                            <p className="mt-1 text-xs font-medium text-red-500">Kötelező!</p>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                  <p className="font-semibold text-black dark:text-white">
-                    {selectedElofizetes
-                      ? selectedElofizetes.price === 0
-                        ? "0 Ft"
-                        : `${selectedElofizetes.price.toLocaleString("hu-HU")} Ft`
-                      : "-"}
-                  </p>
+                  <div className="mt-3 flex items-center justify-between border-t border-dashed border-gray-300 pt-2 dark:border-gray-600">
+                    <p className="text-body text-sm">Előfizetési díj összesen:</p>
+                    <p className="text-primary font-semibold">
+                      {calculateSubscriptionFee().toLocaleString("hu-HU")} Ft
+                    </p>
+                  </div>
                 </div>
 
                 {/* Darabszám */}
@@ -1991,10 +1947,14 @@ const ProductConfigurator = () => {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() =>
-                          setSelection((prev) => ({
-                            ...prev,
-                            quantity: Math.max(1, prev.quantity - 1),
-                          }))
+                          setSelection((prev) => {
+                            const newQty = Math.max(1, prev.quantity - 1);
+                            return {
+                              ...prev,
+                              quantity: newQty,
+                              elofizetesekPerUnit: prev.elofizetesekPerUnit.slice(0, newQty),
+                            };
+                          })
                         }
                         className="dark:bg-dark rounded border border-gray-300 bg-white px-3 py-2 text-black hover:bg-gray-100 dark:border-gray-600 dark:text-white dark:hover:bg-gray-800"
                       >
@@ -2008,20 +1968,28 @@ const ProductConfigurator = () => {
                         onChange={(e) => {
                           const value = parseInt(e.target.value);
                           if (!isNaN(value) && value >= 1 && value <= 999) {
-                            setSelection((prev) => ({
-                              ...prev,
-                              quantity: value,
-                            }));
+                            setSelection((prev) => {
+                              const perUnit = Array.from({ length: value }, (_, i) =>
+                                i < prev.elofizetesekPerUnit.length
+                                  ? prev.elofizetesekPerUnit[i]
+                                  : prev.elofizetes,
+                              );
+                              return { ...prev, quantity: value, elofizetesekPerUnit: perUnit };
+                            });
                           }
                         }}
                         className="dark:bg-dark w-20 rounded border border-gray-300 bg-white px-3 py-2 text-center text-black placeholder-gray-400 dark:border-gray-600 dark:text-white"
                       />
                       <button
                         onClick={() =>
-                          setSelection((prev) => ({
-                            ...prev,
-                            quantity: Math.min(999, prev.quantity + 1),
-                          }))
+                          setSelection((prev) => {
+                            const newQty = Math.min(999, prev.quantity + 1);
+                            return {
+                              ...prev,
+                              quantity: newQty,
+                              elofizetesekPerUnit: [...prev.elofizetesekPerUnit, prev.elofizetes],
+                            };
+                          })
                         }
                         className="dark:bg-dark rounded border border-gray-300 bg-white px-3 py-2 text-black hover:bg-gray-100 dark:border-gray-600 dark:text-white dark:hover:bg-gray-800"
                       >
@@ -2186,7 +2154,7 @@ const ProductConfigurator = () => {
   const getStepTitle = () => {
     switch (currentStep) {
       case "mod":
-        return "Válassz módot!";
+        return "Válassz csomagot!";
       case "szenzor":
         return "Válassz szenzort!";
       case "anyag":
@@ -2253,28 +2221,23 @@ const ProductConfigurator = () => {
         {/* Lépés indikátor */}
         <div className="mb-10">
           <div className="mx-auto flex max-w-4xl items-center justify-between">
-            {steps.map((step, index) => {
-              const stepIndex = steps.findIndex((s) => s.id === currentStep);
+            {visibleSteps.map((step, index) => {
+              const stepIndex = visibleSteps.findIndex((s) => s.id === currentStep);
               const isActive = step.id === currentStep;
               const isCompleted = index < stepIndex;
-              const isBlockedStep =
-                isPresetLocked &&
-                (step.id === "szenzor" || step.id === "anyag");
 
               return (
                 <React.Fragment key={step.id}>
                   <div
                     onClick={() => {
-                      if (index < stepIndex && !isBlockedStep) {
+                      if (index < stepIndex) {
                         setCurrentStep(step.id);
                       }
                     }}
                     className={`flex flex-col items-center ${
-                      isBlockedStep
-                        ? "cursor-not-allowed"
-                        : index < stepIndex
-                          ? "cursor-pointer"
-                          : "cursor-default"
+                      index < stepIndex
+                        ? "cursor-pointer"
+                        : "cursor-default"
                     }`}
                   >
                     <div
@@ -2300,7 +2263,7 @@ const ProductConfigurator = () => {
                       {step.title}
                     </span>
                   </div>
-                  {index < steps.length - 1 && (
+                  {index < visibleSteps.length - 1 && (
                     <div
                       className={`mx-2 h-1 flex-1 rounded ${
                         index < stepIndex
@@ -2329,13 +2292,9 @@ const ProductConfigurator = () => {
             </h4>
             <div className="space-y-4 text-sm">
               <div>
-                <p className="font-medium text-black dark:text-white">Mód</p>
+                <p className="font-medium text-black dark:text-white">Csomag</p>
                 <p className="text-body">
-                  {configMode === "preset"
-                    ? `Preset: ${selectedPreset?.label ?? "-"}`
-                    : configMode === "custom"
-                      ? "Teljeskörű személyre szabás"
-                      : "-"}
+                  {selectedPreset?.label ?? "-"}
                 </p>
               </div>
               <div>

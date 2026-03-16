@@ -21,7 +21,7 @@ export async function POST(request: any) {
   });
 
   if (exist) {
-    throw new Error("Email already exists");
+    throw new Error("Ez az email cím már használatban van");
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);

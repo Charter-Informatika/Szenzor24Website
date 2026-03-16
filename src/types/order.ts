@@ -73,7 +73,8 @@ export interface OrderPayload {
   doboz: OrderItem;
   anyag: OrderItem;       // Burok anyag típusa (PLA, UV álló PLA, stb.)
   tapellatas: OrderItem;
-  elofizetes?: OrderItem; // Opcionális - előfizetés díja
+  elofizetes?: OrderItem; // Opcionális - előfizetés díja (1. eszköz, backward compat)
+  elofizetesekPerUnit?: OrderItem[]; // Eszközönkénti előfizetés
 
   // Színek (nem befolyásolja az árat)
   colors: OrderColors;

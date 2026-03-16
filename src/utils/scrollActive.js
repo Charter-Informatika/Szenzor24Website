@@ -12,8 +12,11 @@ export function onScroll(event) {
   for (let i = 0; i < sections.length; i++) {
     const currLink = sections[i];
     const val = currLink.getAttribute("href");
-    const anchor = val && val.substring(1);
-    const refElement = anchor && document.querySelector(`${anchor}`);
+    const anchor = val && val.startsWith("#") ? val.substring(1) : null;
+    let refElement = null;
+    if (anchor && /^[a-zA-Z][\w-]*$/.test(anchor)) {
+      refElement = document.getElementById(anchor);
+    }
     const scrollTopMinus = scrollPos + 73;
     if (
       refElement &&

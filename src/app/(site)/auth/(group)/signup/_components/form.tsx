@@ -39,10 +39,10 @@ export function SignUpForm() {
         name: payload.fullName,
       });
 
-      toast.success("User has been registered");
+      toast.success("Regisztráció sikeres! Most már bejelentkezhetsz.");
       reset();
     } catch (error) {
-      toast.error("Something went wrong");
+      toast.error("Valami hiba történt.");
     }
   }
 
