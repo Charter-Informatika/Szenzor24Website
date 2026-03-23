@@ -12,18 +12,29 @@ export const PricingItem = ({ price, planType, buttonLabel = "Előfizetek", butt
       return;
     }
     if (integrations?.isStripeEnabled) {
-      const { data } = await axios.post(
-        "/api/payment",
-        {
-          priceId: price.id,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
+      try {
+        const { data } = await axios.post(
+          "/api/payment",
+          {
+            priceId: price.id,
           },
-        },
-      );
-      window.location.assign(data);
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
+
+        if (typeof data === "string" && data.length > 0) {
+          window.location.assign(data);
+          return;
+        }
+
+        toast.error("Nem sikerült elindítani a Stripe fizetést.");
+      } catch (error) {
+        console.error("Stripe checkout start error:", error);
+        toast.error("Hiba történt a Stripe sandbox fizetés indításakor.");
+      }
     } else {
       toast.error(messages.stripe);
     }

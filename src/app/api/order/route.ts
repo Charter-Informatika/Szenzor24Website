@@ -298,7 +298,8 @@ export async function POST(request: Request) {
       try {
         const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
         
-        // Szenzorok line_items (max preset/custom)
+        // Szenzorok line_items (max preset/custom) - bruttó áron (ÁFA-val)
+        const vatMultiplier = 1 + body.vatPercent / 100;
         const szenzorLineItems = body.szenzorok.map((sz) => ({
           price_data: {
             currency: "huf",
@@ -306,7 +307,7 @@ export async function POST(request: Request) {
               name: sz.name,
               description: "Szenzor",
             },
-            unit_amount: sz.price * 100, // Stripe fillérben várja
+            unit_amount: Math.round(sz.price * vatMultiplier * 100), // Bruttó ár fillérben
           },
           quantity: sz.quantity,
         }));
@@ -321,7 +322,7 @@ export async function POST(request: Request) {
                 name: body.anyag.name,
                 description: "Burok anyag",
               },
-              unit_amount: body.anyag.price * 100,
+              unit_amount: Math.round(body.anyag.price * vatMultiplier * 100),
             },
             quantity: body.anyag.quantity,
           },
@@ -332,7 +333,7 @@ export async function POST(request: Request) {
                 name: body.doboz.name,
                 description: `Doboz - ${body.colors.dobozSzin.name} / ${body.colors.tetoSzin.name} tető`,
               },
-              unit_amount: body.doboz.price * 100,
+              unit_amount: Math.round(body.doboz.price * vatMultiplier * 100),
             },
             quantity: body.doboz.quantity,
           },
@@ -343,13 +344,13 @@ export async function POST(request: Request) {
                 name: body.tapellatas.name,
                 description: "Tápellátás",
               },
-              unit_amount: body.tapellatas.price * 100,
+              unit_amount: Math.round(body.tapellatas.price * vatMultiplier * 100),
             },
             quantity: body.tapellatas.quantity,
           },
         ];
 
-        // Elofizetes hozzáadása ha van
+        // Előfizetés hozzáadása ha van - már bruttó áron jön, nem szorzunk ÁFA-val
         if (body.elofizetes && body.elofizetes.price > 0) {
           lineItems.push({
             price_data: {
@@ -361,6 +362,21 @@ export async function POST(request: Request) {
               unit_amount: body.elofizetes.price * 100,
             },
             quantity: body.elofizetes.quantity,
+          });
+        }
+
+        // Szállítási díj hozzáadása ha van (ÁFA-mentes)
+        if (shippingFee > 0) {
+          lineItems.push({
+            price_data: {
+              currency: "huf",
+              product_data: {
+                name: "Szállítás",
+                description: "Szállítási díj",
+              },
+              unit_amount: shippingFee * 100,
+            },
+            quantity: 1,
           });
         }
 
@@ -438,11 +454,10 @@ console.error("❌ Email küldési hiba:", emailError);
 }
 
 // 2. Rendelés továbbítása az Express backendnek (App2)
+const expressApiUrl = process.env.NEXT_PUBLIC_ORDER_API_URL?.trim();
+if (expressApiUrl) {
 try {
 console.log("🚀 Rendelés továbbítása az Express szerver felé...");
-
-// Ide beírhatod a .env változót, VAGY fixen az IP/URL-t
-const expressApiUrl = process.env.NEXT_PUBLIC_ORDER_API_URL || "Nincs beállítva az Express API URL";
 
 const app2Response = await fetch(expressApiUrl, {
 method: "POST",
@@ -463,6 +478,9 @@ return NextResponse.json(
 { error: "Hiba a rendelés mentésekor (Express)" },
 { status: 500 }
 );
+}
+} else {
+console.warn("⚠️ NEXT_PUBLIC_ORDER_API_URL nincs beállítva, Express továbbítás kihagyva.");
 }
 
 // 3. Visszatérés a frontendnek utalás esetén
