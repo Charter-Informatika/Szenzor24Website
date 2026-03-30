@@ -229,6 +229,13 @@ export async function POST(request: Request) {
       );
     }
 
+    if (body.userId === "guest" && !body.userPhone) {
+      return NextResponse.json(
+        { error: "Vendég rendelésnél a telefonszám kötelező" },
+        { status: 400 }
+      );
+    }
+
     if (!body.shipping || !body.shipping.mode || !body.shipping.billingAddress) {
       return NextResponse.json(
         { error: "Hiányzó szállítási adatok" },
@@ -372,6 +379,7 @@ export async function POST(request: Request) {
           line_items: lineItems,
           metadata: {
             userId: body.userId,
+            userPhone: body.userPhone ?? "",
             szenzorokIds: body.szenzorok.map((sz) => sz.id).join(","),
             dobozId: body.doboz.id,
             dobozSzin: body.colors.dobozSzin.id,
@@ -437,12 +445,11 @@ console.error("❌ Email küldési hiba:", emailError);
 // Az email hiba nem blokkolja a rendelést
 }
 
-// 2. Rendelés továbbítása az Express backendnek (App2)
+// 2. Rendelés továbbítása az Express backendnek (App2) - opcionális
+const expressApiUrl = process.env.NEXT_PUBLIC_ORDER_API_URL;
+if (expressApiUrl) {
 try {
 console.log("🚀 Rendelés továbbítása az Express szerver felé...");
-
-// Ide beírhatod a .env változót, VAGY fixen az IP/URL-t
-const expressApiUrl = process.env.NEXT_PUBLIC_ORDER_API_URL || "Nincs beállítva az Express API URL";
 
 const app2Response = await fetch(expressApiUrl, {
 method: "POST",
@@ -463,6 +470,9 @@ return NextResponse.json(
 { error: "Hiba a rendelés mentésekor (Express)" },
 { status: 500 }
 );
+}
+} else {
+console.warn("⚠️ NEXT_PUBLIC_ORDER_API_URL nincs beállítva, Express továbbítás kihagyva.");
 }
 
 // 3. Visszatérés a frontendnek utalás esetén

@@ -66,6 +66,7 @@ export interface OrderPayload {
   userId: string;
   userEmail: string;
   userName: string;        // Megrendelő neve
+  userPhone?: string;      // Vendég rendelésnél kötelező
 
   // Kiválasztott termékek
   szenzorok: OrderItem[]; // Custom max 2, preset limit
