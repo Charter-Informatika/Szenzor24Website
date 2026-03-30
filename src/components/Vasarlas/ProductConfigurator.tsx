@@ -375,10 +375,22 @@ interface Selection {
     door: string;
   };
   foxpostAutomata: FoxpostAutomataData | null;
+  guestContact: {
+    name: string;
+    email: string;
+    phone: string;
+  };
 }
+
+type GuestContactErrors = {
+  name?: string;
+  email?: string;
+  phone?: string;
+};
 
 const ProductConfigurator = () => {
   const { data: session } = useSession();
+  const isGuestCheckout = !session?.user;
   const [currentStep, setCurrentStep] = useState<StepId>("mod");
   // default to preset mode with the first popular option selected
   const [configMode, setConfigMode] = useState<ConfigMode | null>("preset");
@@ -415,6 +427,11 @@ const ProductConfigurator = () => {
       door: "",
     },
     foxpostAutomata: null,
+    guestContact: {
+      name: "",
+      email: "",
+      phone: "",
+    },
   }));
   type Catalog = {
     szenzorok: typeof szenzorok;
@@ -448,6 +465,7 @@ const ProductConfigurator = () => {
 
   const [shippingAddressErrors, setShippingAddressErrors] = useState<AddressValidation["errors"]>({});
   const [billingAddressErrors, setBillingAddressErrors] = useState<AddressValidation["errors"]>({});
+  const [guestContactErrors, setGuestContactErrors] = useState<GuestContactErrors>({});
 
   const modelViewerRef = useRef<HTMLDivElement>(null);
 
@@ -567,7 +585,7 @@ const ProductConfigurator = () => {
       : catalog.szenzorok;
 
   // Helper: match selection value against item's old_id (slug) or id
-  const findBySelection = (list: any[], sel: any) => {
+  const findBySelection = (list: readonly any[], sel: any) => {
     if (sel === null || sel === undefined) return undefined;
     return list.find((item) => {
       const oldId = (item as any).old_id;
@@ -641,7 +659,39 @@ const ProductConfigurator = () => {
         address.houseNumber.trim(),
     );
 
+  const validateGuestContact = (contact: Selection["guestContact"]) => {
+    const errors: GuestContactErrors = {};
+
+    if (!contact.name.trim()) {
+      errors.name = "A név megadása kötelező";
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!contact.email.trim()) {
+      errors.email = "Az email cím megadása kötelező";
+    } else if (!emailRegex.test(contact.email.trim())) {
+      errors.email = "Érvényes email címet adj meg";
+    }
+
+    const phoneDigits = contact.phone.replace(/\D/g, "");
+    if (!contact.phone.trim()) {
+      errors.phone = "A telefonszám megadása kötelező";
+    } else if (phoneDigits.length < 9) {
+      errors.phone = "Érvényes telefonszámot adj meg";
+    }
+
+    return {
+      isValid: Object.keys(errors).length === 0,
+      errors,
+    };
+  };
+
   const isShippingValid = () => {
+    if (isGuestCheckout) {
+      const guestValidation = validateGuestContact(selection.guestContact);
+      if (!guestValidation.isValid) return false;
+    }
+
     if (!selection.shippingMode) return false;
 
     if (selection.shippingMode === "foxpost") {
@@ -747,9 +797,13 @@ const ProductConfigurator = () => {
   };
 
   const handleOrder = async () => {
-    if (!session) {
-      toast.error("A rendeléshez be kell jelentkezni!");
-      return;
+    if (isGuestCheckout) {
+      const guestValidation = validateGuestContact(selection.guestContact);
+      setGuestContactErrors(guestValidation.errors);
+      if (!guestValidation.isValid) {
+        toast.error("Vendég rendeléshez add meg a nevet, email címet és telefonszámot!");
+        return;
+      }
     }
 
     // Kiválasztott szenzorok (több is lehet)
@@ -798,6 +852,10 @@ const ProductConfigurator = () => {
           setBillingAddressErrors(billingVal.errors);
         }
       }
+      if (isGuestCheckout) {
+        const guestValidation = validateGuestContact(selection.guestContact);
+        setGuestContactErrors(guestValidation.errors);
+      }
       toast.error("Hiányzó vagy érvénytelen szállítási adatok!");
       return;
     }
@@ -814,10 +872,21 @@ const ProductConfigurator = () => {
     const shippingFee = getShippingFee();
     const total = subtotal + vatAmount + shippingFee + subscriptionFee;
 
+    const resolvedUserName = isGuestCheckout
+      ? selection.guestContact.name.trim()
+      : session?.user?.name || "Ismeretlen";
+    const resolvedUserEmail = isGuestCheckout
+      ? selection.guestContact.email.trim()
+      : session?.user?.email || "";
+    const resolvedUserPhone = isGuestCheckout
+      ? selection.guestContact.phone.trim()
+      : "";
+
     const orderPayload: OrderPayload = {
-      userId: (session.user as any).id || "unknown",
-      userEmail: session.user?.email || "",
-      userName: session.user?.name || "Ismeretlen",
+      userId: isGuestCheckout ? "guest" : ((session?.user as any)?.id || "unknown"),
+      userEmail: resolvedUserEmail,
+      userName: resolvedUserName,
+      userPhone: resolvedUserPhone,
 
       szenzorok: selectedSzenzorok.map((sz) => ({
         id: sz!.id,
@@ -955,11 +1024,8 @@ const ProductConfigurator = () => {
           }
         : {}),
     };    
-    const orderApiUrl = process.env.NEXT_PUBLIC_ORDER_API_URL_LOCAL;
-    if (!orderApiUrl) {
-      toast.error("Hiányzó API URL (NEXT_PUBLIC_ORDER_API_URL_LOCAL)!");
-      return;
-    }
+    const orderApiUrl =
+      process.env.NEXT_PUBLIC_ORDER_API_URL_LOCAL || "/api/order";
 
     try {
       const { data } = await axios.post(orderApiUrl, orderPayload);
@@ -1435,6 +1501,94 @@ const ProductConfigurator = () => {
       case "szallitas":
         return (
           <div className="mx-auto max-w-4xl space-y-6">
+            {isGuestCheckout && (
+              <div className="border-stroke dark:border-stroke-dark dark:bg-dark space-y-4 rounded-xl border bg-white p-4">
+                <p className="text-body text-sm font-medium">Személyes adatok (vendég rendelés)</p>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-1 md:col-span-2">
+                    <input
+                      type="text"
+                      placeholder="Teljes név"
+                      value={selection.guestContact.name}
+                      onChange={(ev) => {
+                        const value = ev.target.value;
+                        setSelection((prev) => ({
+                          ...prev,
+                          guestContact: {
+                            ...prev.guestContact,
+                            name: value,
+                          },
+                        }));
+                        setGuestContactErrors((prev) => ({ ...prev, name: undefined }));
+                      }}
+                      className={`w-full rounded-lg border px-4 py-3 text-sm text-black outline-none focus:border-primary dark:bg-dark dark:text-white ${
+                        guestContactErrors.name
+                          ? "border-red-500 bg-red-50/10 dark:border-red-400"
+                          : "border-stroke bg-white dark:border-stroke-dark"
+                      }`}
+                    />
+                    {guestContactErrors.name && (
+                      <p className="text-xs font-medium text-red-500">{guestContactErrors.name}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <input
+                      type="email"
+                      placeholder="Email cím"
+                      value={selection.guestContact.email}
+                      onChange={(ev) => {
+                        const value = ev.target.value;
+                        setSelection((prev) => ({
+                          ...prev,
+                          guestContact: {
+                            ...prev.guestContact,
+                            email: value,
+                          },
+                        }));
+                        setGuestContactErrors((prev) => ({ ...prev, email: undefined }));
+                      }}
+                      className={`w-full rounded-lg border px-4 py-3 text-sm text-black outline-none focus:border-primary dark:bg-dark dark:text-white ${
+                        guestContactErrors.email
+                          ? "border-red-500 bg-red-50/10 dark:border-red-400"
+                          : "border-stroke bg-white dark:border-stroke-dark"
+                      }`}
+                    />
+                    {guestContactErrors.email && (
+                      <p className="text-xs font-medium text-red-500">{guestContactErrors.email}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <input
+                      type="tel"
+                      placeholder="Telefonszám"
+                      value={selection.guestContact.phone}
+                      onChange={(ev) => {
+                        const value = ev.target.value;
+                        setSelection((prev) => ({
+                          ...prev,
+                          guestContact: {
+                            ...prev.guestContact,
+                            phone: value,
+                          },
+                        }));
+                        setGuestContactErrors((prev) => ({ ...prev, phone: undefined }));
+                      }}
+                      className={`w-full rounded-lg border px-4 py-3 text-sm text-black outline-none focus:border-primary dark:bg-dark dark:text-white ${
+                        guestContactErrors.phone
+                          ? "border-red-500 bg-red-50/10 dark:border-red-400"
+                          : "border-stroke bg-white dark:border-stroke-dark"
+                      }`}
+                    />
+                    {guestContactErrors.phone && (
+                      <p className="text-xs font-medium text-red-500">{guestContactErrors.phone}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {szallitasiModok.map((mod) => (
                 <button
