@@ -152,8 +152,8 @@ const dobozok = [
 
 // Doboz színek
 const dobozSzinek = [
-  { id: "zold", name: "Zöld", hex: "#22c55e" },
   { id: "feher", name: "Fehér", hex: "#f9fafb" },
+  { id: "zold", name: "Zöld", hex: "#22c55e" },
   { id: "sarga", name: "Sárga", hex: "#eab308" },
   { id: "piros", name: "Piros", hex: "#ef4444" },
   { id: "kek", name: "Kék", hex: "#3b82f6" },
@@ -163,10 +163,10 @@ const dobozSzinek = [
 // Tető színek
 const tetoSzinek = [
   { id: "feher", name: "Fehér", hex: "#f9fafb" },
-  { id: "sarga", name: "Sárga", hex: "#eab308" },
-  { id: "kek", name: "Kék", hex: "#3b82f6" },
   { id: "zold", name: "Zöld", hex: "#22c55e" },
+  { id: "sarga", name: "Sárga", hex: "#eab308" },
   { id: "piros", name: "Piros", hex: "#ef4444" },
+  { id: "kek", name: "Kék", hex: "#3b82f6" },
   { id: "fekete", name: "Fekete", hex: "#1f2937" },
 ];
 
@@ -549,8 +549,8 @@ const ProductConfigurator = () => {
   const getAkkusModelPath = (box: string, top: string) =>
     `/images/hero/akkus/${box}/${box}_${top}.glb`;
   const modelSrc = isAkkus
-    ? getAkkusModelPath(selection.dobozSzin, selection.tetoSzin)
-    : getModelPath(selection.dobozSzin, selection.tetoSzin);
+    ? getAkkusModelPath(selection.dobozSzin || "feher", selection.tetoSzin || "feher")
+    : getModelPath(selection.dobozSzin || "feher", selection.tetoSzin || "feher");
 
   const steps: { id: StepId; title: string; icon: string }[] = [
     { id: "mod", title: "Csomag", icon: "1" },
