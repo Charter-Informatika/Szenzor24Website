@@ -399,8 +399,8 @@ const ProductConfigurator = () => {
     szenzorok: [],
     anyag: null,
     doboz: null,
-    dobozSzin: "zold",
-    tetoSzin: "feher",
+    dobozSzin: "",
+    tetoSzin: "",
     tapellatas: null,
     elofizetes: null,
     elofizetesekPerUnit: [],
@@ -2425,18 +2425,55 @@ const ProductConfigurator = () => {
           </div>
         </div>
 
-        {/* Aktuális lépés címe */}
-        <h3 className="mb-8 text-center text-2xl font-semibold text-black dark:text-white">
-          {getStepTitle()}
-        </h3>
+
+        {/* Navigációs fejléc: Vissza - Cím - Tovább */}
+<div className="mb-10 flex items-center justify-between gap-4">
+  
+  <div className="flex-1">
+    <button
+      onClick={prevStep}
+      disabled={currentStep === "mod"}
+      className={`rounded-lg px-6 py-3 font-medium transition-all ${
+        currentStep === "mod"
+          ? "invisible" 
+          : "bg-gray-200 text-black hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+      }`}
+    >
+      ← Vissza
+    </button>
+  </div>
+
+  <h3 className="shrink-0 text-center text-xl font-semibold text-black sm:text-2xl dark:text-white">
+    {getStepTitle()}
+  </h3>
+
+  <div className="flex-1 text-right">
+    {currentStep !== "osszesites" ? (
+      <button
+        onClick={nextStep}
+        disabled={!canProceed()}
+        className={`rounded-lg px-6 py-3 font-medium transition-all ${
+          canProceed()
+            ? "bg-primary hover:bg-primary/90 text-white"
+            : "cursor-not-allowed bg-gray-200 text-gray-400 dark:bg-gray-700"
+        }`}
+      >
+        Tovább →
+      </button>
+    ) : (
+      <div className="inline-block px-6 py-3" />
+    )}
+  </div>
+</div>
+        
 
         {/* Lépés tartalma + oldalsó összegzés */}
         <div className="mb-10 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div>{renderStepContent()}</div>
           <aside className="border-stroke dark:border-stroke-dark dark:bg-dark h-fit rounded-xl border-2 bg-white p-5 lg:sticky lg:top-24">
-            <h4 className="mb-4 text-lg font-semibold text-black dark:text-white">
+            {/* <h4 className="mb-4 text-lg font-semibold text-black dark:text-white">
               Folyamatkövető
-            </h4>
+            </h4> */}
             <div className="space-y-4 text-sm">
               <div>
                 <p className="font-medium text-black dark:text-white">Csomag</p>
@@ -2502,51 +2539,12 @@ const ProductConfigurator = () => {
                 <p className="text-primary text-lg font-semibold">
                   {calculateGrandTotal().toLocaleString("hu-HU")} Ft
                 </p>
+                <p className="text-[13px] text-gray-500 dark:text-gray-400 italic">
+                Az ár tartalmazza a 27% ÁFA-t.
+            </p>
               </div>
             </div>
           </aside>
-        </div>
-
-        {/* Navigációs gombok */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={prevStep}
-            disabled={currentStep === "mod"}
-            className={`rounded-lg px-6 py-3 font-medium transition-all ${
-              currentStep === "mod"
-                ? "cursor-not-allowed bg-gray-200 text-gray-400 dark:bg-gray-700"
-                : "bg-gray-200 text-black hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-            }`}
-          >
-            ← Vissza
-          </button>
-
-          {/* Aktuális ár */}
-          <div className="text-center">
-            <p className="text-body text-sm">Jelenlegi végösszeg:</p>
-            <p className="text-primary text-2xl font-bold">
-              {calculateGrandTotal().toLocaleString("hu-HU")} Ft
-            </p>
-            <p className="text-[13px] text-gray-500 dark:text-gray-400 italic">
-                Az ár tartalmazza a 27% ÁFA-t.
-            </p>
-          </div>
-
-          {currentStep !== "osszesites" ? (
-            <button
-              onClick={nextStep}
-              disabled={!canProceed()}
-              className={`rounded-lg px-6 py-3 font-medium transition-all ${
-                canProceed()
-                  ? "bg-primary hover:bg-primary/90 text-white"
-                  : "cursor-not-allowed bg-gray-200 text-gray-400 dark:bg-gray-700"
-              }`}
-            >
-              Tovább →
-            </button>
-          ) : (
-            <div className="w-24" /> // Placeholder a layout megtartásához
-          )}
         </div>
       </div>
     </section>
