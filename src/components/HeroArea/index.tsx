@@ -185,7 +185,7 @@ const HeroArea = () => {
               Okos mérés, biztos döntés.
             </h2>
             <p className="text-body text-base sm:text-lg md:text-xl leading-relaxed text-black dark:text-white">
-              Automatikus felügyelet, pontos mérések és azonnali értesítések – hogy semmi ne érjen meglepetésként.
+              Automatikus felügyelet, pontos mérések és azonnali értesítések – hogy semmi ne érje meglepetésként.
             </p>
           </div>
         </div>

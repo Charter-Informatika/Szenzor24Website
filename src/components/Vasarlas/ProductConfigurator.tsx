@@ -152,8 +152,8 @@ const dobozok = [
 
 // Doboz színek
 const dobozSzinek = [
-  { id: "zold", name: "Zöld", hex: "#22c55e" },
   { id: "feher", name: "Fehér", hex: "#f9fafb" },
+  { id: "zold", name: "Zöld", hex: "#22c55e" },
   { id: "sarga", name: "Sárga", hex: "#eab308" },
   { id: "piros", name: "Piros", hex: "#ef4444" },
   { id: "kek", name: "Kék", hex: "#3b82f6" },
@@ -163,10 +163,10 @@ const dobozSzinek = [
 // Tető színek
 const tetoSzinek = [
   { id: "feher", name: "Fehér", hex: "#f9fafb" },
-  { id: "sarga", name: "Sárga", hex: "#eab308" },
-  { id: "kek", name: "Kék", hex: "#3b82f6" },
   { id: "zold", name: "Zöld", hex: "#22c55e" },
+  { id: "sarga", name: "Sárga", hex: "#eab308" },
   { id: "piros", name: "Piros", hex: "#ef4444" },
+  { id: "kek", name: "Kék", hex: "#3b82f6" },
   { id: "fekete", name: "Fekete", hex: "#1f2937" },
 ];
 
@@ -229,21 +229,21 @@ const elofizetesek = [
     id: "ingyenes",
     name: "Ingyenes",
     description:
-      "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 30 napos adatmegőrzés \n ❌ hőmérséklet naplózás \n ❌ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
+      "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 30 napos adatmegőrzés \n ❌ Hőmérséklet naplózás \n ❌ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
     price: 0,
   },
   {
     id: "havi",
     name: "Havi",
     description:
-      "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
+      "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ Hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
     price: 1000,
   },
   {
     id: "eves",
     name: "Éves",
     description:
-      "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
+      "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ Hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
     price: 10000,
   },
 ] as const;
@@ -399,8 +399,8 @@ const ProductConfigurator = () => {
     szenzorok: [],
     anyag: null,
     doboz: null,
-    dobozSzin: "zold",
-    tetoSzin: "feher",
+    dobozSzin: "",
+    tetoSzin: "",
     tapellatas: null,
     elofizetes: null,
     elofizetesekPerUnit: [],
@@ -549,8 +549,8 @@ const ProductConfigurator = () => {
   const getAkkusModelPath = (box: string, top: string) =>
     `/images/hero/akkus/${box}/${box}_${top}.glb`;
   const modelSrc = isAkkus
-    ? getAkkusModelPath(selection.dobozSzin, selection.tetoSzin)
-    : getModelPath(selection.dobozSzin, selection.tetoSzin);
+    ? getAkkusModelPath(selection.dobozSzin || "feher", selection.tetoSzin || "feher")
+    : getModelPath(selection.dobozSzin || "feher", selection.tetoSzin || "feher");
 
   const steps: { id: StepId; title: string; icon: string }[] = [
     { id: "mod", title: "Csomag", icon: "1" },
@@ -1140,17 +1140,10 @@ const ProductConfigurator = () => {
                 let styleClass = "rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg ";
 
                 if (isSelected) {
-                  if (isPopular) {
-                    styleClass += "border-yellow-400 bg-primary/10";
-                  } else {
-                    styleClass += "border-primary bg-primary/10";
-                  }
-                } else if (isPopular) {
-                  // popular but not selected: yellow border, normal bg
-                  styleClass += "border-yellow-400 dark:border-yellow-600 dark:bg-dark bg-white";
+                styleClass += "border-primary bg-primary/10 dark:border-primary dark:bg-primary/5";
                 } else {
-                  styleClass += "border-stroke dark:border-stroke-dark dark:bg-dark bg-white";
-                }
+                styleClass += "border-stroke dark:border-stroke-dark dark:bg-dark bg-white";
+                 }
 
                 return (
                   <button
@@ -1284,7 +1277,7 @@ const ProductConfigurator = () => {
             )}
             {!isPresetLocked && (
               <p className="text-body mb-4 text-center text-sm">
-                Válaszd ki a burok anyagát! (PLACEHOLDER - árak és típusok
+                Válassza ki a burok anyagát! (PLACEHOLDER - árak és típusok
                 később pontosítandók)
               </p>
             )}
@@ -1694,7 +1687,7 @@ const ProductConfigurator = () => {
 
                 <div className="border-stroke dark:border-stroke-dark dark:bg-dark rounded-xl border bg-white p-4">
                   <p className="text-body mb-3 text-sm">
-                    Válaszd ki a csomagautomatát a térképes keresőből:
+                    Válassza ki a csomagautomatát a térképes keresőből:
                   </p>
                   <FoxpostSelector
                     selected={selection.foxpostAutomata}
@@ -1998,10 +1991,10 @@ const ProductConfigurator = () => {
                 {/* Anyag */}
                 <div className="border-stroke dark:border-stroke-dark flex items-center justify-between border-b pb-3">
                   <div>
+                    <p className="text-body text-sm">Burok anyaga</p>
                     <p className="font-medium text-black dark:text-white">
                       {selectedAnyagOssz?.icon} {selectedAnyagOssz?.name}
                     </p>
-                    <p className="text-body text-sm">Burok anyaga</p>
                   </div>
                   <p className="font-semibold text-black dark:text-white">
                     {selectedAnyagOssz?.price === 0
@@ -2012,12 +2005,9 @@ const ProductConfigurator = () => {
 
                 <div className="border-stroke dark:border-stroke-dark flex items-center justify-between border-b pb-3">
                   <div>
+                    <p className="text-body text-sm">Doboz</p>
                     <p className="font-medium text-black dark:text-white">
                       {selectedDoboz?.icon} {selectedDoboz?.name}
-                    </p>
-                    <p className="text-body text-sm">
-                      Doboz ({selectedDobozSzin?.name} /{" "}
-                      {selectedTetoSzin?.name} tető)
                     </p>
                   </div>
                   <p className="font-semibold text-black dark:text-white">
@@ -2027,10 +2017,21 @@ const ProductConfigurator = () => {
 
                 <div className="border-stroke dark:border-stroke-dark flex items-center justify-between border-b pb-3">
                   <div>
+                    <p className="text-body text-sm">Színek</p>
+                    <p className="font-medium text-black dark:text-white">
+                        🎨
+                      {selectedDobozSzin?.name} doboz /{" "}
+                      {selectedTetoSzin?.name} tető
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border-stroke dark:border-stroke-dark flex items-center justify-between border-b pb-3">
+                  <div>
+                    <p className="text-body text-sm">Tápellátás</p>
                     <p className="font-medium text-black dark:text-white">
                       {selectedTap?.icon} {selectedTap?.name}
                     </p>
-                    <p className="text-body text-sm">Tápellátás</p>
                   </div>
                   <p className="font-semibold text-black dark:text-white">
                     {selectedTap?.price.toLocaleString("hu-HU")} Ft
@@ -2308,25 +2309,25 @@ const ProductConfigurator = () => {
   const getStepTitle = () => {
     switch (currentStep) {
       case "mod":
-        return "Válassz csomagot!";
+        return "Válasszon csomagot!";
       case "szenzor":
-        return "Válassz szenzort!";
+        return "Válasszon szenzort!";
       case "anyag":
-        return "Válassz anyagot!";
+        return "Válasszon anyagot!";
       case "doboz":
-        return "Válassz dobozt!";
+        return "Válasszon dobozt!";
       case "szin":
-        return "Válassz színt!";
+        return "Válasszon színt!";
       case "tapellatas":
         return "Akkumulátoros vagy vezetékes?";
       case "elofizetes":
-        return "Válassz előfizetést!";
+        return "Válasszon előfizetést!";
       case "szallitas":
-        return "Add meg a szállítást!";
+        return "Adja meg a szállítási módot!";
       case "fizetes":
-        return "Válassz fizetési módot!";
+        return "Válasszon fizetési módot!";
       case "osszesites":
-        return "Ellenőrizd a rendelésed!";
+        return "Ellenőrizze a rendelését!";
       default:
         return "";
     }
@@ -2368,7 +2369,7 @@ const ProductConfigurator = () => {
             Termék konfigurátor
           </h2>
           <p className="text-body text-base">
-            Állítsd össze a saját szenzor csomagodat lépésről lépésre!
+            Állítsa össze a saját szenzor csomagját lépésről lépésre!
           </p>
         </div>
 
@@ -2432,18 +2433,55 @@ const ProductConfigurator = () => {
           </div>
         </div>
 
-        {/* Aktuális lépés címe */}
-        <h3 className="mb-8 text-center text-2xl font-semibold text-black dark:text-white">
-          {getStepTitle()}
-        </h3>
+
+        {/* Navigációs fejléc: Vissza - Cím - Tovább */}
+<div className="mb-10 flex items-center justify-between gap-4">
+  
+  <div className="flex-1">
+    <button
+      onClick={prevStep}
+      disabled={currentStep === "mod"}
+      className={`rounded-lg px-6 py-3 font-medium transition-all ${
+        currentStep === "mod"
+          ? "invisible" 
+          : "bg-gray-200 text-black hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+      }`}
+    >
+      ← Vissza
+    </button>
+  </div>
+
+  <h3 className="shrink-0 text-center text-xl font-semibold text-black sm:text-2xl dark:text-white">
+    {getStepTitle()}
+  </h3>
+
+  <div className="flex-1 text-right">
+    {currentStep !== "osszesites" ? (
+      <button
+        onClick={nextStep}
+        disabled={!canProceed()}
+        className={`rounded-lg px-6 py-3 font-medium transition-all ${
+          canProceed()
+            ? "bg-primary hover:bg-primary/90 text-white"
+            : "cursor-not-allowed bg-gray-200 text-gray-400 dark:bg-gray-700"
+        }`}
+      >
+        Tovább →
+      </button>
+    ) : (
+      <div className="inline-block px-6 py-3" />
+    )}
+  </div>
+</div>
+        
 
         {/* Lépés tartalma + oldalsó összegzés */}
         <div className="mb-10 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div>{renderStepContent()}</div>
           <aside className="border-stroke dark:border-stroke-dark dark:bg-dark h-fit rounded-xl border-2 bg-white p-5 lg:sticky lg:top-24">
-            <h4 className="mb-4 text-lg font-semibold text-black dark:text-white">
+            {/* <h4 className="mb-4 text-lg font-semibold text-black dark:text-white">
               Folyamatkövető
-            </h4>
+            </h4> */}
             <div className="space-y-4 text-sm">
               <div>
                 <p className="font-medium text-black dark:text-white">Csomag</p>
@@ -2474,8 +2512,11 @@ const ProductConfigurator = () => {
               <div>
                 <p className="font-medium text-black dark:text-white">Doboz</p>
                 <p className="text-body">{selectedDobozName}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Színek</p>
                 <p className="text-body">
-                  Színek: {selectedDobozSzinName} / {selectedTetoSzinName}
+                  {selectedDobozSzinName} doboz / {selectedTetoSzinName} tető
                 </p>
               </div>
               <div>
@@ -2509,48 +2550,12 @@ const ProductConfigurator = () => {
                 <p className="text-primary text-lg font-semibold">
                   {calculateGrandTotal().toLocaleString("hu-HU")} Ft
                 </p>
+                <p className="text-[13px] text-gray-500 dark:text-gray-400 italic">
+                Az ár tartalmazza a 27% ÁFA-t.
+            </p>
               </div>
             </div>
           </aside>
-        </div>
-
-        {/* Navigációs gombok */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={prevStep}
-            disabled={currentStep === "mod"}
-            className={`rounded-lg px-6 py-3 font-medium transition-all ${
-              currentStep === "mod"
-                ? "cursor-not-allowed bg-gray-200 text-gray-400 dark:bg-gray-700"
-                : "bg-gray-200 text-black hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-            }`}
-          >
-            ← Vissza
-          </button>
-
-          {/* Aktuális ár */}
-          <div className="text-center">
-            <p className="text-body text-sm">Jelenlegi végösszeg:</p>
-            <p className="text-primary text-2xl font-bold">
-              {calculateGrandTotal().toLocaleString("hu-HU")} Ft
-            </p>
-          </div>
-
-          {currentStep !== "osszesites" ? (
-            <button
-              onClick={nextStep}
-              disabled={!canProceed()}
-              className={`rounded-lg px-6 py-3 font-medium transition-all ${
-                canProceed()
-                  ? "bg-primary hover:bg-primary/90 text-white"
-                  : "cursor-not-allowed bg-gray-200 text-gray-400 dark:bg-gray-700"
-              }`}
-            >
-              Tovább →
-            </button>
-          ) : (
-            <div className="w-24" /> // Placeholder a layout megtartásához
-          )}
         </div>
       </div>
     </section>

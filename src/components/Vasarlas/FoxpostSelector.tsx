@@ -252,7 +252,7 @@ const FoxpostSelector: React.FC<FoxpostSelectorProps> = ({ onSelect, selected })
             Foxpost automata kiválasztása
           </p>
           <p className="mt-1 text-sm text-body">
-            Kattints a térképes automatakereső megnyitásához
+            Kattintson a térképes automatakereső megnyitásához
           </p>
         </button>
       )}
@@ -290,7 +290,7 @@ const FoxpostSelector: React.FC<FoxpostSelectorProps> = ({ onSelect, selected })
 
             {/* Modal lábléc – tipp */}
             <div className="border-t border-stroke px-6 py-3 text-center text-xs text-body dark:border-stroke-dark">
-              Keresd meg és kattints a számodra megfelelő automatára a térképen.
+              Keresse meg és kattintson a számára megfelelő automatára a térképen.
               A kiválasztás után automatikusan visszatérünk a rendeléshez.
             </div>
           </div>
