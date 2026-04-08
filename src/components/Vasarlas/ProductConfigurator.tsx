@@ -1991,10 +1991,10 @@ const ProductConfigurator = () => {
                 {/* Anyag */}
                 <div className="border-stroke dark:border-stroke-dark flex items-center justify-between border-b pb-3">
                   <div>
+                    <p className="text-body text-sm">Burok anyaga</p>
                     <p className="font-medium text-black dark:text-white">
                       {selectedAnyagOssz?.icon} {selectedAnyagOssz?.name}
                     </p>
-                    <p className="text-body text-sm">Burok anyaga</p>
                   </div>
                   <p className="font-semibold text-black dark:text-white">
                     {selectedAnyagOssz?.price === 0
@@ -2005,12 +2005,9 @@ const ProductConfigurator = () => {
 
                 <div className="border-stroke dark:border-stroke-dark flex items-center justify-between border-b pb-3">
                   <div>
+                    <p className="text-body text-sm">Doboz</p>
                     <p className="font-medium text-black dark:text-white">
                       {selectedDoboz?.icon} {selectedDoboz?.name}
-                    </p>
-                    <p className="text-body text-sm">
-                      Doboz ({selectedDobozSzin?.name} /{" "}
-                      {selectedTetoSzin?.name} tető)
                     </p>
                   </div>
                   <p className="font-semibold text-black dark:text-white">
@@ -2020,10 +2017,21 @@ const ProductConfigurator = () => {
 
                 <div className="border-stroke dark:border-stroke-dark flex items-center justify-between border-b pb-3">
                   <div>
+                    <p className="text-body text-sm">Színek</p>
+                    <p className="font-medium text-black dark:text-white">
+                        🎨
+                      {selectedDobozSzin?.name} doboz /{" "}
+                      {selectedTetoSzin?.name} tető
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border-stroke dark:border-stroke-dark flex items-center justify-between border-b pb-3">
+                  <div>
+                    <p className="text-body text-sm">Tápellátás</p>
                     <p className="font-medium text-black dark:text-white">
                       {selectedTap?.icon} {selectedTap?.name}
                     </p>
-                    <p className="text-body text-sm">Tápellátás</p>
                   </div>
                   <p className="font-semibold text-black dark:text-white">
                     {selectedTap?.price.toLocaleString("hu-HU")} Ft
@@ -2504,8 +2512,11 @@ const ProductConfigurator = () => {
               <div>
                 <p className="font-medium text-black dark:text-white">Doboz</p>
                 <p className="text-body">{selectedDobozName}</p>
+              </div>
+              <div>
+                <p className="font-medium text-black dark:text-white">Színek</p>
                 <p className="text-body">
-                  Színek: {selectedDobozSzinName} / {selectedTetoSzinName}
+                  {selectedDobozSzinName} doboz / {selectedTetoSzinName} tető
                 </p>
               </div>
               <div>
