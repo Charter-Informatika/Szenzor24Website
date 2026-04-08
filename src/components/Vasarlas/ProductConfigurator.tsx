@@ -229,21 +229,21 @@ const elofizetesek = [
     id: "ingyenes",
     name: "Ingyenes",
     description:
-      "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 30 napos adatmegőrzés \n ❌ hőmérséklet naplózás \n ❌ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
+      "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 30 napos adatmegőrzés \n ❌ Hőmérséklet naplózás \n ❌ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
     price: 0,
   },
   {
     id: "havi",
     name: "Havi",
     description:
-      "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
+      "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ Hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
     price: 1000,
   },
   {
     id: "eves",
     name: "Éves",
     description:
-      "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
+      "✅ Valós idejű adatelérés \n ✅ Webes hozzáférés \n ✅ 90 napos adatmegőrzés \n ✅ Hőmérséklet naplózás \n ✅ Illetéktelen hozzáférés elleni védelem \n ✅ 3 hónap pénzvisszafizetési garancia",
     price: 10000,
   },
 ] as const;
@@ -1277,7 +1277,7 @@ const ProductConfigurator = () => {
             )}
             {!isPresetLocked && (
               <p className="text-body mb-4 text-center text-sm">
-                Válaszd ki a burok anyagát! (PLACEHOLDER - árak és típusok
+                Válassza ki a burok anyagát! (PLACEHOLDER - árak és típusok
                 később pontosítandók)
               </p>
             )}
@@ -1687,7 +1687,7 @@ const ProductConfigurator = () => {
 
                 <div className="border-stroke dark:border-stroke-dark dark:bg-dark rounded-xl border bg-white p-4">
                   <p className="text-body mb-3 text-sm">
-                    Válaszd ki a csomagautomatát a térképes keresőből:
+                    Válassza ki a csomagautomatát a térképes keresőből:
                   </p>
                   <FoxpostSelector
                     selected={selection.foxpostAutomata}
@@ -2309,25 +2309,25 @@ const ProductConfigurator = () => {
   const getStepTitle = () => {
     switch (currentStep) {
       case "mod":
-        return "Válassz csomagot!";
+        return "Válasszon csomagot!";
       case "szenzor":
-        return "Válassz szenzort!";
+        return "Válasszon szenzort!";
       case "anyag":
-        return "Válassz anyagot!";
+        return "Válasszon anyagot!";
       case "doboz":
-        return "Válassz dobozt!";
+        return "Válasszon dobozt!";
       case "szin":
-        return "Válassz színt!";
+        return "Válasszon színt!";
       case "tapellatas":
         return "Akkumulátoros vagy vezetékes?";
       case "elofizetes":
-        return "Válassz előfizetést!";
+        return "Válasszon előfizetést!";
       case "szallitas":
-        return "Add meg a szállítást!";
+        return "Adja meg a szállítási módot!";
       case "fizetes":
-        return "Válassz fizetési módot!";
+        return "Válasszon fizetési módot!";
       case "osszesites":
-        return "Ellenőrizd a rendelésed!";
+        return "Ellenőrizze a rendelését!";
       default:
         return "";
     }
@@ -2369,7 +2369,7 @@ const ProductConfigurator = () => {
             Termék konfigurátor
           </h2>
           <p className="text-body text-base">
-            Állítsd össze a saját szenzor csomagodat lépésről lépésre!
+            Állítsa össze a saját szenzor csomagját lépésről lépésre!
           </p>
         </div>
 

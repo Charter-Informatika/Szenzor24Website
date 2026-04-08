@@ -166,9 +166,9 @@ const Pricing = () => {
 
         <div className="container max-w-[1320px] overflow-hidden">
           <div className="mt-8 text-center">
-            <h3 className="text-2xl font-semibold text-black dark:text-white">Válassz csomagjaink közül!</h3>
+            <h3 className="text-2xl font-semibold text-black dark:text-white">Válasszon csomagjaink közül!</h3>
             <p className="max-w-2xl mx-auto text-sm mt-2 text-gray-700 dark:text-gray-300">
-              Egy eszköz vételára <span className="font-bold text-black dark:text-white">32 000 Ft + ÁFA</span>, több termék vásárlása esetén további kedvezmények érhetőek el. Teszteld a rendszert 3 hónapig pénzvisszafizetési garancia. Amennyiben nem találsz megfelelőt, az eszközre pénzvisszafizetési garanciát biztosítunk.
+              Egy eszköz vételára <span className="font-bold text-black dark:text-white">32 000 Ft + ÁFA</span>. Több termék vásárlása esetén további kedvezmények érhetőek el. Tesztelje rendszerünket kockázatmentesen: amennyiben nem elégedett, az eszközre 3 hónapos pénzvisszafizetési garanciát biztosítunk.
             </p>
           </div>
 
@@ -180,7 +180,7 @@ const Pricing = () => {
                 <li>✅ <span className="font-medium">Valós idejű adatelérés</span></li>
                 <li>✅ <span className="font-medium">Webes hozzáférés</span></li>
                 <li>✅ <span className="font-medium">30 napos adatmegőrzés</span></li>
-                <li className="mt-3 text-rose-600 dark:text-rose-400">❌ hőmérséklet naplózás</li>
+                <li className="mt-3 text-rose-600 dark:text-rose-400">❌ Hőmérséklet naplózás</li>
                 <li className="text-rose-600 dark:text-rose-400">❌ Illetéktelen hozzáférés elleni védelem</li>
               </ul>
               <hr className="border-t border-slate-300 dark:border-slate-700 mb-4" />
@@ -195,7 +195,7 @@ const Pricing = () => {
                 <li>✅ <span className="font-medium">Valós idejű adatelérés</span></li>
                 <li>✅ <span className="font-medium">Webes hozzáférés</span></li>
                 <li>✅ <span className="font-medium">90 napos adatmegőrzés</span></li>
-                <li className="mt-3 text-slate-800 dark:text-slate-200">✅ hőmérséklet naplózás</li>
+                <li className="mt-3 text-slate-800 dark:text-slate-200">✅ Hőmérséklet naplózás</li>
                 <li className="text-slate-800 dark:text-slate-200">✅ Illetéktelen hozzáférés elleni védelem</li>
               </ul>
               <hr className="border-t border-slate-300 dark:border-slate-700 mb-4" />
@@ -210,7 +210,7 @@ const Pricing = () => {
                 <li>✅ <span className="font-medium">Valós idejű adatelérés</span></li>
                 <li>✅ <span className="font-medium">Webes hozzáférés</span></li>
                 <li>✅ <span className="font-medium">90 napos adatmegőrzés</span></li>
-                <li className="mt-3 text-slate-800 dark:text-slate-200">✅ hőmérséklet naplózás</li>
+                <li className="mt-3 text-slate-800 dark:text-slate-200">✅ Hőmérséklet naplózás</li>
                 <li className="text-slate-800 dark:text-slate-200">✅ Illetéktelen hozzáférés elleni védelem</li>
               </ul>
               <hr className="border-t border-slate-300 dark:border-slate-700 mb-4" />
