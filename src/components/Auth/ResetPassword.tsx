@@ -21,7 +21,7 @@ const ResetPassword = ({ userEmail }: { userEmail: string }) => {
 
     if (!passwordValidation(password)) {
       setError(
-        "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+        "A jelszónak legalább egy nagybetűt, egy kisbetűt, egy számot és egy speciális karaktert kell tartalmaznia",
       );
       return;
     }
@@ -32,11 +32,11 @@ const ResetPassword = ({ userEmail }: { userEmail: string }) => {
         password,
       });
 
-      toast.success("Password updated successfully!");
+      toast.success("Jelszó sikeresen frissítve!");
       router.push("/auth/signin");
     } catch (error) {
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data || "Something went wrong.");
+        toast.error(error.response?.data || "Hiba történt.");
       }
     }
   };
@@ -47,10 +47,9 @@ const ResetPassword = ({ userEmail }: { userEmail: string }) => {
         <div className="shadow-card dark:shadow-card-dark mx-auto w-full max-w-[520px] rounded-lg bg-[#F8FAFB] px-6 py-10 sm:p-[50px] dark:bg-[#15182A]">
           <div className="text-center">
             <h3 className="mb-[10px] text-2xl font-bold text-black sm:text-[28px] dark:text-white">
-              Update Password
+              Jelszó módosítása
             </h3>
 
-            <p className="text-body mb-11 text-base">Enter your new password</p>
           </div>
 
           <form onSubmit={handleSubmit}>
@@ -59,13 +58,13 @@ const ResetPassword = ({ userEmail }: { userEmail: string }) => {
                 htmlFor="password"
                 className="mb-[10px] block text-sm text-black dark:text-white"
               >
-                Your Password
+                Új jelszó
               </label>
               <input
                 id="password"
                 ref={inputRef}
                 type="password"
-                placeholder="Password"
+                placeholder="Ide írhatod az új jelszavad"
                 required
                 className="border-stroke text-body focus:border-primary focus:shadow-input dark:border-stroke-dark dark:focus:border-primary w-full rounded-md border bg-white px-6 py-3 text-base font-medium outline-hidden dark:bg-black dark:text-white"
               />
@@ -73,12 +72,11 @@ const ResetPassword = ({ userEmail }: { userEmail: string }) => {
               {error && <p className="mt-2 text-red-500">{error}</p>}
             </div>
 
-            <button type="submit"
-              className={`hover:bg-blackho dark:bg-btndark dark:hover:bg-blackho mx-auto mt-5 inline-flex items-center justify-center gap-2.5 rounded-full bg-black px-6 py-3 font-medium text-white duration-300 ease-in-out ${
-                error ? "bg-gray-600" : "bg-black"
-              }`}
+            <button
+            type="submit"
+            className="mx-auto mt-5 inline-flex items-center justify-center gap-2.5 rounded-full bg-primary px-6 py-3 font-medium text-white duration-300 ease-in-out hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/90"
             >
-              Save Password
+                Mentés
               <svg
                 className="fill-white"
                 width="14"
