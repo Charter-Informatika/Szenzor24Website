@@ -12,7 +12,9 @@ const ResetPassword = ({ userEmail }: { userEmail: string }) => {
 
   const router = useRouter();
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
     if (!inputRef.current) return;
 
     const password = inputRef.current.value;
@@ -71,7 +73,7 @@ const ResetPassword = ({ userEmail }: { userEmail: string }) => {
               {error && <p className="mt-2 text-red-500">{error}</p>}
             </div>
 
-            <button
+            <button type="submit"
               className={`hover:bg-blackho dark:bg-btndark dark:hover:bg-blackho mx-auto mt-5 inline-flex items-center justify-center gap-2.5 rounded-full bg-black px-6 py-3 font-medium text-white duration-300 ease-in-out ${
                 error ? "bg-gray-600" : "bg-black"
               }`}

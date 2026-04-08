@@ -1,10 +1,28 @@
 import ResetPassword from "@/components/Auth/ResetPassword";
-import axios from "axios";
+import { prisma } from "@/lib/prismaDB";
 import { redirect } from "next/navigation";
-import toast from "react-hot-toast";
 
 type PropsType = {
   params: Promise<{ token: string }>;
+};
+
+const verifyToken = async (token: string) => {
+  if (!token) throw new Error("Hiányzó token");
+
+  const user = await prisma.user.findUnique({
+    where: {
+      passwordResetToken: token,
+      passwordResetTokenExp: {
+        gte: new Date(), 
+      },
+    },
+  });
+
+  if (!user) {
+    throw new Error("Érvénytelen vagy lejárt token");
+  }
+
+  return user.email;
 };
 
 export default async function Page(props: PropsType) {
@@ -15,17 +33,8 @@ export default async function Page(props: PropsType) {
   try {
     userEmail = await verifyToken(params.token);
   } catch (error) {
-    toast.error("Érvénytelen vagy lejárt token.");
-    redirect("/auth/forget-password");
+    redirect("/auth/forget-password?error=invalid_token");
   }
 
   return <ResetPassword userEmail={userEmail} />;
 }
-
-const verifyToken = async (token: string) => {
-  const res = await axios.post("/api/forget-password/verify-token", {
-    token,
-  });
-
-  return res.data.email;
-};
