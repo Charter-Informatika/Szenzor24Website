@@ -1140,17 +1140,10 @@ const ProductConfigurator = () => {
                 let styleClass = "rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg ";
 
                 if (isSelected) {
-                  if (isPopular) {
-                    styleClass += "border-yellow-400 bg-primary/10";
-                  } else {
-                    styleClass += "border-primary bg-primary/10";
-                  }
-                } else if (isPopular) {
-                  // popular but not selected: yellow border, normal bg
-                  styleClass += "border-yellow-400 dark:border-yellow-600 dark:bg-dark bg-white";
+                styleClass += "border-primary bg-primary/10 dark:border-primary dark:bg-primary/5";
                 } else {
-                  styleClass += "border-stroke dark:border-stroke-dark dark:bg-dark bg-white";
-                }
+                styleClass += "border-stroke dark:border-stroke-dark dark:bg-dark bg-white";
+                 }
 
                 return (
                   <button
@@ -2533,6 +2526,9 @@ const ProductConfigurator = () => {
             <p className="text-body text-sm">Jelenlegi végösszeg:</p>
             <p className="text-primary text-2xl font-bold">
               {calculateGrandTotal().toLocaleString("hu-HU")} Ft
+            </p>
+            <p className="text-[13px] text-gray-500 dark:text-gray-400 italic">
+                Az ár tartalmazza a 27% ÁFA-t.
             </p>
           </div>
 
