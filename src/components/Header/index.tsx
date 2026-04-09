@@ -101,9 +101,9 @@ const Header = () => {
           <div className="flex items-center justify-between">
              <div className="flex items-center gap-4 py-4 lg:py-0">
               <Link href="/" className="flex items-center gap-2">
-                <span className="relative block w-[115px] h-[35px] flex-shrink-0">
+                <span className="relative block w-[126px] h-[126px] flex-shrink-0">
                   <Image
-                    src={'/images/icon.ico'}
+                    src={'/images/sz24.png'}
                     alt="Logo"
                     priority
                     fill
@@ -117,7 +117,7 @@ const Header = () => {
                     className="object-contain hidden dark:block"
                   />
                 </span>
-                <span className="ml-2 text-xl font-bold text-black dark:text-white select-none">Szenzor24</span>
+                <span className="mr-4 text-2xl font-bold text-black dark:text-white select-none">Szenzor24</span>
               </Link>
             </div>
 
