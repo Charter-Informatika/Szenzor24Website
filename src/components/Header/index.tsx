@@ -110,7 +110,7 @@ const Header = () => {
                     className="object-contain block dark:hidden"
                   />
                   <Image
-                    src={'/images/hutpopajzs_logo.png'}
+                    src={'/images/sz24.png'}
                     alt="Logo"
                     priority
                     fill
