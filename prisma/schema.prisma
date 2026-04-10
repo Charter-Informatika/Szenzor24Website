@@ -7,9 +7,9 @@ datasource db {
   provider = "mysql"
 }
 
-model account {
+model Account {
   id                String  @id @default(cuid())
-  userId            String
+  userId            Int
   type              String
   provider          String
   providerAccountId String
@@ -20,43 +20,52 @@ model account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-  user              user    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Account_userId_fkey")
+  
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId], map: "Account_provider_providerAccountId_key")
   @@index([userId], map: "Account_userId_fkey")
+  @@map("account")
 }
 
 model devices_new {
-  id                 Int               @id @default(autoincrement())
-  user_id            Int?
-  facility_id        Int?
-  name               String            @db.VarChar(255)
-  location           String?           @db.VarChar(255)
-  type               devices_new_type?
-  tech_id            Int?
-  created_at         DateTime          @db.DateTime(0)
-  comment            String?           @db.VarChar(255)
-  serial             String?           @unique(map: "serial") @db.VarChar(255)
-  last_online        DateTime?         @db.DateTime(0)
-  paid_in_full       Boolean?          @default(false)
-  last_email_at      DateTime?         @db.DateTime(0)
-  version            String?           @db.VarChar(64)
-  offlineEmail       Boolean?          @default(false)
-  fridge_brand       String?           @db.Text
-  fridge_model       String?           @db.Text
-  fridge_type        String?           @db.VarChar(255)
-  version_updated_at DateTime?         @db.DateTime(0)
-  custom_price       Int?
-  wants_subscription Boolean?          @default(false)
-  battery_percentage Int?
-  sleep_duration_min Int?
-  reset_request      Boolean           @default(false)
-  update_pending     Int?              @default(0) @db.TinyInt
-  offlineBuzzer      Boolean           @default(false)
-  users_new          users_new?        @relation(fields: [user_id], references: [id], map: "devices_new_ibfk_183")
-  facilities_new     facilities_new?   @relation(fields: [facility_id], references: [id], map: "devices_new_ibfk_184")
-  tech_type          tech_type?        @relation(fields: [tech_id], references: [id], map: "devices_new_ibfk_185")
-  sensors_new        sensors_new[]
+  id                  Int                   @id @default(autoincrement())
+  user_id             Int?
+  facility_id         Int?
+  name                String                @db.VarChar(255)
+  location            String?               @db.VarChar(255)
+  type                devices_new_type?
+  tech_id             Int?
+  created_at          DateTime              @db.DateTime(0)
+  comment             String?               @db.VarChar(255)
+  serial              String?               @unique(map: "serial") @db.VarChar(255)
+  last_online         DateTime?             @db.DateTime(0)
+  paid_in_full        Boolean?              @default(false)
+  last_email_at       DateTime?             @db.DateTime(0)
+  version             String?               @db.VarChar(64)
+  offlineEmail        Boolean?              @default(false)
+  fridge_brand        String?               @db.Text
+  fridge_model        String?               @db.Text
+  fridge_type         String?               @db.VarChar(255)
+  version_updated_at  DateTime?             @db.DateTime(0)
+  custom_price        Int?
+  wants_subscription  Boolean?              @default(false)
+  battery_percentage  Int?
+  sleep_duration_min  Int?
+  reset_request       Boolean               @default(false)
+  update_pending      Int?                  @default(0) @db.TinyInt
+  offlineBuzzer       Boolean               @default(false)
+  subscription_plan   String?               @db.VarChar(255)
+  email_alert         Boolean?              @default(false)
+  is_configured       Boolean?              @default(false)
+  config              config[]
+  device_battery_logs device_battery_logs[]
+  users_new           User?            @relation(fields: [user_id], references: [id], map: "devices_new_ibfk_183")
+  facilities_new      facilities_new?       @relation(fields: [facility_id], references: [id], map: "devices_new_ibfk_184")
+  tech_type           tech_type?            @relation(fields: [tech_id], references: [id], map: "devices_new_ibfk_185")
+  email_alert_off     email_alert_off[]
+  paid_in_full_new    paid_in_full_new[]
+  sensors_new         sensors_new[]
 
   @@index([tech_id], map: "devices_new_ibfk_185_idx")
   @@index([facility_id], map: "facility_id")
@@ -78,17 +87,21 @@ model facilities_new {
   last_email_at    DateTime?     @db.DateTime(0)
   from_motion_time DateTime?     @db.Time(0)
   to_motion_time   DateTime?     @db.Time(0)
+  lat              Decimal?      @db.Decimal(10, 8)
+  lon              Decimal?      @db.Decimal(11, 8)
+  email_alert      Boolean?      @default(false)
   devices_new      devices_new[]
-  users_new        users_new     @relation(fields: [user_id], references: [id], onDelete: NoAction, map: "facilities_new_ibfk_1")
+  users_new        User     @relation(fields: [user_id], references: [id], onDelete: NoAction, map: "facilities_new_ibfk_1")
 
   @@index([user_id], map: "facilities_new_ibfk_1_idx")
 }
 
 model sensor_types_new {
-  id             Int           @id @default(autoincrement())
-  collector_type String        @unique(map: "collector_type_10") @db.VarChar(255)
-  type           String        @db.VarChar(255)
-  sensors_new    sensors_new[]
+  id               Int                @id @default(autoincrement())
+  collector_type   String             @unique(map: "collector_type_10") @db.VarChar(255)
+  type             String             @db.VarChar(255)
+  sensor_price_new sensor_price_new[]
+  sensors_new      sensors_new[]
 
   @@index([collector_type], map: "collector_type")
   @@index([type], map: "type")
@@ -96,40 +109,33 @@ model sensor_types_new {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model sensors_new {
-  id               Int              @id @default(autoincrement())
-  device_id        Int
-  name             String           @db.VarChar(255)
-  sensor_type      String           @db.VarChar(255)
-  unit             String?          @db.VarChar(255)
-  range_min        Float?           @db.Float
-  range_max        Float?           @db.Float
-  created_at       DateTime?        @default(now()) @db.Timestamp(0)
-  comment          String?          @db.VarChar(255)
-  last_online      DateTime?        @db.DateTime(0)
-  serial           Int
-  offset           Float            @default(0) @db.Float
-  problem_interval Float            @default(0) @db.Float
-  receive_email    Boolean          @default(false)
-  last_email_at    DateTime?        @db.DateTime(0)
-  gyro_table_name  String?          @db.VarChar(100)
-  opening_hours    String?          @db.LongText
-  address          String?          @db.VarChar(16)
-  price            Decimal?         @default(0.00) @db.Decimal(10, 2)
-  devices_new      devices_new      @relation(fields: [device_id], references: [id], onDelete: NoAction, map: "sensors_new_ibfk_159")
-  sensor_types_new sensor_types_new @relation(fields: [sensor_type], references: [collector_type], onDelete: NoAction, map: "sensors_new_ibfk_160")
+  id                     Int                      @id @default(autoincrement())
+  device_id              Int
+  name                   String                   @db.VarChar(255)
+  sensor_type            String                   @db.VarChar(255)
+  unit                   String?                  @db.VarChar(255)
+  range_min              Float?                   @db.Float
+  range_max              Float?                   @db.Float
+  created_at             DateTime?                @default(now()) @db.Timestamp(0)
+  comment                String?                  @db.VarChar(255)
+  last_online            DateTime?                @db.DateTime(0)
+  serial                 Int
+  offset                 Float                    @default(0) @db.Float
+  problem_interval       Float                    @default(0) @db.Float
+  receive_email          Boolean                  @default(false)
+  last_email_at          DateTime?                @db.DateTime(0)
+  gyro_table_name        String?                  @db.VarChar(100)
+  opening_hours          String?                  @db.LongText
+  address                String?                  @db.VarChar(16)
+  price                  Decimal?                 @default(0.00) @db.Decimal(10, 2)
+  hourly_sensor_data_new hourly_sensor_data_new[]
+  sensor_data_new        sensor_data_new[]
+  devices_new            devices_new              @relation(fields: [device_id], references: [id], onDelete: NoAction, map: "sensors_new_ibfk_159")
+  sensor_types_new       sensor_types_new         @relation(fields: [sensor_type], references: [collector_type], onDelete: NoAction, map: "sensors_new_ibfk_160")
+  warnings_new           warnings_new[]
 
   @@index([device_id], map: "device_id")
   @@index([sensor_type], map: "sensor_type_ind")
-}
-
-model session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique(map: "Session_sessionToken_key")
-  userId       String
-  expires      DateTime
-  user         user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Session_userId_fkey")
-
-  @@index([userId], map: "Session_userId_fkey")
 }
 
 model tech_type {
@@ -138,55 +144,51 @@ model tech_type {
   devices_new devices_new[]
 }
 
-model user {
-  id                    String    @id @default(cuid())
-  name                  String?
-  email                 String?   @unique(map: "User_email_key")
-  emailVerified         DateTime?
-  image                 String?
-  password              String?
-  passwordResetToken    String?   @unique(map: "User_passwordResetToken_key")
-  passwordResetTokenExp DateTime?
-  account               account[]
-  session               session[]
-}
-
-model users_new {
-  id                     Int              @id @default(autoincrement())
-  username               String           @unique(map: "username") @db.VarChar(255)
+model User {
+  id                     Int               @id @default(autoincrement())
+  username               String?            @db.VarChar(255)
+  name                   String?           @db.VarChar(255)
   postcode               Int?
-  city                   String?          @db.VarChar(255)
-  street                 String?          @db.VarChar(255)
-  email                  String?          @unique(map: "email_unique_index") @db.VarChar(255)
-  phone                  String?          @db.VarChar(255)
-  password               String           @db.VarChar(255)
-  created_at             DateTime         @db.DateTime(0)
-  updated_at             DateTime         @db.DateTime(0)
-  role                   users_new_role
-  comment                String?          @db.VarChar(255)
-  last_email_at          DateTime?        @db.DateTime(0)
-  report_hours           String?          @db.VarChar(255)
-  receive_warning_email  Boolean          @default(false)
-  tax_number             String?          @db.VarChar(255)
-  isSubscriber           Boolean?         @default(false)
-  company_name           String?          @db.VarChar(255)
-  billing_postcode       String?          @db.VarChar(20)
-  billing_city           String?          @db.VarChar(255)
-  billing_street         String?          @db.VarChar(255)
-  receive_offline_emails Boolean?         @default(true)
+  city                   String?           @db.VarChar(255)
+  street                 String?           @db.VarChar(255)
+  email                  String?           @unique(map: "email_unique_index") @db.VarChar(255)
+  phone                  String?           @db.VarChar(255)
+  password               String?           @db.VarChar(255)
+  created_at             DateTime          @default(now()) @db.DateTime(0)  
+  updated_at             DateTime          @updatedAt @db.DateTime(0)
+  role                   users_new_role?   @default(user)
+  comment                String?           @db.VarChar(255)
+  last_email_at          DateTime?         @db.DateTime(0)
+  report_hours           String?           @db.VarChar(255)
+  receive_warning_email  Boolean           @default(false)
+  tax_number             String?           @db.VarChar(255)
+  isSubscriber           Boolean?          @default(false)
+  company_name           String?           @db.VarChar(255)
+  billing_postcode       String?           @db.VarChar(20)
+  billing_city           String?           @db.VarChar(255)
+  billing_street         String?           @db.VarChar(255)
+  receive_offline_emails Boolean?          @default(true)
   custom_device_price    Int?
   balance                Int?
+  needsPasswordReset     Boolean?          @default(false)
+  tutorial_seen          Boolean           @default(false)
+  web_notifications      Boolean?          @default(true)
+  
+  // NextAuth Mezők
+  emailVerified          DateTime?
+  image                  String?
+  passwordResetToken     String?
+  passwordResetTokenExp  DateTime?
+
+  // Kapcsolatok
+  accounts               Account[]       
+  device_tokens          device_tokens[]
   devices_new            devices_new[]
+  email_alert_off        email_alert_off[]
   facilities_new         facilities_new[]
-}
+  notifications          notifications[]
 
-model verificationtoken {
-  id         String   @id @default(cuid())
-  identifier String
-  token      String   @unique(map: "VerificationToken_token_key")
-  expires    DateTime
-
-  @@unique([identifier, token], map: "VerificationToken_identifier_token_key")
+  @@map("users_new") 
 }
 
 model shop_boxes {
@@ -261,68 +263,200 @@ model shop_subscriptions {
   isActive    Boolean @default(true)
 }
 
-model shop_colors_backup {
-  id       String                  @db.VarChar(64)
-  name     String                  @db.VarChar(255)
-  hex      String                  @db.VarChar(16)
-  kind     shop_colors_backup_kind
-  sort     Int                     @default(0)
-  isActive Boolean                 @default(true)
-  pk       Int                     @id @default(autoincrement())
+model config {
+  id          Int         @id @default(autoincrement())
+  serial      String      @db.VarChar(255)
+  config_name String      @db.VarChar(255)
+  value       String      @db.VarChar(255)
+  received    Boolean?    @default(false)
+  devices_new devices_new @relation(fields: [serial], references: [serial], onDelete: Cascade, map: "config_ibfk_1")
+
+  @@index([serial], map: "serial")
 }
 
-model shop_boxes_backup {
-  id          String  @id @db.VarChar(64)
-  name        String  @db.VarChar(255)
-  description String  @db.Text
-  price       Int
-  icon        String  @db.VarChar(16)
-  sort        Int     @default(0)
-  isActive    Boolean @default(true)
+model device_battery_logs {
+  id                 Int         @id @default(autoincrement())
+  device_id          Int
+  battery_percentage Int
+  created_at         DateTime    @db.DateTime(0)
+  devices_new        devices_new @relation(fields: [device_id], references: [id], onDelete: NoAction, map: "device_battery_logs_ibfk_1")
+
+  @@index([device_id], map: "device_id")
 }
 
-model shop_materials_backup {
-  id          String  @id @db.VarChar(64)
-  name        String  @db.VarChar(255)
-  description String  @db.Text
-  price       Int
-  icon        String  @db.VarChar(16)
-  sort        Int     @default(0)
-  isActive    Boolean @default(true)
+model device_tokens {
+  id        Int       @id @default(autoincrement())
+  token     String    @unique(map: "device_tokens_unique") @db.VarChar(255)
+  user_id   Int
+  users_new User @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_user_device")
+
+  @@index([user_id], map: "fk_user_device")
 }
 
-model shop_power_options_backup {
-  id          String  @id @db.VarChar(64)
-  name        String  @db.VarChar(255)
-  description String  @db.Text
-  price       Int
-  icon        String  @db.VarChar(16)
-  sort        Int     @default(0)
-  isActive    Boolean @default(true)
+model discounts_new {
+  id                  Int @id @default(autoincrement())
+  range_min           Int
+  range_max           Int
+  discount_percentage Int @unique(map: "discount_percentage")
 }
 
-model shop_sensors_backup {
-  id          String  @id @db.VarChar(64)
-  name        String  @db.VarChar(255)
-  description String  @db.Text
-  price       Int
-  imageUrl    String  @db.VarChar(255)
-  sort        Int     @default(0)
-  isActive    Boolean @default(true)
+model email_alert_off {
+  id          BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id     Int?
+  device_id   Int?
+  created_at  DateTime?    @default(now()) @db.Timestamp(0)
+  users_new   User?   @relation(fields: [user_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "email_alert_off_ibfk_1")
+  devices_new devices_new? @relation(fields: [device_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "email_alert_off_ibfk_2")
+
+  @@index([device_id], map: "device_id")
+  @@index([user_id], map: "user_id")
 }
 
-model shop_shipping_prices_backup {
-  id    String @id @db.VarChar(64)
-  price Int
+model hourly_sensor_data_new {
+  id          Int         @id @default(autoincrement())
+  sensor_id   Int
+  value       Float       @db.Float
+  timestamp   DateTime    @db.DateTime(0)
+  sensors_new sensors_new @relation(fields: [sensor_id], references: [id], onDelete: NoAction, map: "hourly_sensor_data_new_ibfk_1")
+
+  @@index([sensor_id], map: "hourly_sensor_data_new_sensor_id_timestamp")
 }
 
-model shop_subscriptions_backup {
-  id          String  @id @db.VarChar(64)
-  name        String  @db.VarChar(255)
-  description String  @db.Text
-  price       Int
-  sort        Int     @default(0)
-  isActive    Boolean @default(true)
+model notifications {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  message    String    @db.VarChar(255)
+  is_read    Boolean?  @default(false)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  type       String    @db.VarChar(100)
+  users_new  User @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "notifications_ibfk_1")
+
+  @@index([user_id], map: "user_id")
+}
+
+model orders {
+  id                 Int                 @id @default(autoincrement())
+  user_id            String              @db.VarChar(100)
+  user_email         String              @db.VarChar(255)
+  user_name          String              @db.VarChar(255)
+  szenzorok          String?             @db.LongText
+  anyag              String?             @db.LongText
+  doboz              String?             @db.LongText
+  tapellatas         String?             @db.LongText
+  colors             String?             @db.LongText
+  subtotal           Decimal?            @db.Decimal(10, 2)
+  vat_percent        Int?                @default(27)
+  vat_amount         Decimal?            @db.Decimal(10, 2)
+  shipping_mode      String?             @db.VarChar(50)
+  shipping_data      String?             @db.LongText
+  payment_mode       String?             @db.VarChar(50)
+  total_price        Decimal?            @db.Decimal(10, 2)
+  currency           String?             @default("HUF") @db.VarChar(10)
+  locale             String?             @default("hu-HU") @db.VarChar(20)
+  status             String?             @default("Paid") @db.VarChar(50)
+  device_id          String?             @db.VarChar(255)
+  subscription_id    String?             @db.VarChar(50)
+  created_at         DateTime?           @default(now()) @db.DateTime(0)
+  preset_id          String?             @db.VarChar(100)
+  preset_label       String?             @db.VarChar(100)
+  preset_max_sensors Int?
+  owner_id           String?             @db.VarChar(100)
+  subscription_plans subscription_plans? @relation(fields: [subscription_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "orders_ibfk_1")
+
+  @@index([owner_id], map: "fk_orders_owner")
+  @@index([subscription_id], map: "subscription_id")
+}
+
+model paid_in_full_new {
+  id           Int         @id @default(autoincrement())
+  device_id    Int
+  payment_date DateTime    @default(dbgenerated("(curdate() + interval 1 month)")) @db.DateTime(0)
+  price        Int         @default(0)
+  devices_new  devices_new @relation(fields: [device_id], references: [id], onDelete: NoAction, map: "paid_in_full_new_ibfk_1")
+
+  @@index([device_id], map: "paid_in_full_new_ibfk_1")
+}
+
+model paid_in_full_price_new {
+  id    Int @id @default(autoincrement())
+  price Int @default(0)
+}
+
+model payments_new {
+  id             Int      @id @default(autoincrement())
+  user_id        Int
+  method         String   @db.VarChar(255)
+  next_payment   DateTime @default(dbgenerated("(curdate() + interval 1 month)")) @db.DateTime(0)
+  price          Int      @default(0)
+  fix_discount   Int?     @default(0)
+  extra_discount Int?     @default(0)
+}
+
+model sensor_data_new {
+  id          Int         @id @default(autoincrement())
+  sensor_id   Int
+  value       Float       @db.Float
+  timestamp   DateTime    @db.DateTime(0)
+  sensors_new sensors_new @relation(fields: [sensor_id], references: [id], onUpdate: Restrict, map: "sensor_data_new_ibfk_1")
+
+  @@index([sensor_id, timestamp], map: "sensor_data_new_sensor_id_timestamp")
+}
+
+model sensor_price_new {
+  id               Int              @id @default(autoincrement())
+  sensor_type_id   Int
+  sensor_price     Int              @default(0)
+  price_time       DateTime         @db.DateTime(0)
+  sensor_types_new sensor_types_new @relation(fields: [sensor_type_id], references: [id], onDelete: NoAction, map: "sensor_price_new_ibfk_1")
+
+  @@index([sensor_type_id], map: "sensor_type_id")
+}
+
+model sequelizemeta {
+  name String @id @unique(map: "name") @db.VarChar(255)
+}
+
+model sessions {
+  sid       String    @id @db.VarChar(36)
+  expires   DateTime? @db.DateTime(0)
+  data      String?   @db.Text
+  createdAt DateTime  @db.DateTime(0)
+  updatedAt DateTime  @db.DateTime(0)
+}
+
+model subscription_plans {
+  id         String    @id @db.VarChar(50)
+  name       String    @db.VarChar(100)
+  price      Int
+  currency   String?   @default("HUF") @db.VarChar(10)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  orders     orders[]
+}
+
+model trash {
+  id            Int        @id @default(autoincrement())
+  username      String     @db.VarChar(255)
+  email         String     @db.VarChar(255)
+  password      String     @db.VarChar(255)
+  created_at    DateTime   @db.DateTime(0)
+  updated_at    DateTime   @db.DateTime(0)
+  role          trash_role @default(user)
+  comment       String?    @db.VarChar(255)
+  last_email_at DateTime?  @db.DateTime(0)
+}
+
+model warnings_new {
+  id          Int         @id @default(autoincrement())
+  sensor_id   Int
+  type        String      @db.VarChar(255)
+  status      String      @db.VarChar(255)
+  comment     String?     @db.VarChar(255)
+  created_at  DateTime    @db.DateTime(0)
+  updated_at  DateTime    @db.DateTime(0)
+  value       Float       @db.Float
+  sensors_new sensors_new @relation(fields: [sensor_id], references: [id], onDelete: NoAction, map: "warnings_new_ibfk_1")
+
+  @@index([sensor_id], map: "warnings_new_ibfk_1")
 }
 
 enum devices_new_type {
@@ -340,7 +474,7 @@ enum users_new_role {
   user
 }
 
-enum shop_colors_backup_kind {
-  box
-  top
+enum trash_role {
+  admin
+  user
 }

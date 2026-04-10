@@ -1,0 +1,1 @@
+-- Manuálisan módosítva
