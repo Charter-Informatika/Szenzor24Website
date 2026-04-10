@@ -304,6 +304,9 @@ export async function POST(request: Request) {
     if (body.payment.mode === "stripe") {
       try {
         const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+        // Stripe ÁFA
+        const VAT_TAX_RATE_ID = process.env.STRIPE_VAT_TAX_RATE_ID!;
         
         // Szenzorok line_items (max preset/custom)
         const szenzorLineItems = body.szenzorok.map((sz) => ({
@@ -316,6 +319,7 @@ export async function POST(request: Request) {
             unit_amount: sz.price * 100, // Stripe fillérben várja
           },
           quantity: sz.quantity,
+          tax_rates: [VAT_TAX_RATE_ID],
         }));
 
         // Összes line item
@@ -331,6 +335,7 @@ export async function POST(request: Request) {
               unit_amount: body.anyag.price * 100,
             },
             quantity: body.anyag.quantity,
+            tax_rates: [VAT_TAX_RATE_ID],
           },
           {
             price_data: {
@@ -342,6 +347,7 @@ export async function POST(request: Request) {
               unit_amount: body.doboz.price * 100,
             },
             quantity: body.doboz.quantity,
+            tax_rates: [VAT_TAX_RATE_ID],
           },
           {
             price_data: {
@@ -353,6 +359,7 @@ export async function POST(request: Request) {
               unit_amount: body.tapellatas.price * 100,
             },
             quantity: body.tapellatas.quantity,
+            tax_rates: [VAT_TAX_RATE_ID],
           },
         ];
 
