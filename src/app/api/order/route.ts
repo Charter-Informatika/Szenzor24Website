@@ -300,6 +300,14 @@ export async function POST(request: Request) {
     const vatAmount = Math.round(calculatedSubtotal * (body.vatPercent / 100));
     const total = calculatedSubtotal + vatAmount + shippingFee + elofizetesTotal;
 
+    const orderWithCalculation = {
+      ...body,
+      subtotal: calculatedSubtotal,
+      vatAmount: vatAmount,
+      shippingFee: shippingFee,
+      total: total,
+    };
+
     // Stripe Checkout Session létrehozása
     if (body.payment.mode === "stripe") {
       try {
@@ -379,24 +387,34 @@ export async function POST(request: Request) {
         }
 
         const checkoutSession = await stripe.checkout.sessions.create({
-          payment_method_types: ["card"],
+            payment_method_types: ["card"],
           mode: "payment",
           currency: "huf",
           customer_email: body.userEmail,
           line_items: lineItems,
+
           metadata: {
             userId: body.userId,
-            userPhone: body.userPhone ?? "",
-            szenzorokIds: body.szenzorok.map((sz) => sz.id).join(","),
-            dobozId: body.doboz.id,
-            dobozSzin: body.colors.dobozSzin.id,
-            tetoSzin: body.colors.tetoSzin.id,
-            tapellatasId: body.tapellatas.id,
-            shippingMode: body.shipping.mode,
-            orderTotal: total.toString(),
+            userEmail: body.userEmail,
+            userName: body.userName,
+            userPhone: body.userPhone || "",
+
+            szenzorok: JSON.stringify(body.szenzorok),
+            anyag: JSON.stringify(body.anyag),
+            doboz: JSON.stringify(body.doboz),
+            colors: JSON.stringify(body.colors),
+            tapellatas: JSON.stringify(body.tapellatas),
+            elofizetes: body.elofizetes ? JSON.stringify(body.elofizetes) : "",
+            shipping: JSON.stringify(body.shipping),
+            
+            subtotal: calculatedSubtotal.toString(),
+            vatPercent: body.vatPercent.toString(),
+            vatAmount: vatAmount.toString(),
+            shippingFee: shippingFee.toString(),
+            total: total.toString(),
           },
           success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/vasarlas/sikeres?session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/vasarlas`,
+          cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/vasarlas`
         });
 
         return NextResponse.json({ 
@@ -431,16 +449,6 @@ export async function POST(request: Request) {
       },
     });
     */
-
-    // Rendelés adatok összeállítása
-    const orderWithCalculation = {
-      ...body,
-      subtotal: calculatedSubtotal,
-      vatAmount: vatAmount,
-      shippingFee: shippingFee,
-      total: total,
-    };
-
     // Email küldés a megrendelőnek
     console.log("Rendelés visszaigazoló email küldése:", body.userEmail);
     try {
