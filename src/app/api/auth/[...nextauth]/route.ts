@@ -166,6 +166,19 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      allowDangerousEmailAccountLinking: true,
+      profile(profile) {
+        const hungarianName = `${profile.family_name} ${profile.given_name}`;
+        
+        return {
+          id: profile.sub,
+          name: hungarianName,       
+          email: profile.email,
+          image: profile.picture,
+          username: hungarianName,    
+          role: "user",             
+        };
+      },
     }),
   ],
 
