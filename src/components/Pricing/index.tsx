@@ -80,7 +80,7 @@ const Pricing = () => {
 
   return (
     <>
-      <section id="pricing" className="relative z-10 pt-[110px]">
+      <section id="pricing" className="relative z-10 pt-10">
         {/*
         <div className="container">
           <div
@@ -164,8 +164,8 @@ const Pricing = () => {
         </div>
         */}
 
-        <div className="container max-w-[1320px] overflow-hidden">
-          <div className="mt-8 text-center">
+        <div className="container max-w-1320px] overflow-hidden">
+          <div className="mt-0 text-center">
             <h3 className="text-2xl font-semibold text-black dark:text-white">Válasszon csomagjaink közül!</h3>
             <p className="max-w-2xl mx-auto text-sm mt-2 text-gray-700 dark:text-gray-300">
               Egy eszköz vételára <span className="font-bold text-black dark:text-white">32 000 Ft + ÁFA</span>. Több termék vásárlása esetén további kedvezmények érhetőek el. Tesztelje rendszerünket kockázatmentesen: amennyiben nem elégedett, az eszközre 3 hónapos pénzvisszafizetési garanciát biztosítunk.
