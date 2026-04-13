@@ -10,12 +10,18 @@ export default function DocsLayout({ children }: PropsWithChildren) {
     console.error("Failed to load docs list for sidebar:", e);
   }
 
+  const orderedPosts = [...posts].sort((a, b) => {
+    if (a.slug === "Szenzor24") return -1;
+    if (b.slug === "Szenzor24") return 1;
+    return 0;
+  });
+
   return (
     <div className="container pt-24 pb-16 md:pt-28 md:pb-20 lg:pt-32 lg:pb-24">
       <div className="grid grid-cols-[auto_1fr] gap-8">
         <aside className="dark:border-stroke-dark sticky top-[74px] max-h-fit rounded-lg border border-white p-4 shadow-sm dark:bg-black">
           <ul className="space-y-2">
-            {posts.map((post) => (
+            {orderedPosts.map((post) => (
               <SidebarLink
                 slug={post.slug}
                 title={post.title}
