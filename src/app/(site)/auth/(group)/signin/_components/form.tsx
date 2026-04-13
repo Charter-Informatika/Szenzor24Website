@@ -57,8 +57,8 @@ function SignInFormInner({ callbackUrl }: { callbackUrl: string }) {
       <div className="mb-5">
         <InputGroup
           type="email"
-          label="Email címed"
-          placeholder="Add meg az email címed"
+          label="Email cím"
+          placeholder="Adja meg az email címét"
           errorMessages={errors?.email?.message}
           {...register("email", {
             required: true,
@@ -70,8 +70,8 @@ function SignInFormInner({ callbackUrl }: { callbackUrl: string }) {
       <div className="mb-6">
         <InputGroup
           type="password"
-          label="Jelszavad"
-          placeholder="Add meg a jelszavad"
+          label="Jelszó"
+          placeholder="Adja meg a jelszavát"
           errorMessages={errors?.password?.message}
           {...register("password", {
             required: true,
@@ -100,7 +100,7 @@ function SignInFormInner({ callbackUrl }: { callbackUrl: string }) {
           href="/auth/forget-password"
           className="text-primary hover:underline sm:text-right"
         >
-          Elfelejtetted a jelszavad?
+          Elfelejtette a jelszavát?
         </Link>
       </div>
 
