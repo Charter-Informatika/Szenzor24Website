@@ -28,9 +28,9 @@ export default function Page() {
     } catch (error) {
       if (error instanceof AxiosError) {
         if (error.response?.status === 404) {
-          toast.error("Felhasználó nem található.");
+          toast.error("Ezzel az email címmel nem található felhasználó.");
         } else {
-          toast.error("Valami hiba történt.");
+          toast.error("Hiba történt.");
         }
       }
     } finally {

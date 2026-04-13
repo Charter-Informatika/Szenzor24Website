@@ -50,7 +50,7 @@ export function SignUpForm() {
       }, 2000);
 
     } catch (error) {
-      toast.error("Valami hiba történt.");
+      toast.error("Hiba történt.");
     }
   }
 
