@@ -6,6 +6,7 @@ import axios from "axios";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 type Input = {
   fullName: string;
@@ -16,6 +17,8 @@ type Input = {
 };
 
 export function SignUpForm() {
+  const router = useRouter();
+
   const {
     register,
     handleSubmit,
@@ -41,6 +44,11 @@ export function SignUpForm() {
 
       toast.success("Regisztráció sikeres! Most már bejelentkezhetsz.");
       reset();
+
+      setTimeout(() => {
+        router.push("/auth/signin");
+      }, 2000);
+
     } catch (error) {
       toast.error("Valami hiba történt.");
     }
