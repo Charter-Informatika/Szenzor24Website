@@ -273,7 +273,7 @@ const Features = () => {
 
   return (
     <>
-      <section id="features" className="relative z-10 pt-[110px]">
+      <section id="features" className="relative z-10 pt-5">
         <div className="container max-w-[1320px]">
           {/* Images moved from Pricing: show above the features heading */}
           <div className="mb-6 max-w-[1320px] mx-auto px-4">
@@ -289,10 +289,10 @@ const Features = () => {
           </div>
 
           <div
-            className="wow fadeInUp mx-auto mb-14 max-w-[690px] text-center lg:mb-[70px] px-4"
+            className="wow fadeInUp mx-auto mb-6 max-w-[690px] text-center lg:mb-8 px-4"
             data-wow-delay=".2s"
           >
-            <h2 className="mt-12 mb-4 text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold text-black dark:text-white leading-tight">
+            <h2 className="mt-14 mb-6 text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold text-black dark:text-white leading-tight">
               A szenzoraink előnyei és fő jellemzői
             </h2>
             <ul className="mb-6 text-base sm:text-lg leading-relaxed text-left max-w-2xl mx-auto list-none">
@@ -304,7 +304,7 @@ const Features = () => {
         </div>
 
         <div className="container max-w-[1320px]">
-          <div className="rounded-2xl bg-transparent px-4 py-6 sm:px-5 sm:pb-14 sm:pt-14 shadow-card dark:bg-transparent dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-20 xl:px-10 relative overflow-hidden">
+          <div className="rounded-2xl bg-transparent px-4 py-6 sm:px-5 sm:pb-14 sm:pt-4 shadow-card dark:bg-transparent dark:shadow-card-dark md:pb-1 lg:pb-5 lg:pt-6 xl:px-10 relative overflow-hidden">
             {/* Progress bar */}
             <div className="absolute bottom-0 left-0 h-1 bg-primary transition-all duration-100" style={{ width: `${progress}%` }} />
 

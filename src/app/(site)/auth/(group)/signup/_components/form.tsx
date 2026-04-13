@@ -6,6 +6,7 @@ import axios from "axios";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 type Input = {
   fullName: string;
@@ -16,6 +17,8 @@ type Input = {
 };
 
 export function SignUpForm() {
+  const router = useRouter();
+
   const {
     register,
     handleSubmit,
@@ -41,8 +44,13 @@ export function SignUpForm() {
 
       toast.success("Regisztráció sikeres! Most már bejelentkezhetsz.");
       reset();
+
+      setTimeout(() => {
+        router.push("/auth/signin");
+      }, 2000);
+
     } catch (error) {
-      toast.error("Valami hiba történt.");
+      toast.error("Hiba történt.");
     }
   }
 
@@ -62,7 +70,7 @@ export function SignUpForm() {
         <InputGroup
           type="email"
           label="Munkahelyi email"
-          placeholder="Add meg az email címed"
+          placeholder="Adja meg az email címét"
           required
           {...register("email", {
             required: "Email megadása kötelező",
@@ -76,13 +84,13 @@ export function SignUpForm() {
         <InputGroup
           type="password"
           label="Jelszó"
-          placeholder="Add meg a jelszavad"
+          placeholder="Adja meg a jelszavát"
           required
           {...register("password", {
             required: "Jelszó megadása kötelező",
             validate: (value) =>
               passwordValidation(value) ||
-              "A jelszónak tartalmaznia kell legalább egy nagybetűt, egy kisbetűt, egy számot és egy speciális karaktert",
+              "A jelszónak tartalmaznia kell legalább egy nagybetűt, egy számot és egy speciális karaktert",
           })}
           errorMessages={errors.password?.message}
         />
@@ -92,7 +100,7 @@ export function SignUpForm() {
         <InputGroup
           type="password"
           label="Jelszó megerősítése"
-          placeholder="Add meg újra a jelszavad"
+          placeholder="Adja meg újra a jelszavát"
           required
           {...register("confirmPassword", {
             required: "Jelszó megerősítése kötelező",
@@ -116,7 +124,7 @@ export function SignUpForm() {
                 defaultChecked={field.value}
                 label={
                   <>
-                    A fiók létrehozásával elfogadod a{" "}
+                    A fiók létrehozásával elfogadja a{" "}
                     <Link
                       href="#"
                       target="_blank"
@@ -125,7 +133,7 @@ export function SignUpForm() {
                     >
                       Felhasználási feltételek
                     </Link>
-                    , és a mi{" "}
+                    , és az{" "}
                     <Link
                       href="#"
                       target="_blank"

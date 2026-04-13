@@ -2,12 +2,16 @@
 
 import { integrations, messages } from "@integrations-config";
 import axios, { AxiosError } from "axios";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+      document.title = "Elfelejtett jelszó - Szenzor24";
+    }, []);
 
   async function onSubmit() {
     if (!integrations?.isAuthEnabled) {
@@ -28,9 +32,9 @@ export default function Page() {
     } catch (error) {
       if (error instanceof AxiosError) {
         if (error.response?.status === 404) {
-          toast.error("Felhasználó nem található.");
+          toast.error("Ezzel az email címmel nem található felhasználó.");
         } else {
-          toast.error("Valami hiba történt.");
+          toast.error("Hiba történt.");
         }
       }
     } finally {
@@ -48,7 +52,7 @@ export default function Page() {
             </h3>
 
             <p className="text-body mb-11 text-base">
-              Add meg a fiókodhoz tartozó email címet, és küldünk egy linket a jelszó visszaállításához.
+              Adja meg a fiókjához tartozó email címet, és küldünk egy linket a jelszó visszaállításához.
             </p>
           </div>
 
@@ -63,13 +67,13 @@ export default function Page() {
                 htmlFor="email"
                 className="mb-[10px] block text-sm text-black dark:text-white"
               >
-                Email címed
+                Email cím
               </label>
 
               <input
                 ref={ref}
                 type="email"
-                placeholder="Add meg az email címed"
+                placeholder="Adja meg az email címét"
                 className="border-stroke text-body focus:border-primary focus:shadow-input dark:border-stroke-dark dark:focus:border-primary w-full rounded-md border bg-white px-6 py-3 text-base font-medium outline-hidden disabled:opacity-40 dark:bg-black dark:text-white"
                 disabled={isLoading}
                 required

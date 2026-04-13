@@ -129,7 +129,7 @@ export const authOptions: NextAuthOptions = {
 
         // if user was not found
         if (!user || !user?.password) {
-          throw new Error("Felhasználó nem található");
+          throw new Error("Hibás email-cím vagy jelszó.");
         }
 
         // check to see if passwords match
@@ -139,7 +139,7 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!passwordMatch) {
-          throw new Error("Hibás jelszó");
+          throw new Error("Hibás email-cím vagy jelszó.");
         }
 
         return user;
