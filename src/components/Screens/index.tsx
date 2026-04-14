@@ -25,7 +25,7 @@ const Screens = () => {
             <h2 className="mb-4 text-3xl font-bold text-black sm:text-4xl md:text-[44px] md:leading-tight dark:text-white">
               Térkép
             </h2>
-            <div className="text-body text-base">
+            <div className="text-base text-gray-700 dark:text-gray-300">
               <h2>Itt található a cégünk: Pécs, Kodolányi János u. 25., 7632</h2>
               Nyitvatartás: Hétfő – Péntek: 8:00 – 16:00
             </div>

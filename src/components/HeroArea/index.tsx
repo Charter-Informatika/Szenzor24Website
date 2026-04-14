@@ -120,7 +120,7 @@ const HeroArea = () => {
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-black dark:text-white mb-4">
                   Szenzor24 - Könnyű ipari és kereskedelmi szenzor megoldások
                 </h1>
-                <p className="text-body mb-6 text-base sm:text-lg leading-relaxed max-w-xl">
+                <p className="mb-6 text-base sm:text-lg leading-relaxed max-w-xl text-gray-700 dark:text-gray-300">
                   Cégünk integrált, ipari és kereskedelmi felhasználásra tervezett okos szenzor megoldásokat kínál — valós idejű adatgyűjtés, megbízható hálózati integráció és prediktív analitika az üzemi hatékonyságért.
                 </p>
 
@@ -184,7 +184,7 @@ const HeroArea = () => {
             <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-semibold text-blue-600 dark:text-blue-400 mb-4 whitespace-nowrap">
               Okos mérés, biztos döntés.
             </h2>
-            <p className="text-body text-base sm:text-lg md:text-xl leading-relaxed text-black dark:text-white">
+            <p className="text-base sm:text-lg md:text-xl leading-relaxed text-gray-700 dark:text-gray-300">
               Automatikus felügyelet, pontos mérések és azonnali értesítések – hogy semmi ne érje meglepetésként.
             </p>
           </div>

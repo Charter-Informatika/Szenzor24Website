@@ -8,7 +8,7 @@ const FooterBottom = () => {
         <div className="flex flex-col lg:flex-row items-center justify-center space-x-0 lg:space-x-12 space-y-4 lg:space-y-0 w-full">
           
           <div className="text-center lg:text-left whitespace-nowrap order-last lg:order-first">
-            <p className="text-base text-white-400">
+            <p className="text-base text-gray-400">
               &copy; {new Date().getFullYear()} Charter Informatika. <span className="hidden sm:inline">Minden jog fenntartva.</span>
             </p>
           </div>
