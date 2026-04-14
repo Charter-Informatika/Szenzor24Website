@@ -59,7 +59,7 @@ export function SignUpForm() {
       <div className="mb-5">
         <InputGroup
           label="Teljes név"
-          placeholder="Keresztnév és vezetéknév"
+          placeholder="Vezetéknév és keresztnév"
           required
           {...register("fullName", { required: "Teljes név megadása kötelező" })}
           errorMessages={errors.fullName?.message}
@@ -131,9 +131,9 @@ export function SignUpForm() {
                       rel="noopener noreferrer"
                       className="text-primary hover:underline"
                     >
-                      Felhasználási feltételek
+                      Felhasználási feltételeket
                     </Link>
-                    , és az{" "}
+                     {" "}és az{" "}
                     <Link
                       href="#"
                       target="_blank"

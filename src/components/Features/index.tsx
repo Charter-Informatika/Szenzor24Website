@@ -376,7 +376,7 @@ const Features = () => {
                         <h3 className="mb-0 sm:mb-2 lg:mb-4 text-[10px] sm:text-sm lg:text-xl font-semibold text-black dark:text-white whitespace-pre-line line-clamp-2 sm:line-clamp-none">
                           {item.title}
                         </h3>
-                        <p className="hidden sm:block text-xs lg:text-base text-body">{item.description}</p>
+                        <p className="hidden sm:block text-xs lg:text-base text-gray-700 dark:text-gray-300">{item.description}</p>
                       </div>
                     </div>
                   ))}
