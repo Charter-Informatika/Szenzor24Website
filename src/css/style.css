@@ -83,6 +83,7 @@
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+
 }
 
 @utility menu-scroll {

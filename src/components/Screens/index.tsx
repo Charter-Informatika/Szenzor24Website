@@ -26,8 +26,8 @@ const Screens = () => {
               Térkép
             </h2>
             <div className="text-body text-base">
-              <h2>Itt található a cégünk: Pécs, Kodolányi János u. 23-25, 7632</h2>
-              Hétfő – péntek: 8:00 – 16:00
+              <h2>Itt található a cégünk: Pécs, Kodolányi János u. 25., 7632</h2>
+              Nyitvatartás: Hétfő – Péntek: 8:00 – 16:00
             </div>
           </div>
         </div>
